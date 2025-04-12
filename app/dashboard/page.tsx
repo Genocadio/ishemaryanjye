@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
-import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight } from "lucide-react"
+import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
@@ -405,13 +405,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card> */}
 
-          <div className="flex justify-center">
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Link href="/game-selection">{t("dashboard.playAgain")}</Link>
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Link href="/info">{t("hero.learnMore")}</Link>
-            </Button>
+          <div className="flex justify-center gap-2">
+          <Link href="/game-selection">
+                  <Button className="inline-flex h-10 items-center justify-center rounded-md bg-green-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                    {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  </Link>
+            <Link href="/info"><Button
+                    variant="outline"
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+                  >
+                    {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+                  </Button></Link>
           </div>
         </div>
       </main>
