@@ -147,6 +147,26 @@ type TranslationKeys = {
   "game.cards.title": string;
   "game.cards.description": string;
   "game.cards.button": string;
+
+  // Waiting Room
+  "waitingRoom.title": string;
+  "waitingRoom.allConnected": string;
+  "waitingRoom.waiting": string;
+  "waitingRoom.playerGame": string;
+  "waitingRoom.playersConnected": string;
+  "waitingRoom.timeWaiting": string;
+  "waitingRoom.cancel": string;
+  "waitingRoom.startGame": string;
+  "waitingRoom.starting": string;
+  "waitingRoom.waiting_btn": string;
+  "waitingRoom.connectedPlayers": string;
+  "waitingRoom.allJoined": string;
+  "waitingRoom.waitingToJoin": string;
+  "waitingRoom.you": string;
+  "waitingRoom.connected": string;
+  "waitingRoom.readyToPlay": string;
+  "waitingRoom.player": string;
+  "waitingRoom.connecting": string;
 }
 
 type LanguageContextType = {
@@ -302,6 +322,26 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.title": "Card Meanings",
     "game.cards.description": "Understand the meaning and significance of each card in the game.",
     "game.cards.button": "View Cards",
+
+       // Waiting Room
+       "waitingRoom.title": "Waiting Room",
+       "waitingRoom.allConnected": "All players connected! Starting game...",
+       "waitingRoom.waiting": "Waiting for {0} more player{1} to join",
+       "waitingRoom.playerGame": "{0}-Player Game",
+       "waitingRoom.playersConnected": "Players Connected",
+       "waitingRoom.timeWaiting": "Time Waiting",
+       "waitingRoom.cancel": "Cancel",
+       "waitingRoom.startGame": "Start Game",
+       "waitingRoom.starting": "Starting Game...",
+       "waitingRoom.waiting_btn": "Waiting...",
+       "waitingRoom.connectedPlayers": "Connected Players",
+       "waitingRoom.allJoined": "All players have joined!",
+       "waitingRoom.waitingToJoin": "Waiting for players to join...",
+       "waitingRoom.you": "You",
+       "waitingRoom.connected": "Connected",
+       "waitingRoom.readyToPlay": "Ready to play",
+       "waitingRoom.player": "Player {0}",
+       "waitingRoom.connecting": "Connecting...",
   },
   fr: {
     // Header
@@ -448,6 +488,26 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.title": "Signification des Cartes",
     "game.cards.description": "Comprenez la signification et l'importance de chaque carte dans le jeu.",
     "game.cards.button": "Voir les Cartes",
+
+     // Waiting Room
+     "waitingRoom.title": "Salle d'Attente",
+     "waitingRoom.allConnected": "Tous les joueurs sont connectés! Démarrage du jeu...",
+     "waitingRoom.waiting": "En attente de {0} joueur{1} supplémentaire{1}",
+     "waitingRoom.playerGame": "Partie à {0} Joueurs",
+     "waitingRoom.playersConnected": "Joueurs Connectés",
+     "waitingRoom.timeWaiting": "Temps d'Attente",
+     "waitingRoom.cancel": "Annuler",
+     "waitingRoom.startGame": "Commencer la Partie",
+     "waitingRoom.starting": "Démarrage du Jeu...",
+     "waitingRoom.waiting_btn": "En Attente...",
+     "waitingRoom.connectedPlayers": "Joueurs Connectés",
+     "waitingRoom.allJoined": "Tous les joueurs ont rejoint!",
+     "waitingRoom.waitingToJoin": "En attente de joueurs...",
+     "waitingRoom.you": "Vous",
+     "waitingRoom.connected": "Connecté",
+     "waitingRoom.readyToPlay": "Prêt à jouer",
+     "waitingRoom.player": "Joueur {0}",
+     "waitingRoom.connecting": "Connexion en cours...",
   },
   rw: {
     // Header
@@ -596,6 +656,26 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.title": "Ibisobanuro by'Amakarita",
     "game.cards.description": "Sobanukirwa ibisobanuro n'ingaruka z'amakarita yose muri uyu mukino.",
     "game.cards.button": "Reba Amakarita",
+
+      // Waiting Room
+      "waitingRoom.title": "Icyumba cyo Gutegereza",
+      "waitingRoom.allConnected": "Abakinnyi bose bahuye! Gutangira umukino...",
+      "waitingRoom.waiting": "Gutegereza {0} umukinnyi{1} ukenewe",
+      "waitingRoom.playerGame": "Umukino w'Abakinnyi {0}",
+      "waitingRoom.playersConnected": "Abakinnyi Bahuye",
+      "waitingRoom.timeWaiting": "Igihe cyo Gutegereza",
+      "waitingRoom.cancel": "Kureka",
+      "waitingRoom.startGame": "Tangira Umukino",
+      "waitingRoom.starting": "Gutangira Umukino...",
+      "waitingRoom.waiting_btn": "Gutegereza...",
+      "waitingRoom.connectedPlayers": "Abakinnyi Bahuye",
+      "waitingRoom.allJoined": "Abakinnyi bose binjiye!",
+      "waitingRoom.waitingToJoin": "Gutegereza abakinnyi kwinjira...",
+      "waitingRoom.you": "Wowe",
+      "waitingRoom.connected": "Wahuye",
+      "waitingRoom.readyToPlay": "Witeguye gukina",
+      "waitingRoom.player": "Umukinnyi {0}",
+      "waitingRoom.connecting": "Guhuza...",
   },
 }
 

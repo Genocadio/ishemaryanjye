@@ -22,7 +22,11 @@ export default function GameSelection() {
     if (selectedOption === 2) {
       router.push("/game")
     } else if (selectedOption === 4 || selectedOption === 6) {
-      router.push(`/multiplayer?players=${selectedOption}`)
+      if (session) {
+        router.push(`/connect?players=${selectedOption}`)
+      } else {
+        router.push(`/multiplayer?players=${selectedOption}`)
+      }
     }
   }
 
