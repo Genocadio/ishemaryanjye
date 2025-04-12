@@ -316,7 +316,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium">Reproductive Health</span>
+                        <span className="text-sm font-medium">Ishema Ryanjye Handbook</span>
                         <span className="text-sm text-gray-500">60%</span>
                       </div>
                       <Progress value={60} className="h-2" />
