@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { SupportChat } from "@/components/support-chat"
 
 export default function Home() {
   const { t } = useLanguage()
@@ -145,12 +146,13 @@ export default function Home() {
             <div className="mx-auto flex max-w-[58rem] flex-col items-center justify-center gap-4 text-center">
               <h2 className="text-3xl font-bold leading-[1.1] sm:text-3xl md:text-5xl">{t("cta.title")}</h2>
               <p className="max-w-[85%] leading-normal text-white/80 sm:text-lg sm:leading-7">{t("cta.description")}</p>
-              <Button className="bg-white text-green-600 hover:bg-gray-100 mt-4">{t("cta.button")}</Button>
+              <Link href="/auth"><Button className="bg-white text-green-600 hover:bg-gray-100 mt-4">{t("cta.button")}</Button></Link>
             </div>
           </div>
         </section>
       </main>
       <Footer />
+      <SupportChat />
     </div>
   )
 }

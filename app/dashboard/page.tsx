@@ -10,7 +10,7 @@ import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLef
 import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-
+import { SupportChat } from "@/components/support-chat"
 interface GameStats {
   totalGames: number
   wins: number
@@ -409,6 +409,9 @@ export default function DashboardPage() {
             <Button className="bg-green-600 hover:bg-green-700">
               <Link href="/game-selection">{t("dashboard.playAgain")}</Link>
             </Button>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Link href="/info">{t("hero.learnMore")}</Link>
+            </Button>
           </div>
         </div>
       </main>
@@ -418,6 +421,7 @@ export default function DashboardPage() {
           <p className="text-xs text-gray-500">{t("footer.copyright")}</p>
         </div>
       </footer>
+      <SupportChat />
     </div>
   )
 }

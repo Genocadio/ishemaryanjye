@@ -11,6 +11,7 @@ import { CardViewer } from "@/components/card-viewer"
 import { DecorativeCards } from "@/components/decorative-cards"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { SupportChat } from "@/components/support-chat"
 
 export default function GameInfo() {
   const { t, language } = useLanguage()
@@ -233,6 +234,7 @@ export default function GameInfo() {
         </div>
       </main>
       <Footer />
+      <SupportChat />
     </div>
   )
 } 

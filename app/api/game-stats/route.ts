@@ -35,14 +35,14 @@ export async function POST(request: Request) {
     if (selectedCard) {
       const demoQuestion = {
         id: gameStats._id.toString(),
-        question: "What is the capital of France?",
+        question: "Ibyo ukwiye kwirinda mu gihe cy' ubugimbi n' ubwangavu",
         options: [
-          { id: 1, text: "London" },
-          { id: 2, text: "Paris" },
-          { id: 3, text: "Berlin" },
-          { id: 4, text: "Madrid" }
+          { id: 1, text: "kwirinda ibishuko byakuganisha ku gukora imibonano mpuzabitsina" },
+          { id: 2, text: "Ugomba guhitamo ibyiza wakwigira kubandi" },
+          { id: 3, text: "Ugomba guhorana n' urungano kugirango rukwigishe imyitwarire iyo ariyo yose." },
+          { id: 4, text: "Kwirinda ingeso mbi washorwamo nigitutut cy' urungano" }
         ],
-        correctAnswer: 2
+        correctAnswer: 3
       }
       return NextResponse.json({ success: true, gameStats, question: demoQuestion })
     }
