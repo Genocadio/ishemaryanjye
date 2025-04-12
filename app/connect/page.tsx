@@ -83,7 +83,7 @@ export default function WaitingRoomPage() {
     <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 container max-w-5xl py-12 px-4 md:px-8">
+      <main className="flex-1 container  mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12 ">
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
