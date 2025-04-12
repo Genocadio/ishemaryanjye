@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { ArrowLeft, Users, Loader2, UserCheck, Clock, AlertCircle } from "lucide
 import { SupportChat } from "@/components/support-chat"
 import { Header } from "@/components/layout/header"
 
-export default function WaitingRoomPage() {
+function ConnectContent() {
   const { t } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -83,7 +83,7 @@ export default function WaitingRoomPage() {
     <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 container  mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12 ">
+      <main className="flex-1 container  mx-auto px-4 py-12 ">
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
@@ -237,5 +237,13 @@ export default function WaitingRoomPage() {
       {/* Support Chat Component */}
       <SupportChat />
     </div>
+  )
+}
+
+export default function ConnectPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ConnectContent />
+    </Suspense>
   )
 }

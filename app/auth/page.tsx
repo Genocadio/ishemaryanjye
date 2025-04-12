@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ import { Header } from "@/components/layout/header"
 import { toast } from 'sonner'
 import { signIn, useSession } from "next-auth/react"
 
-export default function AuthPage() {
+function AuthContent() {
   const { t } = useLanguage()
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -362,5 +362,13 @@ export default function AuthPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContent />
+    </Suspense>
   )
 }

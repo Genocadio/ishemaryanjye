@@ -3,7 +3,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getTrumpSuitIcon } from "@/lib/utils/gameUtils"
 import { Suit } from "@/lib/gamer/aigamer"
 import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
 
 interface GameStatusProps {
   currentTurn: "player" | "character"
@@ -49,7 +48,12 @@ export function GameStatus({
       <div className="flex flex-col items-center gap-1 mx-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium hidden sm:inline">Trump:</span>
-          {getTrumpSuitIcon(trumpSuit)}
+          <span className={cn(
+            "text-lg",
+            trumpSuit === "Hearts" || trumpSuit === "Diamonds" ? "text-red-500" : "text-black"
+          )}>
+            {getTrumpSuitIcon(trumpSuit)}
+          </span>
         </div>
         <span className="text-xs text-gray-500 hidden sm:inline">
           {currentTurn === "player" ? "Your Turn" : `${selectedCharacter}'s Turn`}

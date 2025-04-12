@@ -1,4 +1,5 @@
 import { Card, Suit, CardValue } from '@/lib/gamer/aigamer';
+import { Heart, Diamond, Club, Spade } from 'lucide-react';
 
 const SUITS: Suit[] = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
 const VALUES: CardValue[] = ['A', 'K', 'Q', 'J', '7', '6', '5', '4', '3'];
@@ -17,6 +18,21 @@ export function createDeck(): Card[] {
   }
   
   return shuffleDeck(deck);
+}
+
+export function getTrumpSuitIcon(suit: Suit): string {
+  switch (suit) {
+    case 'Hearts':
+      return '♥';
+    case 'Diamonds':
+      return '♦';
+    case 'Clubs':
+      return '♣';
+    case 'Spades':
+      return '♠';
+    default:
+      return '';
+  }
 }
 
 function getCardPointValue(value: CardValue): number {
