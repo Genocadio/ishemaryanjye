@@ -98,8 +98,14 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Game stats not found" }, { status: 404 })
     }
 
-    // Verify the answer (in a real app, you'd check against the correct answer)
-    const isCorrect = selectedOption === "Paris" // This is a demo check
+    // Get the question data from the game stats
+    const questionData = gameStats.questionData
+    if (!questionData) {
+      return NextResponse.json({ error: "Question data not found" }, { status: 404 })
+    }
+
+    // Verify the answer by checking if the selected option matches the correct answer
+    const isCorrect = selectedOption === questionData.options[questionData.correctAnswer - 1].text
 
     if (isCorrect) {
       // Update the game stats

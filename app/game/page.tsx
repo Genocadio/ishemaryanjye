@@ -139,6 +139,11 @@ export default function DuoPlayerGame() {
 
     useEffect(() => {
         if (gameState && gameState.currentPlayer === 1 && aiPlayer && roundEvaluator) {
+            // Add the check here at the beginning of the effect
+            if (gameState.currentRound >= gameState.totalRounds) {
+                return;
+            }
+
             const delay = getAIDelay();
 
             const playAITurn = async () => {
@@ -249,7 +254,7 @@ export default function DuoPlayerGame() {
         }
 
         // Check if this is the final round
-        const isFinalRound = gameState.currentRound >= gameState.totalRounds - 1;
+        const isFinalRound = gameState.currentRound === gameState.totalRounds - 1;
 
         // Validate card index
         if (cardIndex < 0 || cardIndex >= gameState.players[0].hand.length) {
@@ -420,162 +425,110 @@ export default function DuoPlayerGame() {
                 const delay = getAIDelay();
                 await new Promise(resolve => setTimeout(resolve, delay));
 
-                // Only get AI move if it's not the final round
-                if (!isFinalRound) {
-                    const aiCardIndex = aiPlayer.getSecondPlayerMove(humanCard);
-                    if (aiCardIndex < 0 || aiCardIndex >= gameState.players[1].hand.length) {
-                        console.error('Invalid AI card index');
-                        return;
-                    }
+                // Get AI move even if it's the final round
+                const aiCardIndex = aiPlayer.getSecondPlayerMove(humanCard);
+                if (aiCardIndex < 0 || aiCardIndex >= gameState.players[1].hand.length) {
+                    console.error('Invalid AI card index');
+                    return;
+                }
 
-                    setCurrentTurn("player");
-                    const aiCard = gameState.players[1].hand[aiCardIndex];
-                    if (!aiCard) {
-                        console.error('Invalid AI card');
-                        return;
-                    }
+                setCurrentTurn("player");
+                const aiCard = gameState.players[1].hand[aiCardIndex];
+                if (!aiCard) {
+                    console.error('Invalid AI card');
+                    return;
+                }
 
-                    const aiMove = {
-                        playerId: 'ai',
-                        card: aiCard,
-                        teamId: 'team2'
-                    };
+                const aiMove = {
+                    playerId: 'ai',
+                    card: aiCard,
+                    teamId: 'team2'
+                };
 
-                    // Show character card immediately
-                    setCurrentRoundCards(prev => ({ ...prev, ai: aiCard }));
+                // Show character card immediately
+                setCurrentRoundCards(prev => ({ ...prev, ai: aiCard }));
 
-                    // Wait for 2 seconds before evaluating
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                // Wait for 2 seconds before evaluating
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-                    // Evaluate round
-                    const roundResult = roundEvaluator.evaluateRound([humanMove, aiMove], gameState.roundStake);
+                // Evaluate round
+                const roundResult = roundEvaluator.evaluateRound([humanMove, aiMove], gameState.roundStake);
 
-                    // Update game state
-                    const newGameState = { ...gameState };
-                    newGameState.players[0].hand.splice(cardIndex, 1);
-                    newGameState.players[1].hand.splice(aiCardIndex, 1);
-                    newGameState.cardsOnTable = [];
+                // Update game state
+                const newGameState = { ...gameState };
+                newGameState.players[0].hand.splice(cardIndex, 1);
+                newGameState.players[1].hand.splice(aiCardIndex, 1);
+                newGameState.cardsOnTable = [];
 
-                    // Set next player based on round winner
-                    const roundWinner = roundResult.winningPlayerId === 'human' ? 0 : 1;
-                    newGameState.currentPlayer = roundWinner;
+                // Set next player based on round winner
+                const roundWinner = roundResult.winningPlayerId === 'human' ? 0 : 1;
+                newGameState.currentPlayer = roundWinner;
 
-                    newGameState.roundStake = 0;
-                    newGameState.currentRound += 1;
-                    newGameState.roundHistory.push({
-                        player1Card: humanCard,
-                        player2Card: aiCard,
-                        winner: roundWinner,
-                        stake: gameState.roundStake
-                    });
+                newGameState.roundStake = 0;
+                newGameState.currentRound += 1;
+                newGameState.roundHistory.push({
+                    player1Card: humanCard,
+                    player2Card: aiCard,
+                    winner: roundWinner,
+                    stake: gameState.roundStake
+                });
 
-                    // Update scores and track rounds played
-                    if (roundResult.winningPlayerId === 'human') {
-                        newGameState.players[0].score += roundResult.pointsEarned;
-                        setPlayerRoundsPlayed(prev => ({ ...prev, human: prev.human + 1 }));
-                    } else {
-                        newGameState.players[1].score += roundResult.pointsEarned;
-                        setPlayerRoundsPlayed(prev => ({ ...prev, ai: prev.ai + 1 }));
-                    }
-
-                    // Update total game score
-                    setTotalGameScore(prev => {
-                        const newTotal = prev + roundResult.pointsEarned;
-                        if (newTotal > 120) {
-                            console.error('Total score exceeds 120:', newTotal);
-                            return prev;
-                        }
-                        return newTotal;
-                    });
-
-                    // Update AI memory for harder difficulty levels
-                    if (selectedDifficulty === 'Hard' || selectedDifficulty === 'Very Hard' || selectedDifficulty === 'Adaptive') {
-                        aiPlayer.updateMemory(newGameState);
-
-                        // For Adaptive difficulty, allow personality adaptation
-                        if (selectedDifficulty === 'Adaptive') {
-                            aiPlayer.adaptPersonality();
-                        }
-                    }
-
-                    setGameState(newGameState);
-                    setCurrentRoundCards({ human: null, ai: null }); // Clear playground after round evaluation
-
-                    // Check if game is over after this round
-                    if (isFinalRound) {
-                        // Log final game state with all rounds
-                        console.log('Game completed:', {
-                            humanRounds: playerRoundsPlayed.human,
-                            aiRounds: playerRoundsPlayed.ai,
-                            totalScore: totalGameScore + roundResult.pointsEarned, // Add final round points
-                            humanScore: newGameState.players[0].score,
-                            aiScore: newGameState.players[1].score,
-                            winner: newGameState.players[0].score > newGameState.players[1].score ? 'human' : 'ai',
-                            rounds: newGameState.roundHistory.map((round, index) => ({
-                                round: index + 1,
-                                humanCard: round.player1Card,
-                                aiCard: round.player2Card,
-                                winner: round.winner === 0 ? 'human' : 'ai',
-                                stake: round.stake
-                            }))
-                        });
-
-                        // Save game results if user is logged in
-                        if (session?.user) {
-                            try {
-                                const overallGameScore = newGameState.players[0].score > newGameState.players[1].score 
-                                    ? (newGameState.players[1].score < 15 ? 2 : 1)
-                                    : 0;
-
-                                const response = await fetch('/api/game-stats', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        opponentName: selectedCharacter,
-                                        gameLevel: selectedDifficulty,
-                                        userScore: newGameState.players[0].score,
-                                        opponentScore: newGameState.players[1].score,
-                                        wonByQuestion: newGameState.players[1].score < 15
-                                    }),
-                                });
-
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    setGameStatsId(data.gameStatsId);
-                                    toast.success('Game statistics saved successfully!');
-                                } else {
-                                    toast.error('Failed to save game statistics');
-                                }
-                            } catch (error) {
-                                console.error('Error saving game statistics:', error);
-                                toast.error('Failed to save game statistics');
-                            }
-                        }
-
-                        // Set game status to game-over
-                        setGameStatus("game-over");
-                        return;
-                    }
-
-                    // Show message about next player
-                    setGameMessage(roundWinner === 0 ? 'You won the round! Your turn again.' : `${selectedCharacter} won the round! ${selectedCharacter}'s turn.`);
+                // Update scores and track rounds played
+                if (roundResult.winningPlayerId === 'human') {
+                    newGameState.players[0].score += roundResult.pointsEarned;
+                    setPlayerRoundsPlayed(prev => ({ ...prev, human: prev.human + 1 }));
                 } else {
-                    // For the final round, just show the human's card and end the game
-                    setGameState(prevState => {
-                        if (!prevState) return prevState;
-                        const newState = { ...prevState };
-                        newState.players[0].hand.splice(cardIndex, 1);
-                        newState.currentRound += 1;
-                        return newState;
+                    newGameState.players[1].score += roundResult.pointsEarned;
+                    setPlayerRoundsPlayed(prev => ({ ...prev, ai: prev.ai + 1 }));
+                }
+
+                // Update total game score
+                setTotalGameScore(prev => {
+                    const newTotal = prev + roundResult.pointsEarned;
+                    if (newTotal > 120) {
+                        console.error('Total score exceeds 120:', newTotal);
+                        return prev;
+                    }
+                    return newTotal;
+                });
+
+                // Update AI memory for harder difficulty levels
+                if (selectedDifficulty === 'Hard' || selectedDifficulty === 'Very Hard' || selectedDifficulty === 'Adaptive') {
+                    aiPlayer.updateMemory(newGameState);
+
+                    // For Adaptive difficulty, allow personality adaptation
+                    if (selectedDifficulty === 'Adaptive') {
+                        aiPlayer.adaptPersonality();
+                    }
+                }
+
+                setGameState(newGameState);
+                setCurrentRoundCards({ human: null, ai: null }); // Clear playground after round evaluation
+
+                // Check if game is over after this round
+                if (isFinalRound) {
+                    // Log final game state with all rounds
+                    console.log('Game completed:', {
+                        humanRounds: playerRoundsPlayed.human,
+                        aiRounds: playerRoundsPlayed.ai,
+                        totalScore: totalGameScore + roundResult.pointsEarned, // Add final round points
+                        humanScore: newGameState.players[0].score,
+                        aiScore: newGameState.players[1].score,
+                        winner: newGameState.players[0].score > newGameState.players[1].score ? 'human' : 'ai',
+                        rounds: newGameState.roundHistory.map((round, index) => ({
+                            round: index + 1,
+                            humanCard: round.player1Card,
+                            aiCard: round.player2Card,
+                            winner: round.winner === 0 ? 'human' : 'ai',
+                            stake: round.stake
+                        }))
                     });
 
                     // Save game results if user is logged in
                     if (session?.user) {
                         try {
-                            const overallGameScore = gameState.players[0].score > gameState.players[1].score 
-                                ? (gameState.players[1].score < 15 ? 2 : 1)
+                            const overallGameScore = newGameState.players[0].score > newGameState.players[1].score 
+                                ? (newGameState.players[1].score < 15 ? 2 : 1)
                                 : 0;
 
                             const response = await fetch('/api/game-stats', {
@@ -586,9 +539,9 @@ export default function DuoPlayerGame() {
                                 body: JSON.stringify({
                                     opponentName: selectedCharacter,
                                     gameLevel: selectedDifficulty,
-                                    userScore: gameState.players[0].score,
-                                    opponentScore: gameState.players[1].score,
-                                    wonByQuestion: gameState.players[1].score < 15
+                                    userScore: newGameState.players[0].score,
+                                    opponentScore: newGameState.players[1].score,
+                                    wonByQuestion: newGameState.players[1].score < 15
                                 }),
                             });
 
@@ -607,7 +560,11 @@ export default function DuoPlayerGame() {
 
                     // Set game status to game-over
                     setGameStatus("game-over");
+                    return;
                 }
+
+                // Show message about next player
+                setGameMessage(roundWinner === 0 ? 'You won the round! Your turn again.' : `${selectedCharacter} won the round! ${selectedCharacter}'s turn.`);
             } catch (error) {
                 console.error('Error during AI turn:', error);
                 setGameMessage('An error occurred during the AI turn.');
