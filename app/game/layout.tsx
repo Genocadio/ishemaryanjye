@@ -1,7 +1,14 @@
+import CardPreloader from "@/components/layout/CardPreloader";
+
 export default function GameLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return <>{children}</>
+  return (
+    <>
+      <CardPreloader />
+      {children}
+    </>
+  )
 } 

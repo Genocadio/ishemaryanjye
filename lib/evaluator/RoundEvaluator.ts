@@ -186,9 +186,27 @@ export class RoundEvaluator {
     
     // Handle simple 2-player case first
     if (teamIds.length === 2 && teamMoves[teamIds[0]].length === 1 && teamMoves[teamIds[1]].length === 1) {
-      const result = this.determineWinningMove(teamMoves[teamIds[0]][0], teamMoves[teamIds[1]][0]);
-      this.log('Winning team determined:', result);
-      return result;
+      const firstMove = teamMoves[teamIds[0]][0];
+      const secondMove = teamMoves[teamIds[1]][0];
+      
+      // Determine which move wins
+      if (secondMove.card.suit === firstMove.card.suit) {
+        // Same suit, compare values
+        if (this.compareCardValues(secondMove.card.value, firstMove.card.value) > 0) {
+          return {winningTeam: secondMove.teamId, winningPlayerId: secondMove.playerId};
+        } else {
+          return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
+        }
+      } else if (secondMove.card.suit === this.trumpSuit) {
+        // Second player played trump
+        return {winningTeam: secondMove.teamId, winningPlayerId: secondMove.playerId};
+      } else if (firstMove.card.suit === this.trumpSuit) {
+        // First player played trump
+        return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
+      } else {
+        // Neither player followed suit or played trump - first player wins
+        return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
+      }
     }
     
     // For multi-player teams, find the best card from each team
@@ -235,45 +253,6 @@ export class RoundEvaluator {
     };
     this.log('Winning team determined:', result);
     return result;
-  }
-
-  // Determine which move wins in a two-player scenario
-  private determineWinningMove(firstMove: PlayerMove, secondMove: PlayerMove): {
-    winningTeam: string;
-    winningPlayerId: string;
-  } {
-    // Check for special A & 7 trump round scenario
-    if (this.isSpecialTrumpRound(firstMove.card, secondMove.card)) {
-      // If trump A catches trump 7, special win condition
-      if ((firstMove.card.value === 'A' && secondMove.card.value === '7') ||
-          (firstMove.card.value === '7' && secondMove.card.value === 'A')) {
-        // The player who played the A wins
-        if (firstMove.card.value === 'A') {
-          return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
-        } else {
-          return {winningTeam: secondMove.teamId, winningPlayerId: secondMove.playerId};
-        }
-      }
-    }
-
-    // Regular winning logic
-    if (secondMove.card.suit === firstMove.card.suit) {
-      // Same suit, compare values
-      if (this.compareCardValues(secondMove.card.value, firstMove.card.value) > 0) {
-        return {winningTeam: secondMove.teamId, winningPlayerId: secondMove.playerId};
-      } else {
-        return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
-      }
-    } else if (secondMove.card.suit === this.trumpSuit) {
-      // Second player played trump
-      return {winningTeam: secondMove.teamId, winningPlayerId: secondMove.playerId};
-    } else if (firstMove.card.suit === this.trumpSuit) {
-      // First player played trump
-      return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
-    } else {
-      // Neither player followed suit or played trump - first player wins
-      return {winningTeam: firstMove.teamId, winningPlayerId: firstMove.playerId};
-    }
   }
 
   // Rate a single move in the context of the entire round

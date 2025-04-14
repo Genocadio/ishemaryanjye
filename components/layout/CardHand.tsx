@@ -16,7 +16,7 @@ export default function CardHand({ cards, onCardSelect, className, disabled = fa
   return (
     <div className={`w-full ${className}`}>
       {/* First row - always visible */}
-      <div className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide">
+      <div className="flex justify-center overflow-x-auto gap-4 pb-4 scrollbar-hide">
         {cards.map((card, index) => (
           <div key={index} className="flex-shrink-0 md:hidden">
             <CardComponent
@@ -40,7 +40,7 @@ export default function CardHand({ cards, onCardSelect, className, disabled = fa
 
       {/* Second row - only visible on larger screens */}
       {needsTwoRows && (
-        <div className="hidden md:flex overflow-x-auto gap-4 scrollbar-hide">
+        <div className="hidden md:flex justify-center overflow-x-auto gap-4 scrollbar-hide">
           {cards.slice(cardsPerRow).map((card, index) => (
             <div key={index + cardsPerRow} className="flex-shrink-0">
               <CardComponent

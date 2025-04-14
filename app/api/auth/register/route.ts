@@ -64,8 +64,9 @@ export async function POST(request: Request) {
 
     // Create new user
     console.log('Creating new user...');
+    let user = null
     try {
-      const user = new User(userData);
+      user = new User(userData);
       await user.save();
       console.log('User created successfully:', user._id);
     } catch (saveError) {
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
         { status: 500 }
       );
     }
+    
 
     // Return user data (excluding password)
     const { password: _, ...userWithoutPassword } = user.toObject();

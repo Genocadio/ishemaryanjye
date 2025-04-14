@@ -23,6 +23,7 @@ import { useSession } from "next-auth/react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import CardChoice from "@/components/layout/CardChoice"
+import CardHolder from "@/components/layout/CardHolder"
 
 type Character = "Shema" | "Teta"
 type GameStatus = "character-selection" | "playing" | "game-over" | "cancelled"
@@ -97,8 +98,11 @@ export default function DuoPlayerGame() {
             // Create and shuffle deck
             const deck = createDeck();
 
-            // Deal 18 cards to each player (total 36 cards)
-            const hands = dealCards(deck, 2, 18);
+            // Deal 3 cards to each player initially
+            const hands = dealCards(deck, 2, 3);
+
+            // The remaining cards go to the card holder
+            const cardHolder = [...deck];
 
             // Randomly select starting player (0 for human, 1 for AI)
             const startingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
@@ -115,7 +119,8 @@ export default function DuoPlayerGame() {
                 roundStake: 0,
                 roundHistory: [],
                 currentRound: 0,
-                totalRounds: 18
+                totalRounds: 18,
+                cardHolder: cardHolder // Add the remaining cards to the card holder
             };
 
             // Initialize AI player with selected difficulty and fixed personality
@@ -320,6 +325,21 @@ export default function DuoPlayerGame() {
                     stake: gameState.roundStake
                 });
 
+                // Draw new cards for both players from the card holder
+                if (newGameState.cardHolder && newGameState.cardHolder.length > 0) {
+                    // Winner draws first
+                    const winnerCard = newGameState.cardHolder.pop();
+                    if (winnerCard) {
+                        newGameState.players[roundWinner].hand.push(winnerCard);
+                    }
+                    
+                    // Loser draws second
+                    const loserCard = newGameState.cardHolder.pop();
+                    if (loserCard) {
+                        newGameState.players[1 - roundWinner].hand.push(loserCard);
+                    }
+                }
+
                 // Update scores and track rounds played
                 if (roundResult.winningPlayerId === 'human') {
                     newGameState.players[0].score += roundResult.pointsEarned;
@@ -472,6 +492,21 @@ export default function DuoPlayerGame() {
                     winner: roundWinner,
                     stake: gameState.roundStake
                 });
+
+                // Draw new cards for both players from the card holder
+                if (newGameState.cardHolder && newGameState.cardHolder.length > 0) {
+                    // Winner draws first
+                    const winnerCard = newGameState.cardHolder.pop();
+                    if (winnerCard) {
+                        newGameState.players[roundWinner].hand.push(winnerCard);
+                    }
+                    
+                    // Loser draws second
+                    const loserCard = newGameState.cardHolder.pop();
+                    if (loserCard) {
+                        newGameState.players[1 - roundWinner].hand.push(loserCard);
+                    }
+                }
 
                 // Update scores and track rounds played
                 if (roundResult.winningPlayerId === 'human') {
@@ -700,10 +735,13 @@ export default function DuoPlayerGame() {
 
                         {/* Playground */}
                         <Progress value={gameState.currentRound / gameState.totalRounds * 100} />
-                        <PlaygroundArea 
-                          humanCard={currentRoundCards.human}
-                          aiCard={currentRoundCards.ai}
-                        />
+                        <div className="flex justify-between items-center">
+                            <PlaygroundArea 
+                                humanCard={currentRoundCards.human}
+                                aiCard={currentRoundCards.ai}
+                            />
+                            <CardHolder cards={gameState.cardHolder} />
+                        </div>
 
                         {/* Your Hand */}
                         <CompactCard title="Your Hand">
@@ -811,22 +849,24 @@ export default function DuoPlayerGame() {
                                     setTotalGameScore(0);
                                     
                                     // Reinitialize the game
-                                    const deck = createDeck();
-                                    const hands = dealCards(deck, 2, 18);
-                                    const startingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
+                                    const newDeck = createDeck();
+                                    const newHands = dealCards(newDeck, 2, 3);
+                                    const newCardHolder = [...newDeck];
+                                    const newStartingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
                                     
                                     const initialGameState: GameState = {
                                         trumpSuit: getRandomTrumpSuit(),
                                         players: [
-                                            { hand: hands[0], collectedCards: [], score: 0 },
-                                            { hand: hands[1], collectedCards: [], score: 0 }
+                                            { hand: newHands[0], collectedCards: [], score: 0 },
+                                            { hand: newHands[1], collectedCards: [], score: 0 }
                                         ],
-                                        currentPlayer: startingPlayer,
+                                        currentPlayer: newStartingPlayer,
                                         cardsOnTable: [],
                                         roundStake: 0,
                                         roundHistory: [],
                                         currentRound: 0,
-                                        totalRounds: 18
+                                        totalRounds: 18,
+                                        cardHolder: newCardHolder
                                     };
                                     
                                     const ai = new CardGameAI('Analytical', selectedDifficulty);
@@ -837,8 +877,8 @@ export default function DuoPlayerGame() {
                                     setGameState(initialGameState);
                                     setAiPlayer(ai);
                                     setRoundEvaluator(evaluator);
-                                    setCurrentTurn(startingPlayer === 0 ? "player" : "character");
-                                    setGameMessage(startingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
+                                    setCurrentTurn(newStartingPlayer === 0 ? "player" : "character");
+                                    setGameMessage(newStartingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
                                 }}
                                 className="bg-green-600 hover:bg-green-700 text-white px-8"
                             >

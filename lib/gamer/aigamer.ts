@@ -64,6 +64,7 @@ export type GameState = {
   roundHistory: RoundHistory[];
   currentRound: number;
   totalRounds: number;
+  cardHolder?: Card[]; // Make cardHolder optional
 };
 
 // AI personality types
