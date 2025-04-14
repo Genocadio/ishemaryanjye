@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 
 const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
-const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+const values = [ '3', '4', '5', '6', '7', 'J', 'Q', 'K', 'A'];
 
 export default function CardPreloader() {
     useEffect(() => {
@@ -11,7 +11,7 @@ export default function CardPreloader() {
         suits.forEach(suit => {
             values.forEach(value => {
                 const img = new Image();
-                img.src = `/cards/${value}_of_${suit}.png`;
+                img.src = `/cards/${suit}/${value}.webp`;
             });
         });
     }, []);
