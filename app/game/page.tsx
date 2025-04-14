@@ -274,6 +274,11 @@ export default function DuoPlayerGame() {
             return;
         }
 
+        // Create a new game state and immediately remove the card from hand
+        const newGameState = { ...gameState };
+        newGameState.players[0].hand.splice(cardIndex, 1);
+        setGameState(newGameState);
+
         const humanMove = {
             playerId: 'human',
             card: humanCard,
@@ -307,18 +312,17 @@ export default function DuoPlayerGame() {
                 const roundResult = roundEvaluator.evaluateRound([aiMove, humanMove], gameState.roundStake);
 
                 // Update game state
-                const newGameState = { ...gameState };
-                newGameState.players[0].hand.splice(cardIndex, 1);
-                newGameState.cardsOnTable = [];
+                const updatedGameState = { ...newGameState };
+                updatedGameState.cardsOnTable = [];
 
                 // Set next player based on round winner
                 const roundWinner = roundResult.winningPlayerId === 'human' ? 0 : 1;
-                newGameState.currentPlayer = roundWinner;
+                updatedGameState.currentPlayer = roundWinner;
                 setCurrentTurn(roundWinner === 0 ? "player" : "character");
 
-                newGameState.roundStake = 0;
-                newGameState.currentRound += 1;
-                newGameState.roundHistory.push({
+                updatedGameState.roundStake = 0;
+                updatedGameState.currentRound += 1;
+                updatedGameState.roundHistory.push({
                     player1Card: aiCard,
                     player2Card: humanCard,
                     winner: roundWinner,
@@ -326,26 +330,26 @@ export default function DuoPlayerGame() {
                 });
 
                 // Draw new cards for both players from the card holder
-                if (newGameState.cardHolder && newGameState.cardHolder.length > 0) {
+                if (updatedGameState.cardHolder && updatedGameState.cardHolder.length > 0) {
                     // Winner draws first
-                    const winnerCard = newGameState.cardHolder.pop();
+                    const winnerCard = updatedGameState.cardHolder.pop();
                     if (winnerCard) {
-                        newGameState.players[roundWinner].hand.push(winnerCard);
+                        updatedGameState.players[roundWinner].hand.push(winnerCard);
                     }
                     
                     // Loser draws second
-                    const loserCard = newGameState.cardHolder.pop();
+                    const loserCard = updatedGameState.cardHolder.pop();
                     if (loserCard) {
-                        newGameState.players[1 - roundWinner].hand.push(loserCard);
+                        updatedGameState.players[1 - roundWinner].hand.push(loserCard);
                     }
                 }
 
                 // Update scores and track rounds played
                 if (roundResult.winningPlayerId === 'human') {
-                    newGameState.players[0].score += roundResult.pointsEarned;
+                    updatedGameState.players[0].score += roundResult.pointsEarned;
                     setPlayerRoundsPlayed(prev => ({ ...prev, human: prev.human + 1 }));
                 } else {
-                    newGameState.players[1].score += roundResult.pointsEarned;
+                    updatedGameState.players[1].score += roundResult.pointsEarned;
                     setPlayerRoundsPlayed(prev => ({ ...prev, ai: prev.ai + 1 }));
                 }
 
@@ -361,7 +365,7 @@ export default function DuoPlayerGame() {
 
                 // Update AI memory for harder difficulty levels
                 if (selectedDifficulty === 'Hard' || selectedDifficulty === 'Very Hard' || selectedDifficulty === 'Adaptive') {
-                    aiPlayer.updateMemory(newGameState);
+                    aiPlayer.updateMemory(updatedGameState);
 
                     // For Adaptive difficulty, allow personality adaptation
                     if (selectedDifficulty === 'Adaptive') {
@@ -369,7 +373,7 @@ export default function DuoPlayerGame() {
                     }
                 }
 
-                setGameState(newGameState);
+                setGameState(updatedGameState);
                 setCurrentRoundCards({ human: null, ai: null }); // Clear playground after round evaluation
 
                 // Check if game is over after this round
@@ -379,10 +383,10 @@ export default function DuoPlayerGame() {
                         humanRounds: playerRoundsPlayed.human,
                         aiRounds: playerRoundsPlayed.ai,
                         totalScore: totalGameScore + roundResult.pointsEarned, // Add final round points
-                        humanScore: newGameState.players[0].score,
-                        aiScore: newGameState.players[1].score,
-                        winner: newGameState.players[0].score > newGameState.players[1].score ? 'human' : 'ai',
-                        rounds: newGameState.roundHistory.map((round, index) => ({
+                        humanScore: updatedGameState.players[0].score,
+                        aiScore: updatedGameState.players[1].score,
+                        winner: updatedGameState.players[0].score > updatedGameState.players[1].score ? 'human' : 'ai',
+                        rounds: updatedGameState.roundHistory.map((round, index) => ({
                             round: index + 1,
                             humanCard: round.player1Card,
                             aiCard: round.player2Card,
@@ -394,8 +398,8 @@ export default function DuoPlayerGame() {
                     // Save game results if user is logged in
                     if (session?.user) {
                         try {
-                            const overallGameScore = newGameState.players[0].score > newGameState.players[1].score 
-                                ? (newGameState.players[1].score < 15 ? 2 : 1)
+                            const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
+                                ? (updatedGameState.players[1].score < 15 ? 2 : 1)
                                 : 0;
 
                             const response = await fetch('/api/game-stats', {
@@ -406,9 +410,9 @@ export default function DuoPlayerGame() {
                                 body: JSON.stringify({
                                     opponentName: selectedCharacter,
                                     gameLevel: selectedDifficulty,
-                                    userScore: newGameState.players[0].score,
-                                    opponentScore: newGameState.players[1].score,
-                                    wonByQuestion: newGameState.players[1].score < 15
+                                    userScore: updatedGameState.players[0].score,
+                                    opponentScore: updatedGameState.players[1].score,
+                                    wonByQuestion: updatedGameState.players[1].score < 15
                                 }),
                             });
 
@@ -447,17 +451,21 @@ export default function DuoPlayerGame() {
 
                 // Get AI move even if it's the final round
                 const aiCardIndex = aiPlayer.getSecondPlayerMove(humanCard);
-                if (aiCardIndex < 0 || aiCardIndex >= gameState.players[1].hand.length) {
+                if (aiCardIndex < 0 || aiCardIndex >= newGameState.players[1].hand.length) {
                     console.error('Invalid AI card index');
                     return;
                 }
 
                 setCurrentTurn("player");
-                const aiCard = gameState.players[1].hand[aiCardIndex];
+                const aiCard = newGameState.players[1].hand[aiCardIndex];
                 if (!aiCard) {
                     console.error('Invalid AI card');
                     return;
                 }
+
+                // Remove AI card from hand
+                newGameState.players[1].hand.splice(aiCardIndex, 1);
+                setGameState(newGameState);
 
                 const aiMove = {
                     playerId: 'ai',
@@ -475,18 +483,16 @@ export default function DuoPlayerGame() {
                 const roundResult = roundEvaluator.evaluateRound([humanMove, aiMove], gameState.roundStake);
 
                 // Update game state
-                const newGameState = { ...gameState };
-                newGameState.players[0].hand.splice(cardIndex, 1);
-                newGameState.players[1].hand.splice(aiCardIndex, 1);
-                newGameState.cardsOnTable = [];
+                const updatedGameState = { ...newGameState };
+                updatedGameState.cardsOnTable = [];
 
                 // Set next player based on round winner
                 const roundWinner = roundResult.winningPlayerId === 'human' ? 0 : 1;
-                newGameState.currentPlayer = roundWinner;
+                updatedGameState.currentPlayer = roundWinner;
 
-                newGameState.roundStake = 0;
-                newGameState.currentRound += 1;
-                newGameState.roundHistory.push({
+                updatedGameState.roundStake = 0;
+                updatedGameState.currentRound += 1;
+                updatedGameState.roundHistory.push({
                     player1Card: humanCard,
                     player2Card: aiCard,
                     winner: roundWinner,
@@ -494,26 +500,26 @@ export default function DuoPlayerGame() {
                 });
 
                 // Draw new cards for both players from the card holder
-                if (newGameState.cardHolder && newGameState.cardHolder.length > 0) {
+                if (updatedGameState.cardHolder && updatedGameState.cardHolder.length > 0) {
                     // Winner draws first
-                    const winnerCard = newGameState.cardHolder.pop();
+                    const winnerCard = updatedGameState.cardHolder.pop();
                     if (winnerCard) {
-                        newGameState.players[roundWinner].hand.push(winnerCard);
+                        updatedGameState.players[roundWinner].hand.push(winnerCard);
                     }
                     
                     // Loser draws second
-                    const loserCard = newGameState.cardHolder.pop();
+                    const loserCard = updatedGameState.cardHolder.pop();
                     if (loserCard) {
-                        newGameState.players[1 - roundWinner].hand.push(loserCard);
+                        updatedGameState.players[1 - roundWinner].hand.push(loserCard);
                     }
                 }
 
                 // Update scores and track rounds played
                 if (roundResult.winningPlayerId === 'human') {
-                    newGameState.players[0].score += roundResult.pointsEarned;
+                    updatedGameState.players[0].score += roundResult.pointsEarned;
                     setPlayerRoundsPlayed(prev => ({ ...prev, human: prev.human + 1 }));
                 } else {
-                    newGameState.players[1].score += roundResult.pointsEarned;
+                    updatedGameState.players[1].score += roundResult.pointsEarned;
                     setPlayerRoundsPlayed(prev => ({ ...prev, ai: prev.ai + 1 }));
                 }
 
@@ -529,7 +535,7 @@ export default function DuoPlayerGame() {
 
                 // Update AI memory for harder difficulty levels
                 if (selectedDifficulty === 'Hard' || selectedDifficulty === 'Very Hard' || selectedDifficulty === 'Adaptive') {
-                    aiPlayer.updateMemory(newGameState);
+                    aiPlayer.updateMemory(updatedGameState);
 
                     // For Adaptive difficulty, allow personality adaptation
                     if (selectedDifficulty === 'Adaptive') {
@@ -537,8 +543,8 @@ export default function DuoPlayerGame() {
                     }
                 }
 
-                setGameState(newGameState);
-                setCurrentRoundCards({ human: null, ai: null }); // Clear playground after round evaluation
+                setGameState(updatedGameState);
+                setCurrentRoundCards({ human: null, ai: null });
 
                 // Check if game is over after this round
                 if (isFinalRound) {
@@ -547,10 +553,10 @@ export default function DuoPlayerGame() {
                         humanRounds: playerRoundsPlayed.human,
                         aiRounds: playerRoundsPlayed.ai,
                         totalScore: totalGameScore + roundResult.pointsEarned, // Add final round points
-                        humanScore: newGameState.players[0].score,
-                        aiScore: newGameState.players[1].score,
-                        winner: newGameState.players[0].score > newGameState.players[1].score ? 'human' : 'ai',
-                        rounds: newGameState.roundHistory.map((round, index) => ({
+                        humanScore: updatedGameState.players[0].score,
+                        aiScore: updatedGameState.players[1].score,
+                        winner: updatedGameState.players[0].score > updatedGameState.players[1].score ? 'human' : 'ai',
+                        rounds: updatedGameState.roundHistory.map((round, index) => ({
                             round: index + 1,
                             humanCard: round.player1Card,
                             aiCard: round.player2Card,
@@ -562,8 +568,8 @@ export default function DuoPlayerGame() {
                     // Save game results if user is logged in
                     if (session?.user) {
                         try {
-                            const overallGameScore = newGameState.players[0].score > newGameState.players[1].score 
-                                ? (newGameState.players[1].score < 15 ? 2 : 1)
+                            const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
+                                ? (updatedGameState.players[1].score < 15 ? 2 : 1)
                                 : 0;
 
                             const response = await fetch('/api/game-stats', {
@@ -574,9 +580,9 @@ export default function DuoPlayerGame() {
                                 body: JSON.stringify({
                                     opponentName: selectedCharacter,
                                     gameLevel: selectedDifficulty,
-                                    userScore: newGameState.players[0].score,
-                                    opponentScore: newGameState.players[1].score,
-                                    wonByQuestion: newGameState.players[1].score < 15
+                                    userScore: updatedGameState.players[0].score,
+                                    opponentScore: updatedGameState.players[1].score,
+                                    wonByQuestion: updatedGameState.players[1].score < 15
                                 }),
                             });
 
