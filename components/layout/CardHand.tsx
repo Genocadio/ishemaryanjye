@@ -16,7 +16,7 @@ export default function CardHand({ cards, onCardSelect, className, disabled = fa
   return (
     <div className={`w-full ${className}`}>
       {/* First row - always visible */}
-      <div className="flex justify-center overflow-x-auto gap-4 pb-4 scrollbar-hide">
+      <div className="flex justify-center overflow-x-auto gap-2 pb-4 scrollbar-hide">
         {cards.map((card, index) => (
           <div key={index} className="flex-shrink-0 md:hidden">
             <CardComponent

@@ -33,7 +33,6 @@ export function Header({ variant = "default" }: HeaderProps) {
           </nav>
         )}
         <div className="ml-auto flex items-center space-x-4">
-          <LanguageSelector />
           {variant === "home" && (
             <Link href="/auth">
               <Button>{t("nav.getStarted")}</Button>
@@ -42,44 +41,53 @@ export function Header({ variant = "default" }: HeaderProps) {
           {variant === "default" && (
             <>
               {status === "authenticated" ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                <>
+                  <Link href="/dashboard">
                     <Button variant="outline" size="sm" className="h-8 gap-1">
-                      <User className="h-4 w-4" />
-                      <span className="hidden sm:inline">{session.user?.name}</span>
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span className="hidden sm:inline">Dashboard</span>
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="flex items-center">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" className="flex items-center">
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-red-600 focus:text-red-600"
-                      onClick={() => signOut()}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </Link>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="h-8 gap-1">
+                        <User className="h-4 w-4" />
+                        <span className="hidden sm:inline">{session.user?.name}</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile" className="flex items-center">
+                          <User className="mr-2 h-4 w-4" />
+                          Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <div className="px-2 py-1.5">
+                        <LanguageSelector />
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-red-600 focus:text-red-600"
+                        onClick={() => signOut()}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
               ) : (
-                <Link href="/auth">
-                  <Button variant="outline" size="sm" className="h-8">
-                    {t("auth.signin")}
-                  </Button>
-                </Link>
+                <>
+                  <LanguageSelector />
+                  <Link href="/auth">
+                    <Button variant="outline" size="sm" className="h-8">
+                      {t("auth.signin")}
+                    </Button>
+                  </Link>
+                </>
               )}
             </>
           )}
