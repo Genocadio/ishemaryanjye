@@ -16,6 +16,11 @@ import { toast } from "sonner"
 
 export default function GameInfo() {
   const { t, language } = useLanguage()
+  
+  console.log('Current language:', language);
+  console.log('Download prompt translation:', t("game.health.downloadPrompt"));
+  console.log('Cancel translation:', t("common.cancel"));
+  console.log('Download translation:', t("common.download"));
 
   const rules = {
     en: {
@@ -200,7 +205,15 @@ export default function GameInfo() {
                   <p className="text-gray-600 mb-6">{t("game.health.description")}</p>
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
+                      <Button 
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          console.log('Dialog opened with language:', language);
+                          console.log('Download prompt:', t("game.health.downloadPrompt"));
+                          console.log('Cancel text:', t("common.cancel"));
+                          console.log('Download text:', t("common.download"));
+                        }}
+                      >
                         {t("game.health.button")}
                       </Button>
                     </DialogTrigger>

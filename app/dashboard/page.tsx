@@ -166,7 +166,7 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.easy")}</span>
                     </div>
                     <Badge variant="outline" className="bg-green-50">
-                      {Math.round((gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100)}% of total games
+                      {Math.round((gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100)}% of total won games
                     </Badge>
                   </div>
                   <Progress
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.medium")}</span>
                     </div>
                     <Badge variant="outline" className="bg-yellow-50">
-                      {Math.round((gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100)}% of total games
+                      {Math.round((gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100)}% of total won games
                     </Badge>
                   </div>
                   <Progress
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.hard")}</span>
                     </div>
                     <Badge variant="outline" className="bg-red-50">
-                      {Math.round((gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100)}% of total games
+                      {Math.round((gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100)}% of total won games
                     </Badge>
                   </div>
                   <Progress
