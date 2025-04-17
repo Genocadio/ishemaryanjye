@@ -43,8 +43,8 @@ export function SupportChat() {
   const chatWindowRef = useRef<HTMLDivElement>(null)
   const isResizing = useRef(false)
 
-  const apiUrl = 'http://127.0.0.1:8000/chat-bot/'
-  const botConfigurationUrl = 'http://127.0.0.1:8000/chat-bot-config/'
+  const apiUrl = 'https://ishema-bot-backend-django-production.up.railway.app/chat-bot/'
+  const botConfigurationUrl = 'https://ishema-bot-backend-django-production.up.railway.app/chat-bot-config/'
 
   // Load chat state from localStorage on component mount
   useEffect(() => {
