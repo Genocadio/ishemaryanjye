@@ -8,6 +8,17 @@ const withPWA = require('next-pwa')({
   disable: false, // Disable in development mode
 });
 
-module.exports = withPWA({
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   reactStrictMode: true,
-}); 
+  experimental: {
+    turbo: {
+      rules: {
+        // Optionally configure Turbopack rules here
+      }
+    }
+  },
+  // Add any other Next.js config options here
+}
+
+module.exports = nextConfig 

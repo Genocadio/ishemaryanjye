@@ -3,6 +3,17 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/mongodb"
 import GameStats from "@/lib/models/game-stats"
+import { questions } from "@/lib/data/questions"
+
+// Function to shuffle array using Fisher-Yates algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const newArray = [...array]
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[newArray[i], newArray[j]] = [newArray[j], newArray[i]]
+  }
+  return newArray
+}
 
 export async function POST(request: Request) {
   try {
@@ -90,42 +101,20 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    console.log('Starting game stats fetch...');
-    
     const session = await getServerSession(authOptions)
     if (!session?.user?.id) {
-      console.log('Unauthorized game stats fetch attempt');
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    console.log('Attempting to connect to MongoDB...');
-    try {
-      await connectDB()
-      console.log('Successfully connected to MongoDB');
-    } catch (dbError) {
-      console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 503 }
-      );
-    }
+    // Shuffle questions and select 5 random ones
+    const shuffledQuestions = shuffleArray(questions)
+    const selectedQuestions = shuffledQuestions.slice(0, 5)
 
-    console.log('Fetching game stats for user:', session.user.id);
-    const gameStats = await GameStats.find({ userId: session.user.id })
-      .sort({ createdAt: -1 })
-
-    console.log('Game stats fetched successfully');
-    return NextResponse.json({ gameStats })
+    return NextResponse.json({ questions: selectedQuestions })
   } catch (error) {
-    console.error("Error fetching game stats:", error)
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    }
+    console.error('Error fetching questions:', error)
     return NextResponse.json(
-      { error: "Failed to fetch game statistics" },
+      { error: 'Failed to fetch questions' },
       { status: 500 }
     )
   }
