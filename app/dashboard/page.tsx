@@ -166,11 +166,11 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.easy")}</span>
                     </div>
                     <Badge variant="outline" className="bg-green-50">
-                      {gameStats.byDifficulty.easy.won} / {gameStats.byDifficulty.easy.played}
+                      {Math.round((gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100)}% of total games
                     </Badge>
                   </div>
                   <Progress
-                    value={(gameStats.byDifficulty.easy.won / gameStats.byDifficulty.easy.played) * 100}
+                    value={(gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100}
                     className="h-2 bg-gray-100"
                   />
                 </div>
@@ -182,11 +182,11 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.medium")}</span>
                     </div>
                     <Badge variant="outline" className="bg-yellow-50">
-                      {gameStats.byDifficulty.medium.won} / {gameStats.byDifficulty.medium.played}
+                      {Math.round((gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100)}% of total games
                     </Badge>
                   </div>
                   <Progress
-                    value={(gameStats.byDifficulty.medium.won / gameStats.byDifficulty.medium.played) * 100}
+                    value={(gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100}
                     className="h-2 bg-gray-100"
                   />
                 </div>
@@ -198,11 +198,11 @@ export default function DashboardPage() {
                       <span className="font-medium">{t("dashboard.hard")}</span>
                     </div>
                     <Badge variant="outline" className="bg-red-50">
-                      {gameStats.byDifficulty.hard.won} / {gameStats.byDifficulty.hard.played}
+                      {Math.round((gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100)}% of total games
                     </Badge>
                   </div>
                   <Progress
-                    value={(gameStats.byDifficulty.hard.won / gameStats.byDifficulty.hard.played) * 100}
+                    value={(gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100}
                     className="h-2 bg-gray-100"
                   />
                 </div>

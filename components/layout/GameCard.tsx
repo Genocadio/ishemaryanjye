@@ -16,11 +16,11 @@ function CompactCard({ className, title, children, ...props }: CompactCardProps)
       {...props}
     >
       {title && (
-        <div className="px-4 py-2 border-b">
+        <div className="px-2 py-2 border-b">
           <h3 className="text-lg font-semibold text-center">{title}</h3>
         </div>
       )}
-      <div className="px-4 py-2 flex items-center justify-center">
+      <div className="px-0 py-2 flex items-center justify-center">
         {children}
       </div>
     </div>

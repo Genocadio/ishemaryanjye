@@ -144,6 +144,8 @@ type TranslationKeys = {
   "game.health.title": string;
   "game.health.description": string;
   "game.health.button": string;
+  "game.health.downloadPrompt": string;
+  "game.health.downloadSuccess": string;
   "game.cards.title": string;
   "game.cards.description": string;
   "game.cards.button": string;
@@ -167,6 +169,10 @@ type TranslationKeys = {
   "waitingRoom.readyToPlay": string;
   "waitingRoom.player": string;
   "waitingRoom.connecting": string;
+
+  // Common
+  "common.cancel": string;
+  "common.download": string;
 }
 
 type LanguageContextType = {
@@ -316,9 +322,11 @@ const translations: Record<Language, TranslationKeys> = {
     "game.rules.title": "Game Rules",
     "game.rules.description": "Learn how to play Ishema Ryanjye and understand the game mechanics.",
     "game.rules.button": "View Rules",
-    "game.health.title": "Reproductive Health",
-    "game.health.description": "Learn about reproductive health, STI prevention, and gender equality.",
-    "game.health.button": "Learn More",
+    "game.health.title": "Get Ishema Handbook",
+    "game.health.description": "Download the complete Ishema Ryanjye handbook to learn more about reproductive health and well-being.",
+    "game.health.button": "Get Handbook",
+    "game.health.downloadPrompt": "Would you like to download the Ishema Ryanjye handbook?",
+    "game.health.downloadSuccess": "Handbook download started!",
     "game.cards.title": "Card Meanings",
     "game.cards.description": "Understand the meaning and significance of each card in the game.",
     "game.cards.button": "View Cards",
@@ -342,6 +350,10 @@ const translations: Record<Language, TranslationKeys> = {
        "waitingRoom.readyToPlay": "Ready to play",
        "waitingRoom.player": "Player {0}",
        "waitingRoom.connecting": "Connecting...",
+
+    // Common
+    "common.cancel": "Cancel",
+    "common.download": "Download",
   },
   fr: {
     // Header
@@ -482,9 +494,11 @@ const translations: Record<Language, TranslationKeys> = {
     "game.rules.title": "Règles du Jeu",
     "game.rules.description": "Apprenez à jouer à Ishema Ryanjye et comprenez les mécaniques du jeu.",
     "game.rules.button": "Voir les Règles",
-    "game.health.title": "Santé Reproductive",
-    "game.health.description": "Apprenez sur la santé reproductive, la prévention des IST et l'égalité des sexes.",
-    "game.health.button": "En Savoir Plus",
+    "game.health.title": "Obtenir le Manuel Ishema",
+    "game.health.description": "Téléchargez le manuel complet d'Ishema Ryanjye pour en savoir plus sur la santé reproductive et le bien-être.",
+    "game.health.button": "Obtenir le Manuel",
+    "game.health.downloadPrompt": "Voulez-vous télécharger le manuel Ishema Ryanjye ?",
+    "game.health.downloadSuccess": "Téléchargement du manuel en cours...",
     "game.cards.title": "Signification des Cartes",
     "game.cards.description": "Comprenez la signification et l'importance de chaque carte dans le jeu.",
     "game.cards.button": "Voir les Cartes",
@@ -508,6 +522,10 @@ const translations: Record<Language, TranslationKeys> = {
      "waitingRoom.readyToPlay": "Prêt à jouer",
      "waitingRoom.player": "Joueur {0}",
      "waitingRoom.connecting": "Connexion en cours...",
+
+    // Common
+    "common.cancel": "Annuler",
+    "common.download": "Télécharger",
   },
   rw: {
     // Header
@@ -650,9 +668,11 @@ const translations: Record<Language, TranslationKeys> = {
     "game.rules.title": "Amabwiriza y'Umukino",
     "game.rules.description": "Menya uburyo bwo gukina Ishema Ryanjye no gusobanukirwa imikorere y'umukino.",
     "game.rules.button": "Reba Amabwiriza",
-    "game.health.title": "Ubuzima bw'imyororokere",
-    "game.health.description": "Menya ibyerekeye ubuzima bw'imyororokere, kwirinda indwara zandurira mu mibonano mpuzabitsina n'uburinganire.",
-    "game.health.button": "Menya Byinshi",
+    "game.health.title": "Gufata Igitabo cy'Ishema",
+    "game.health.description": "Kuramo igitabo cyuzuye cy'Ishema Ryanjye kugirango wize byinshi ku buzima bw'imyororokere n'ubuzima bwiza.",
+    "game.health.button": "Gufata Igitabo",
+    "game.health.downloadPrompt": "Urashaka gukuramo igitabo cy'Ishema Ryanjye?",
+    "game.health.downloadSuccess": "byatangiy!",
     "game.cards.title": "Ibisobanuro by'Amakarita",
     "game.cards.description": "Sobanukirwa ibisobanuro n'ingaruka z'amakarita yose muri uyu mukino.",
     "game.cards.button": "Reba Amakarita",
@@ -676,6 +696,10 @@ const translations: Record<Language, TranslationKeys> = {
       "waitingRoom.readyToPlay": "Witeguye gukina",
       "waitingRoom.player": "Umukinnyi {0}",
       "waitingRoom.connecting": "Guhuza...",
+
+    // Common
+    "common.cancel": "Reka",
+    "common.download": "Kuramo",
   },
 }
 

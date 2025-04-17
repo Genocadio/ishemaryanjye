@@ -12,6 +12,7 @@ import { DecorativeCards } from "@/components/decorative-cards"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
+import { toast } from "sonner"
 
 export default function GameInfo() {
   const { t, language } = useLanguage()
@@ -197,9 +198,61 @@ export default function GameInfo() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-6">{t("game.health.description")}</p>
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
-                    {t("game.health.button")}
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full bg-green-600 hover:bg-green-700">
+                        {t("game.health.button")}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold mb-4 text-green-600">
+                          {t("game.health.title")}
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <p className="text-gray-600">
+                          {t("game.health.downloadPrompt")}
+                        </p>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              const dialog = document.querySelector('[role="dialog"]');
+                              if (dialog) {
+                                (dialog as HTMLElement).style.display = 'none';
+                              }
+                            }}
+                          >
+                            {t("common.cancel")}
+                          </Button>
+                          <Button
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = '/pdf/ishema-ryanjye-book.pdf';
+                              link.download = 'ishema-ryanjye-book.pdf';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              
+                              const dialog = document.querySelector('[role="dialog"]');
+                              if (dialog) {
+                                (dialog as HTMLElement).style.display = 'none';
+                              }
+                              
+                              toast.success(t("game.health.downloadSuccess"), {
+                                duration: 3000,
+                                position: "top-center",
+                              });
+                            }}
+                          >
+                            {t("common.download")}
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </CardContent>
               </Card>
 

@@ -898,12 +898,12 @@ export default function DuoPlayerGame() {
 
             {/* Question Dialog */}
             <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
-                <DialogContent>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Answer the Question</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <p className="text-lg">{question?.question}</p>
+                        <p className="text-lg break-words whitespace-pre-wrap">{question?.question}</p>
                         <div className="space-y-2">
                             {question?.options.map((option, index) => (
                                 <Button
@@ -950,7 +950,7 @@ export default function DuoPlayerGame() {
                                         }
                                         setShowQuestionDialog(false);
                                     }}
-                                    className="w-full"
+                                    className="w-full text-left justify-start py-2 px-4 h-auto min-h-[44px] break-words whitespace-pre-wrap"
                                 >
                                     {option.text}
                                 </Button>

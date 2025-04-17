@@ -1,13 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useLanguage } from "@/contexts/language-context"
 
-const suits = ["clubs", "spades", "diamonds", "hearts"]
-const ranks = ["3", "4", "5", "6", "7", "A", "J", "K", "Q"]
-
+// Default meanings for standard cards
 const cardMeanings = {
   "3": "Basic reproductive health knowledge",
   "4": "Understanding gender equality",
@@ -20,18 +18,46 @@ const cardMeanings = {
   "Q": "Empowerment and rights"
 }
 
+interface Card {
+  path: string
+  suit?: string
+  rank?: string
+  meaning: string
+  isSpecial?: boolean
+}
+
 export function CardViewer() {
   const { t } = useLanguage()
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
+  const [allCards, setAllCards] = useState<Card[]>([])
   
-  const allCards = suits.flatMap(suit =>
-    ranks.map(rank => ({
-      path: `/cards/${suit}/${rank}.webp`,
-      suit,
-      rank,
-      meaning: cardMeanings[rank as keyof typeof cardMeanings]
-    }))
-  )
+  useEffect(() => {
+    // Initialize cards array
+    const cards: Card[] = []
+    
+    // Add special card if it exists
+    cards.push({
+      path: "/exp/Special.webp",
+      meaning: "Special card - Additional educational content",
+      isSpecial: true
+    })
+    
+    // Add all suit cards
+    const suits = ["clubs", "spades", "diamonds", "hearts"]
+    suits.forEach(suit => {
+      const ranks = ["3", "4", "5", "6", "7", "A", "J", "K", "Q"]
+      ranks.forEach(rank => {
+        cards.push({
+          path: `/exp/${suit}/${rank}.webp`,
+          suit,
+          rank,
+          meaning: cardMeanings[rank as keyof typeof cardMeanings] || "Additional educational content"
+        })
+      })
+    })
+    
+    setAllCards(cards)
+  }, [])
 
   const currentCard = allCards[currentCardIndex]
 
@@ -43,14 +69,18 @@ export function CardViewer() {
     setCurrentCardIndex((prev) => (prev - 1 + allCards.length) % allCards.length)
   }
 
+  if (allCards.length === 0) {
+    return <div>Loading cards...</div>
+  }
+
   return (
     <div className="flex flex-col items-center gap-6 p-6">
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-[300px] mx-auto">
         <div className="aspect-[2/3] w-full rounded-lg overflow-hidden shadow-lg bg-white">
           <img
             src={currentCard.path}
-            alt={`${currentCard.rank} of ${currentCard.suit}`}
-            className="w-full h-full object-cover"
+            alt={currentCard.isSpecial ? "Special Card" : `${currentCard.rank} of ${currentCard.suit}`}
+            className="w-full h-full object-contain"
           />
         </div>
         
@@ -79,11 +109,11 @@ export function CardViewer() {
 
       <div className="text-center space-y-2">
         <h3 className="text-lg font-semibold text-green-600">
-          {currentCard.rank} of {currentCard.suit}
+          {currentCard.isSpecial ? "Special Card" : `${currentCard.rank} of ${currentCard.suit}`}
         </h3>
-        <p className="text-gray-600 max-w-md">
+        {/* <p className="text-gray-600 max-w-md">
           {currentCard.meaning}
-        </p>
+        </p> */}
         <p className="text-sm text-gray-500">
           {currentCardIndex + 1} of {allCards.length}
         </p>
