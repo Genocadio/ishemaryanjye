@@ -8,6 +8,7 @@ export interface IGameStats extends Document {
   opponentScore: number
   overallGameScore: number
   wonByQuestion: boolean
+  questionId: string | null
   createdAt: Date
 }
 
@@ -39,6 +40,10 @@ const GameStatsSchema = new Schema<IGameStats>({
   wonByQuestion: {
     type: Boolean,
     default: false,
+  },
+  questionId: {
+    type: String,
+    default: null,
   },
   createdAt: {
     type: Date,

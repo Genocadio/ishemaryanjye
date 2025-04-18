@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import connectDB from "@/lib/mongodb"
 import GameStats from "@/lib/models/game-stats"
-import { questions } from "@/lib/data/questions"
+import questionsData from "@/lib/data/questions.json"
 
 // Function to shuffle array using Fisher-Yates algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -53,6 +53,7 @@ export async function POST(request: Request) {
       opponentScore,
       overallGameScore,
       wonByQuestion,
+      questionId: null
     })
 
     try {
@@ -66,26 +67,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // If selectedCard is provided, return a demo multiple choice question
+    // If selectedCard is provided, return a random question
     if (selectedCard) {
-      console.log('Returning demo question for selected card');
-      const demoQuestion = {
-        id: gameStats._id.toString(),
-        question: "Ibyo ukwiye kwirinda mu gihe cy' ubugimbi n' ubwangavu",
-        options: [
-          { id: 1, text: "kwirinda ibishuko byakuganisha ku gukora imibonano mpuzabitsina" },
-          { id: 2, text: "Ugomba guhitamo ibyiza wakwigira kubandi" },
-          { id: 3, text: "Ugomba guhorana n' urungano kugirango rukwigishe imyitwarire iyo ariyo yose." },
-          { id: 4, text: "Kwirinda ingeso mbi washorwamo nigitutut cy' urungano" }
-        ],
-        correctAnswer: 3
+      console.log('Returning random question for selected card');
+      // Shuffle questions and pick one
+      const shuffledQuestions = shuffleArray([...questionsData.questions]);
+      const selectedQuestion = shuffledQuestions[0];
+      
+      // Update game stats with question ID
+      gameStats.questionId = selectedQuestion.id;
+      try {
+        await gameStats.save();
+        console.log('Question ID saved to game stats');
+      } catch (saveError) {
+        console.error('Error saving question ID:', saveError);
       }
-      return NextResponse.json({ success: true, gameStats, question: demoQuestion })
+
+      return NextResponse.json({ 
+        success: true, 
+        gameStats, 
+        question: {
+          id: selectedQuestion.id,
+          question: selectedQuestion.question,
+          options: selectedQuestion.options,
+          correctAnswer: selectedQuestion.correctAnswer
+        }
+      });
     }
 
-    return NextResponse.json({ success: true, gameStats })
+    return NextResponse.json({ success: true, gameStats });
   } catch (error) {
-    console.error("Error saving game stats:", error)
+    console.error("Error saving game stats:", error);
     if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message },
@@ -95,7 +107,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Failed to save game statistics" },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -107,7 +119,7 @@ export async function GET(request: Request) {
     }
 
     // Shuffle questions and select 5 random ones
-    const shuffledQuestions = shuffleArray(questions)
+    const shuffledQuestions = shuffleArray(questionsData.questions)
     const selectedQuestions = shuffledQuestions.slice(0, 5)
 
     return NextResponse.json({ questions: selectedQuestions })
@@ -148,29 +160,33 @@ export async function PUT(request: Request) {
 
     // Find the game stats entry
     console.log('Looking up game stats:', gameId);
-    const gameStats = await GameStats.findById(gameId)
+    const gameStats = await GameStats.findOne({ _id: gameId });
+    console.log('Found game stats:', gameStats);
+    
     if (!gameStats) {
       console.log('Game stats not found:', gameId);
       return NextResponse.json({ error: "Game stats not found" }, { status: 404 })
     }
 
-    // Get the question data from the game stats
-    const questionData = gameStats.questionData
-    if (!questionData) {
-      console.log('Question data not found for game:', gameId);
-      return NextResponse.json({ error: "Question data not found" }, { status: 404 })
+    // Get the question data from the questions array
+    const question = questionsData.questions.find(q => q.id === gameStats.questionId);
+    if (!question) {
+      console.log('Question not found for ID:', gameStats.questionId);
+      return NextResponse.json({ error: "Question not found" }, { status: 404 })
     }
 
-    // Verify the answer by checking if the selected option matches the correct answer
-    const isCorrect = selectedOption === questionData.options[questionData.correctAnswer - 1].text
+    // Verify the answer
+    const isCorrect = Array.isArray(question.correctAnswer)
+      ? selectedOption.every((option: string) => question.correctAnswer.includes(option))
+      : question.correctAnswer === selectedOption[0];
 
     if (isCorrect) {
       console.log('Correct answer for game:', gameId);
       // Update the game stats
-      gameStats.overallGameScore = 1
-      gameStats.wonByQuestion = true
+      gameStats.overallGameScore = 1;
+      gameStats.wonByQuestion = true;
       try {
-        await gameStats.save()
+        await gameStats.save();
         console.log('Game stats updated successfully');
       } catch (saveError) {
         console.error('Error updating game stats:', saveError);
@@ -184,7 +200,7 @@ export async function PUT(request: Request) {
         success: true, 
         correct: true,
         message: "Correct answer! Game stats updated successfully."
-      })
+      });
     }
 
     console.log('Incorrect answer for game:', gameId);
@@ -192,9 +208,9 @@ export async function PUT(request: Request) {
       success: true, 
       correct: false,
       message: "Incorrect answer."
-    })
+    });
   } catch (error) {
-    console.error("Error verifying answer:", error)
+    console.error("Error verifying answer:", error);
     if (error instanceof Error) {
       return NextResponse.json(
         { error: error.message },
@@ -204,6 +220,6 @@ export async function PUT(request: Request) {
     return NextResponse.json(
       { error: "Failed to verify answer" },
       { status: 500 }
-    )
+    );
   }
 } 
