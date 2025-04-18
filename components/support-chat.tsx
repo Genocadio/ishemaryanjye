@@ -70,10 +70,10 @@ export function SupportChat() {
 
   // Show welcome message when chat is opened for the first time
   useEffect(() => {
-    if (isOpen && !hasShownWelcome && messages.length === 0) {
+    if (isOpen && !hasShownWelcome && messages.length === 0 && botConfig) {
       const welcomeMessage: Message = {
         id: Date.now().toString(),
-        text: botConfig?.StartUpMessage || "Welcome to Isham Ryanjye Support! How can I help you today?",
+        text: botConfig.StartUpMessage,
         sender: "support",
         timestamp: Date.now(),
       }

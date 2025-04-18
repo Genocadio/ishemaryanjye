@@ -11,6 +11,7 @@ import { Users, ArrowLeft } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { useSession } from "next-auth/react"
+import { SupportChat } from "@/components/support-chat"
 
 export default function GameSelection() {
   const { t } = useLanguage()
@@ -81,6 +82,7 @@ export default function GameSelection() {
         </div>
       </main>
       <Footer />
+      <SupportChat />
     </div>
   )
 }

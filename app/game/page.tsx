@@ -24,6 +24,7 @@ import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import CardChoice from "@/components/layout/CardChoice"
 import CardHolder from "@/components/layout/CardHolder"
+import { SupportChat } from "@/components/support-chat"
 
 type Character = "Shema" | "Teta"
 type GameStatus = "character-selection" | "playing" | "game-over" | "cancelled"
@@ -808,6 +809,7 @@ export default function DuoPlayerGame() {
                                 disabled={!isPlayerTurn || isClickCooldown}
                             />
                         </CompactCard>
+                
                     </div>
                 )}
                 {gameStatus === "game-over" && gameState && (
@@ -946,6 +948,7 @@ export default function DuoPlayerGame() {
                 )}
             </main>
             <Footer />
+            
 
             {/* Question Dialog */}
             <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
@@ -1050,6 +1053,7 @@ export default function DuoPlayerGame() {
                     </div>
                 </DialogContent>
             </Dialog>
+            <SupportChat />
         </div>
     )
 }
