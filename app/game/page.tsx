@@ -30,7 +30,7 @@ type GameStatus = "character-selection" | "playing" | "game-over" | "cancelled"
 type TurnType = "player" | "character"
 
 type QuestionOption = {
-    id: number;
+    id: string;
     text: string;
 };
 
@@ -38,7 +38,7 @@ type Question = {
     id: string;
     question: string;
     options: QuestionOption[];
-    correctAnswer: number;
+    correctAnswer: string | string[];
 };
 
 const getAIDelay = (): number => {
@@ -90,6 +90,7 @@ export default function DuoPlayerGame() {
     const [showQuestionDialog, setShowQuestionDialog] = useState(false);
     const [question, setQuestion] = useState<Question | null>(null);
     const [gameStatsId, setGameStatsId] = useState<string | null>(null);
+    const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
     useEffect(() => {
         // Redirect if not authenticated
@@ -412,13 +413,20 @@ export default function DuoPlayerGame() {
                                     gameLevel: selectedDifficulty,
                                     userScore: updatedGameState.players[0].score,
                                     opponentScore: updatedGameState.players[1].score,
-                                    wonByQuestion: updatedGameState.players[1].score < 15
+                                    wonByQuestion: updatedGameState.players[1].score < 15,
+                                    selectedCard: selectedCard,
+                                    questionData: {
+                                        id: question?.id,
+                                        question: question?.question,
+                                        options: question?.options,
+                                        correctAnswer: question?.correctAnswer
+                                    }
                                 }),
                             });
 
                             if (response.ok) {
                                 const data = await response.json();
-                                setGameStatsId(data.gameStatsId);
+                                setGameStatsId(data.gameStats._id);
                                 toast.success('Game statistics saved successfully!');
                             } else {
                                 toast.error('Failed to save game statistics');
@@ -582,13 +590,20 @@ export default function DuoPlayerGame() {
                                     gameLevel: selectedDifficulty,
                                     userScore: updatedGameState.players[0].score,
                                     opponentScore: updatedGameState.players[1].score,
-                                    wonByQuestion: updatedGameState.players[1].score < 15
+                                    wonByQuestion: updatedGameState.players[1].score < 15,
+                                    selectedCard: selectedCard,
+                                    questionData: {
+                                        id: question?.id,
+                                        question: question?.question,
+                                        options: question?.options,
+                                        correctAnswer: question?.correctAnswer
+                                    }
                                 }),
                             });
 
                             if (response.ok) {
                                 const data = await response.json();
-                                setGameStatsId(data.gameStatsId);
+                                setGameStatsId(data.gameStats._id);
                                 toast.success('Game statistics saved successfully!');
                             } else {
                                 toast.error('Failed to save game statistics');
@@ -728,15 +743,50 @@ export default function DuoPlayerGame() {
 
                 {gameStatus === "playing" && gameState && (
                     <div className="space-y-4">
+                        {process.env.NODE_ENV === 'development' && (
+                            <div className="flex justify-end">
+                                <Button
+                                    variant="destructive"
+                                    onClick={() => {
+                                        // Simulate game loss with final round cards
+                                        const updatedGameState = { ...gameState };
+                                        
+                                        // Create dummy final round cards
+                                        const humanCard = updatedGameState.players[0].hand[0] || { suit: 'Hearts', value: 'A' };
+                                        const aiCard = updatedGameState.players[1].hand[0] || { suit: 'Spades', value: 'K' };
+                                        
+                                        // Add the final round to history
+                                        updatedGameState.roundHistory.push({
+                                            player1Card: humanCard,
+                                            player2Card: aiCard,
+                                            winner: 1, // AI wins
+                                            stake: updatedGameState.roundStake
+                                        });
+                                        
+                                        // Set final scores
+                                        updatedGameState.players[1].score = updatedGameState.players[0].score + 1;
+                                        updatedGameState.currentRound = updatedGameState.totalRounds;
+                                        
+                                        // Update current round cards for display
+                                        setCurrentRoundCards({ human: humanCard, ai: aiCard });
+                                        
+                                        setGameState(updatedGameState);
+                                        setGameStatus("game-over");
+                                    }}
+                                >
+                                    Lose Game
+                                </Button>
+                            </div>
+                        )}
                         
-                            <GameStatusCard
-                                currentTurn={currentTurn}
-                                selectedCharacter={selectedCharacter || 'Shema'}
-                                playerScore={gameState.players[0].score}
-                                aiScore={gameState.players[1].score}
-                                trumpSuit={gameState.trumpSuit}
-                                username={username}
-                            />
+                        <GameStatusCard
+                            currentTurn={currentTurn}
+                            selectedCharacter={selectedCharacter || 'Shema'}
+                            playerScore={gameState.players[0].score}
+                            aiScore={gameState.players[1].score}
+                            trumpSuit={gameState.trumpSuit}
+                            username={username}
+                        />
                     
 
                         {/* Playground */}
@@ -818,6 +868,7 @@ export default function DuoPlayerGame() {
 
                                                 if (response.ok) {
                                                     const data = await response.json();
+                                                    setGameStatsId(data.gameStats._id);
                                                     if (data.question) {
                                                         setQuestion(data.question);
                                                         setShowQuestionDialog(true);
@@ -905,56 +956,96 @@ export default function DuoPlayerGame() {
                     <div className="space-y-4">
                         <p className="text-lg break-words whitespace-pre-wrap">{question?.question}</p>
                         <div className="space-y-2">
-                            {question?.options.map((option, index) => (
+                            {question?.options.map((option) => (
                                 <Button
-                                    key={index}
-                                    onClick={async () => {
-                                        if (!question) return;
-                                        try {
-                                            const response = await fetch('/api/game-stats', {
-                                                method: 'PUT',
-                                                headers: {
-                                                    'Content-Type': 'application/json',
-                                                },
-                                                body: JSON.stringify({
-                                                    questionId: question.id,
-                                                    selectedOption: option.text,
-                                                    gameId: gameStatsId
-                                                }),
-                                            });
-
-                                            if (response.ok) {
-                                                const data = await response.json();
-                                                if (data.correct) {
-                                                    toast.success(data.message);
-                                                    // Update the game state to reflect the win
-                                                    setGameState(prevState => {
-                                                        if (!prevState) return prevState;
-                                                        return {
-                                                            ...prevState,
-                                                            players: [
-                                                                { ...prevState.players[0], score: prevState.players[0].score + 1 },
-                                                                prevState.players[1]
-                                                            ]
-                                                        };
-                                                    });
+                                    key={option.id}
+                                    variant={selectedOptions.includes(option.id) ? "default" : "outline"}
+                                    onClick={() => {
+                                        if (Array.isArray(question.correctAnswer)) {
+                                            // For multiple choice questions
+                                            setSelectedOptions(prev => {
+                                                if (prev.includes(option.id)) {
+                                                    return prev.filter(id => id !== option.id);
                                                 } else {
-                                                    toast.error(data.message);
+                                                    return [...prev, option.id];
                                                 }
-                                            } else {
-                                                toast.error('Failed to verify answer');
-                                            }
-                                        } catch (error) {
-                                            console.error('Error verifying answer:', error);
-                                            toast.error('Failed to verify answer');
+                                            });
+                                        } else {
+                                            // For single choice questions
+                                            setSelectedOptions([option.id]);
                                         }
-                                        setShowQuestionDialog(false);
                                     }}
                                     className="w-full text-left justify-start py-2 px-4 h-auto min-h-[44px] break-words whitespace-pre-wrap"
                                 >
                                     {option.text}
                                 </Button>
                             ))}
+                        </div>
+                        {Array.isArray(question?.correctAnswer) && (
+                            <p className="text-sm text-gray-500">
+                                Select {question.correctAnswer.length} correct answer{question.correctAnswer.length > 1 ? 's' : ''}
+                            </p>
+                        )}
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setShowQuestionDialog(false);
+                                    setSelectedOptions([]);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={async () => {
+                                    if (!question) return;
+                                    try {
+                                        const response = await fetch('/api/game-stats', {
+                                            method: 'PUT',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify({
+                                                questionId: question.id,
+                                                selectedOption: selectedOptions,
+                                                gameId: gameStatsId
+                                            }),
+                                        });
+
+                                        if (response.ok) {
+                                            const data = await response.json();
+                                            if (data.correct) {
+                                                toast.success(data.message);
+                                                // Update the game state to reflect the win
+                                                setGameState(prevState => {
+                                                    if (!prevState) return prevState;
+                                                    return {
+                                                        ...prevState,
+                                                        players: [
+                                                            { ...prevState.players[0], score: prevState.players[0].score + 1 },
+                                                            prevState.players[1]
+                                                        ]
+                                                    };
+                                                });
+                                            } else {
+                                                toast.error(data.message);
+                                            }
+                                        } else {
+                                            toast.error('Failed to verify answer');
+                                        }
+                                    } catch (error) {
+                                        console.error('Error verifying answer:', error);
+                                        toast.error('Failed to verify answer');
+                                    }
+                                    setShowQuestionDialog(false);
+                                    setSelectedOptions([]);
+                                }}
+                                disabled={Array.isArray(question?.correctAnswer) 
+                                    ? selectedOptions.length !== question.correctAnswer.length
+                                    : selectedOptions.length === 0}
+                            >
+                                Submit Answer
+                            </Button>
                         </div>
                     </div>
                 </DialogContent>

@@ -1,0 +1,127 @@
+{
+  "questions": [
+    {
+      "id": "q1",
+      "question": "Subiza Yego cyangwa Oya k'umpinduka mu mitekereze n'imyitwarire y'ingimbi: Guha agaciro gakomeye ibyo bagenzi be bavuze cyangwa bakoze.",
+      "options": [
+        { "id": "o1", "text": "Yego" },
+        { "id": "o2", "text": "Oya" }
+      ],
+      "correctAnswer": "o1"
+    },
+    {
+      "id": "q2",
+      "question": "Hitamo ibisubizo byose by'ukuri: Ibyo ukwiye kwirinda mugihe cy'ubugimbi",
+      "options": [
+        { "id": "o1", "text": "Kwirinda ibishuko byakuganisha ku gukora imibonano mpuzabitsina." },
+        { "id": "o2", "text": "Kwirinda kuganira nabakuru kubyerekeranye nigihe urimo." },
+        { "id": "o3", "text": "Kugisha urungano inama zuko wakifata." },
+        { "id": "o4", "text": "Ugomba guhitamo ibyiza wakwigira ku bandi no kwirinda ingeso mbi washorwamo n'igitutu cy'urungano" }
+      ],
+      "correctAnswer": ["o1", "o4"]
+    },
+    {
+      "id": "q3",
+      "question": "Hitamo igisubizo cyukuri: Muri rusange, ubugimbi butangira hagati y'imyaka",
+      "options": [
+        { "id": "o1", "text": "9 na 20" },
+        { "id": "o2", "text": "5 na 10" },
+        { "id": "o3", "text": "10 na 14" },
+        { "id": "o4", "text": "15 na 25" }
+      ],
+      "correctAnswer": "o3"
+    },
+    {
+      "id": "q4",
+      "question": "Ibisubizo byose nibyo uretse: Bimwe mu biranga ubugimbi ku mpinduka z'umubiri harimo",
+      "options": [
+        { "id": "o1", "text": "Ibinure bishobora gutera ibishishi" },
+        { "id": "o2", "text": "Gukura kw'imyanya ndanga gitsina" },
+        { "id": "o3", "text": "Kwiroteraho (bisobanura ko ashobora gutera inda)" },
+        { "id": "o4", "text": "Kubaha ababyeyi bikabije" }
+      ],
+      "correctAnswer": "o4"
+    },
+    {
+      "id": "q5",
+      "question": "Hitamo ibisubizo byose by'ukuri: Bimwe mu biranga ubugimbi ku mpinduka z'umubiri harimo",
+      "options": [
+        { "id": "o1", "text": "Gukura mu gihagararo" },
+        { "id": "o2", "text": "Kwiyongera kw'ingufu z'umubiri" },
+        { "id": "o3", "text": "Kumera insya, incakwaha n'impwempwe (kuri bamwe)" },
+        { "id": "o4", "text": "Kuryamira cyane" },
+        { "id": "o5", "text": "Kuniga ijwi" },
+        { "id": "o6", "text": "Kugara kw'ibitugu n'igituza" }
+      ],
+      "correctAnswer": ["o1", "o2", "o3", "o5", "o6"]
+    },
+    {
+      "id": "q6",
+      "question": "Ibisubizo byose nibyo uretse: Urugero rw' ibiyobyabwenge ni",
+      "options": [
+        { "id": "o1", "text": "Lisansi" },
+        { "id": "o2", "text": "Mugo (Heroin)" },
+        { "id": "o3", "text": "Umubirizi" },
+        { "id": "o4", "text": "Suzie waragi" },
+        { "id": "o5", "text": "Kole" }
+      ],
+      "correctAnswer": "o3"
+    },
+    {
+      "id": "q7",
+      "question": "Hitamo ibisubizo by' ukuri: Ingaruka z'ibiyobyabwenge (Ingaruka k'umuntu ku giti cye)",
+      "options": [
+        { "id": "o1", "text": "Kanseri yo mu kanwa, mu mihogo, mu menyo, mu bihaha, igifu" },
+        { "id": "o2", "text": "Indwara y'umwijima (urushwima)" },
+        { "id": "o3", "text": "Indwara z'umutima (kudatembera neza kw'amaraso)" },
+        { "id": "o4", "text": "Kwishora mu bikorwa by'urugomo ndetse no gukora ihohotera" },
+        { "id": "o5", "text": "Bitanga amafaranga" }
+      ],
+      "correctAnswer": ["o1", "o2", "o3", "o4"]
+    },
+    {
+      "id": "q8",
+      "question": "Subiza Yego cyangwa Oya: Ikiyobyabwenge ni ikintu cyose gihindura imitekerereze n'imyitwarire bikagira ingaruka ku buzima bw'umuntu.",
+      "options": [
+        { "id": "o1", "text": "Yego" },
+        { "id": "o2", "text": "Oya" }
+      ],
+      "correctAnswer": "o1"
+    },
+    {
+      "id": "q9",
+      "question": "Ibisubizo byose nibyo uretse: Ibi ni ibituma urubyiruko rwishora mu ibiyobyabwenge uretse",
+      "options": [
+        { "id": "o1", "text": "Amatsiko" },
+        { "id": "o2", "text": "Uruhare rwa sosiyete tubamo" },
+        { "id": "o3", "text": "Uruhare rw'imbuga nkoranyambaga n'itangazamakuru" },
+        { "id": "o4", "text": "Kuba ababyeyi babinywera mu rugo..." },
+        { "id": "o5", "text": "Ubusirimu" }
+      ],
+      "correctAnswer": "o5"
+    },
+    {
+      "id": "q10",
+      "question": "Ibisubizo byose nibyo uretse: Ingaruka zo gufata ibiyobyabwenge ku muryango",
+      "options": [
+        { "id": "o1", "text": "Ubukene mu muryango, gusesagura amafaranga" },
+        { "id": "o2", "text": "Gusenyuka kw'ingo" },
+        { "id": "o3", "text": "Kwica akazi no kubana nabi" },
+        { "id": "o4", "text": "Uburinganire n'ubwuzuzanye mu muryango" },
+        { "id": "o5", "text": "Nta burere bukwiye umubyeyi ubifata aha abana be" }
+      ],
+      "correctAnswer": "o4"
+    },
+    {
+      "id": "q11",
+      "question": "Ibisubizo byose nibyo uretse: Ingaruka mbi ziterwa n'ibiyobyabwenge (ku gihugu)",
+      "options": [
+        { "id": "o1", "text": "Kudatunga abantu b'imburamukoro" },
+        { "id": "o2", "text": "Kumunga ubukungu bw'igihugu" },
+        { "id": "o3", "text": "Gutunga abantu b'imburamukoro" },
+        { "id": "o4", "text": "Umutekano mu gihugu" }
+      ],
+      "correctAnswer": "o3"
+    }
+  ]
+} 
