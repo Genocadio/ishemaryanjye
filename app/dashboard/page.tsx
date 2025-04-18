@@ -110,6 +110,20 @@ export default function DashboardPage() {
             <p className="text-gray-500">{t("dashboard.subtitle")}</p>
           </div>
 
+          <div className="flex justify-center gap-2">
+          <Link href="/game-selection">
+                  <Button className="inline-flex h-10 items-center justify-center rounded-md bg-green-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                    {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  </Link>
+            <Link href="/info"><Button
+                    variant="outline"
+                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+                  >
+                    {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+                  </Button></Link>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-6 flex flex-col items-center text-center">
@@ -405,19 +419,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card> */}
 
-          <div className="flex justify-center gap-2">
-          <Link href="/game-selection">
-                  <Button className="inline-flex h-10 items-center justify-center rounded-md bg-green-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                    {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                  </Link>
-            <Link href="/info"><Button
-                    variant="outline"
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
-                  >
-                    {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
-                  </Button></Link>
-          </div>
+          
         </div>
       </main>
 

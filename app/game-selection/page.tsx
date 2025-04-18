@@ -18,14 +18,14 @@ export default function GameSelection() {
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
   const { data: session } = useSession()
 
-  const handleContinue = () => {
-    if (selectedOption === 2) {
+  const handleGameSelection = (players: number) => {
+    if (players === 2) {
       router.push("/game")
-    } else if (selectedOption === 4 || selectedOption === 6) {
+    } else if (players === 4 || players === 6) {
       if (session) {
-        router.push(`/connect?players=${selectedOption}`)
+        router.push(`/connect?players=${players}`)
       } else {
-        router.push(`/multiplayer?players=${selectedOption}`)
+        router.push(`/multiplayer?players=${players}`)
       }
     }
   }
@@ -56,7 +56,7 @@ export default function GameSelection() {
                 className={`cursor-pointer transition-all ${
                   selectedOption === players ? "border-green-500 ring-2 ring-green-500" : "hover:border-gray-300"
                 }`}
-                onClick={() => setSelectedOption(players)}
+                onClick={() => handleGameSelection(players)}
               >
                 <CardHeader className="text-center">
                   <CardTitle>{players} Players</CardTitle>
@@ -77,17 +77,6 @@ export default function GameSelection() {
                 </CardFooter>
               </Card>
             ))}
-          </div>
-
-          <div className="flex justify-center mt-8">
-            <Button
-              size="lg"
-              disabled={!selectedOption}
-              onClick={handleContinue}
-              className="bg-green-600 hover:bg-green-700 text-white px-8"
-            >
-              Continue
-            </Button>
           </div>
         </div>
       </main>
