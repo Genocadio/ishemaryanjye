@@ -583,42 +583,49 @@ export default function DuoPlayerGame() {
                                 ? (updatedGameState.players[1].score < 15 ? 2 : 1)
                                 : 0;
 
-                            const response = await fetch('/api/game-stats', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    opponentName: selectedCharacter,
-                                    gameLevel: selectedDifficulty,
-                                    userScore: updatedGameState.players[0].score,
-                                    opponentScore: updatedGameState.players[1].score,
-                                    wonByQuestion: updatedGameState.players[1].score < 15,
-                                    selectedCard: selectedCard,
-                                    questionData: {
-                                        id: question?.id,
-                                        question: question?.question,
-                                        options: question?.options,
-                                        correctAnswer: question?.correctAnswer
-                                    }
-                                }),
-                            });
+                            
+                            if (overallGameScore > 0) {
 
-                            if (response.ok) {
-                                const data = await response.json();
-                                const Tip = data.didYouKnow;
-                                setDidYouKnowTip(Tip);
-                                setShowDidYouKnowDialog(true);
+                                const response = await fetch('/api/game-stats', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        opponentName: selectedCharacter,
+                                        gameLevel: selectedDifficulty,
+                                        userScore: updatedGameState.players[0].score,
+                                        opponentScore: updatedGameState.players[1].score,
+                                        wonByQuestion: updatedGameState.players[1].score < 15,
+                                        selectedCard: selectedCard,
+                                        questionData: {
+                                            id: question?.id,
+                                            question: question?.question,
+                                            options: question?.options,
+                                            correctAnswer: question?.correctAnswer
+                                        }
+                                    }),
+                                });
+    
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    const Tip = data.didYouKnow;
                                 
-                                if(session?.user){
-                                    setGameStatsId(data.gameStats._id);
-                                    toast.success('Game statistics saved successfully!');
+                                    setDidYouKnowTip(Tip);
+                                    setShowDidYouKnowDialog(true);
+                                    
+                                    if(session?.user){
+                                        setGameStatsId(data.gameStats._id);
+                                        toast.success('Game statistics saved successfully!');
+                                    } else {
+                                        toast.success('login to save your game stats!');
+                                    }
                                 } else {
-                                    toast.success('login to save your game stats!');
+                                    toast.error('Failed to save game statistics');
                                 }
-                            } else {
-                                toast.error('Failed to save game statistics');
                             }
+
+                            
                         } catch (error) {
                             console.error('Error saving game statistics:', error);
                             toast.error('Failed to save game statistics');
