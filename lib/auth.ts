@@ -2,7 +2,6 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import connectDB from "@/lib/mongodb"
 import User from "@/lib/models/user"
-import bcrypt from "bcryptjs"
 
 // Extend the built-in session types
 declare module "next-auth" {
@@ -36,6 +35,7 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -44,40 +44,34 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Invalid credentials")
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            throw new Error("Email and password are required")
+          }
+
+          await connectDB()
+
+          const user = await User.findOne({ email: credentials.email.toLowerCase() })
+          if (!user) {
+            throw new Error("Invalid email or password")
+          }
+
+          const isPasswordValid = await user.comparePassword(credentials.password)
+          if (!isPasswordValid) {
+            throw new Error("Invalid email or password")
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            phone: user.phone
+          }
+        } catch (error) {
+          console.error('Authentication error:', error)
+          throw error
         }
-
-        await connectDB()
-
-        const user = await User.findOne({ email: credentials.email })
-        if (!user) {
-          throw new Error("Invalid credentials")
-        }
-
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        )
-
-        if (!isPasswordValid) {
-          throw new Error("Invalid credentials")
-        }
-
-        const userData: any = {
-          id: user._id.toString(),
-          name: user.name,
-          email: user.email,
-        }
-
-        if (user.username) {
-          userData.username = user.username
-        }
-        if (user.phone) {
-          userData.phone = user.phone
-        }
-
-        return userData
       }
     })
   ],
@@ -87,6 +81,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/auth",
+    error: "/auth",
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -109,5 +104,6 @@ export const authOptions: NextAuthOptions = {
       }
       return session
     }
-  }
+  },
+  debug: process.env.NODE_ENV === 'development'
 } 

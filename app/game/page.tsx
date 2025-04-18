@@ -92,6 +92,8 @@ export default function DuoPlayerGame() {
     const [question, setQuestion] = useState<Question | null>(null);
     const [gameStatsId, setGameStatsId] = useState<string | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+    const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false);
+    const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null);
 
     useEffect(() => {
         // Redirect if not authenticated
@@ -575,7 +577,7 @@ export default function DuoPlayerGame() {
                     });
 
                     // Save game results if user is logged in
-                    if (session?.user) {
+                    if (true) {
                         try {
                             const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
                                 ? (updatedGameState.players[1].score < 15 ? 2 : 1)
@@ -604,8 +606,16 @@ export default function DuoPlayerGame() {
 
                             if (response.ok) {
                                 const data = await response.json();
-                                setGameStatsId(data.gameStats._id);
-                                toast.success('Game statistics saved successfully!');
+                                const Tip = data.didYouKnow;
+                                setDidYouKnowTip(Tip);
+                                setShowDidYouKnowDialog(true);
+                                
+                                if(session?.user){
+                                    setGameStatsId(data.gameStats._id);
+                                    toast.success('Game statistics saved successfully!');
+                                } else {
+                                    toast.success('login to save your game stats!');
+                                }
                             } else {
                                 toast.error('Failed to save game statistics');
                             }
@@ -852,7 +862,6 @@ export default function DuoPlayerGame() {
                                         }}
                                         onSelect={async (selectedCard) => {
                                             try {
-                                                console.log('Selected card:', selectedCard);
                                                 const response = await fetch('/api/game-stats', {
                                                     method: 'POST',
                                                     headers: {
@@ -870,10 +879,16 @@ export default function DuoPlayerGame() {
 
                                                 if (response.ok) {
                                                     const data = await response.json();
-                                                    setGameStatsId(data.gameStats._id);
                                                     if (data.question) {
                                                         setQuestion(data.question);
                                                         setShowQuestionDialog(true);
+                                                        // Only set gameStatsId for logged-in users
+                                                        if (data.gameStats) {
+                                                            setGameStatsId(data.gameStats._id);
+                                                        }
+                                                    } else if (data.didYouKnow) {
+                                                        setDidYouKnowTip(data.didYouKnow);
+                                                        setShowDidYouKnowDialog(true);
                                                     }
                                                 } else {
                                                     toast.error('Failed to get question');
@@ -1054,6 +1069,26 @@ export default function DuoPlayerGame() {
                 </DialogContent>
             </Dialog>
             <SupportChat />
+
+            {/* Did You Know Dialog */}
+            <Dialog open={showDidYouKnowDialog} onOpenChange={setShowDidYouKnowDialog}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Fun Fact?</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <p className="text-lg break-words whitespace-pre-wrap">{didYouKnowTip}</p>
+                        <div className="flex justify-end">
+                            <Button
+                                onClick={() => setShowDidYouKnowDialog(false)}
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                                Close
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

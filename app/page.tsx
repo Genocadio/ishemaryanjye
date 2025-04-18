@@ -47,6 +47,9 @@ export default function Home() {
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
                     {t("hero.title")}
                   </h1>
+                  <h2 className="text-xl font-bold tracking-tighter sm:text-3xl xl:text-4xl/none">
+                    {t("hero.subtitle")}
+                  </h2>
                   <p className="max-w-[600px] text-gray-500 md:text-xl">{t("hero.description")}</p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">

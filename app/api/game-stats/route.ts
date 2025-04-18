@@ -15,99 +15,87 @@ function shuffleArray<T>(array: T[]): T[] {
   return newArray
 }
 
+// Did you know tips
+const didYouKnowTips = [
+  "Did you know that consent is an ongoing process and can be withdrawn at any time?",
+  "Did you know that gender equality in education leads to better health outcomes for everyone?",
+  "Did you know that open communication about sexual health helps prevent STIs and unwanted pregnancies?",
+  "Did you know that respecting different sexual orientations and gender identities promotes mental well-being?",
+  "Did you know that equal access to reproductive health services is a fundamental human right?"
+]
+
 export async function POST(request: Request) {
   try {
-    console.log('Starting game stats save...');
-    
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      console.log('Unauthorized game stats save attempt');
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { opponentName, gameLevel, userScore, opponentScore, wonByQuestion, selectedCard } = body
-    console.log('Received game stats data for user:', session.user.id);
+    const { selectedCard } = body
 
-    console.log('Attempting to connect to MongoDB...');
-    try {
-      await connectDB()
-      console.log('Successfully connected to MongoDB');
-    } catch (dbError) {
-      console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Calculate overall game score
-    const overallGameScore = userScore > opponentScore ? 1 : 0
-
-    console.log('Creating new game stats entry...');
-    const gameStats = new GameStats({
-      userId: session.user.id,
-      opponentName,
-      gameLevel,
-      userScore,
-      opponentScore,
-      overallGameScore,
-      wonByQuestion,
-      questionId: null
-    })
-
-    try {
-      await gameStats.save()
-      console.log('Game stats saved successfully');
-    } catch (saveError) {
-      console.error('Error saving game stats:', saveError);
-      return NextResponse.json(
-        { error: 'Failed to save game statistics' },
-        { status: 500 }
-      );
-    }
-
-    // If selectedCard is provided, return a random question
+    // If a card is selected, return a random question regardless of login status
     if (selectedCard) {
-      console.log('Returning random question for selected card');
-      // Shuffle questions and pick one
-      const shuffledQuestions = shuffleArray([...questionsData.questions]);
-      const selectedQuestion = shuffledQuestions[0];
+      const shuffledQuestions = shuffleArray([...questionsData.questions])
+      const selectedQuestion = shuffledQuestions[0]
       
-      // Update game stats with question ID
-      gameStats.questionId = selectedQuestion.id;
-      try {
-        await gameStats.save();
-        console.log('Question ID saved to game stats');
-      } catch (saveError) {
-        console.error('Error saving question ID:', saveError);
-      }
-
       return NextResponse.json({ 
         success: true, 
-        gameStats, 
         question: {
           id: selectedQuestion.id,
           question: selectedQuestion.question,
           options: selectedQuestion.options,
           correctAnswer: selectedQuestion.correctAnswer
         }
-      });
+      })
     }
 
-    return NextResponse.json({ success: true, gameStats });
-  } catch (error) {
-    console.error("Error saving game stats:", error);
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
+    // If no card is selected, return a random did you know tip
+    const randomTip = didYouKnowTips[Math.floor(Math.random() * didYouKnowTips.length)]
+    
+    // If user is logged in, save game stats
+    if (session?.user?.id) {
+      const { opponentName, gameLevel, userScore, opponentScore, wonByQuestion } = body
+      
+      try {
+        await connectDB()
+        
+        const overallGameScore = userScore > opponentScore ? 1 : 0
+        
+        const gameStats = new GameStats({
+          userId: session.user.id,
+          opponentName,
+          gameLevel,
+          userScore,
+          opponentScore,
+          overallGameScore,
+          wonByQuestion,
+          questionId: null
+        })
+
+        await gameStats.save()
+        
+        return NextResponse.json({ 
+          success: true, 
+          gameStats,
+          didYouKnow: randomTip
+        })
+      } catch (error) {
+        console.error("Error saving game stats:", error)
+        return NextResponse.json(
+          { error: "Failed to save game statistics" },
+          { status: 500 }
+        )
+      }
     }
+
+    // For unlogged-in users or when no card is selected, just return the tip
+    return NextResponse.json({ 
+      success: true, 
+      didYouKnow: randomTip
+    })
+  } catch (error) {
+    console.error("Error in game stats endpoint:", error)
     return NextResponse.json(
-      { error: "Failed to save game statistics" },
+      { error: "An error occurred" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -134,92 +122,63 @@ export async function GET(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    console.log('Starting game stats update...');
-    
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      console.log('Unauthorized game stats update attempt');
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
     const body = await request.json()
-    const { questionId, selectedOption, gameId } = body
-    console.log('Received update data for game:', gameId);
+    const { questionId, selectedOption } = body
 
-    console.log('Attempting to connect to MongoDB...');
-    try {
-      await connectDB()
-      console.log('Successfully connected to MongoDB');
-    } catch (dbError) {
-      console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
-        { error: 'Database connection failed. Please try again later.' },
-        { status: 503 }
-      );
-    }
-
-    // Find the game stats entry
-    console.log('Looking up game stats:', gameId);
-    const gameStats = await GameStats.findOne({ _id: gameId });
-    console.log('Found game stats:', gameStats);
-    
-    if (!gameStats) {
-      console.log('Game stats not found:', gameId);
-      return NextResponse.json({ error: "Game stats not found" }, { status: 404 })
-    }
-
-    // Get the question data from the questions array
-    const question = questionsData.questions.find(q => q.id === gameStats.questionId);
+    // Find the question in the questions data
+    const question = questionsData.questions.find(q => q.id === questionId)
     if (!question) {
-      console.log('Question not found for ID:', gameStats.questionId);
       return NextResponse.json({ error: "Question not found" }, { status: 404 })
     }
 
     // Verify the answer
     const isCorrect = Array.isArray(question.correctAnswer)
       ? selectedOption.every((option: string) => question.correctAnswer.includes(option))
-      : question.correctAnswer === selectedOption[0];
+      : question.correctAnswer === selectedOption[0]
 
-    if (isCorrect) {
-      console.log('Correct answer for game:', gameId);
-      // Update the game stats
-      gameStats.overallGameScore = 1;
-      gameStats.wonByQuestion = true;
+    // For logged-in users, update game stats
+    if (session?.user?.id) {
       try {
-        await gameStats.save();
-        console.log('Game stats updated successfully');
-      } catch (saveError) {
-        console.error('Error updating game stats:', saveError);
-        return NextResponse.json(
-          { error: 'Failed to update game statistics' },
-          { status: 500 }
-        );
-      }
+        await connectDB()
+        
+        const gameStats = await GameStats.findOne({ _id: body.gameId })
+        if (!gameStats) {
+          return NextResponse.json({ error: "Game stats not found" }, { status: 404 })
+        }
 
-      return NextResponse.json({ 
-        success: true, 
-        correct: true,
-        message: "Correct answer! Game stats updated successfully."
-      });
+        if (isCorrect) {
+          gameStats.overallGameScore = 1
+          gameStats.wonByQuestion = true
+          await gameStats.save()
+        }
+
+        return NextResponse.json({ 
+          success: true, 
+          correct: isCorrect,
+          gameStats: gameStats,
+          message: isCorrect ? "Correct answer! Game stats updated successfully." : "Incorrect answer."
+        })
+      } catch (error) {
+        console.error("Error updating game stats:", error)
+        return NextResponse.json(
+          { error: "Failed to update game statistics" },
+          { status: 500 }
+        )
+      }
     }
 
-    console.log('Incorrect answer for game:', gameId);
+    // For non-logged-in users, just return the verification result
     return NextResponse.json({ 
       success: true, 
-      correct: false,
-      message: "Incorrect answer."
-    });
+      correct: isCorrect,
+      message: isCorrect ? "Correct answer!" : "Incorrect answer."
+    })
   } catch (error) {
-    console.error("Error verifying answer:", error);
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 500 }
-      );
-    }
+    console.error("Error verifying answer:", error)
     return NextResponse.json(
       { error: "Failed to verify answer" },
       { status: 500 }
-    );
+    )
   }
 } 
