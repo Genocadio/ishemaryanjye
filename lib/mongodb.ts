@@ -6,6 +6,9 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env');
 }
 
+// After the check, we know MONGODB_URI is a string
+const validatedMongoUri = MONGODB_URI;
+
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -36,7 +39,7 @@ async function connectDB() {
       retryReads: true,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts)
+    cached.promise = mongoose.connect(validatedMongoUri, opts)
       .then((mongoose) => {
         console.log('MongoDB connected successfully');
         return mongoose;
