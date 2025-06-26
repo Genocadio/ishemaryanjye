@@ -22,6 +22,7 @@ import CardHand from "@/components/layout/CardHand";
 import CardHolder from "@/components/layout/CardHolder";
 import { Footer } from "@/components/layout/footer";
 import MultiplayerPlayground from "@/components/layout/MultiplayerPlayground";
+import CardChoice from "@/components/layout/CardChoice";
 
 function MultiplayerLobby() {
   const router = useRouter()
@@ -57,6 +58,14 @@ function MultiplayerLobby() {
   
   const [notification, setNotification] = useState<{ text: string; type: "warning" | "info" | "success" } | null>(null)
   const [roundResult, setRoundResult] = useState<RoundResult | null>(null)
+  const [finalGameState, setFinalGameState] = useState<any | null>(null)
+  const [lastPlayground, setLastPlayground] = useState<PlaygroundEntry[]>([])
+  const [showQuestionDialog, setShowQuestionDialog] = useState(false)
+  const [question, setQuestion] = useState<any | null>(null)
+  const [gameStatsId, setGameStatsId] = useState<string | null>(null)
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([])
+  const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false)
+  const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null)
 
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
@@ -80,6 +89,46 @@ function MultiplayerLobby() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerName, playerId])
+
+  useEffect(() => {
+    if (connectionState.matchStatus === "completed" && finalGameState) {
+      const playerTeamData = finalGameState.teams[playerTeamId]
+      const opponentTeamId = playerTeamId === "team1" ? "team2" : "team1"
+      const opponentTeamData = finalGameState.teams[opponentTeamId]
+      const playerWon = playerTeamData.score > opponentTeamData.score
+      const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ")
+
+      if (playerWon) {
+        const fetchDidYouKnow = async () => {
+          try {
+            const response = await fetch("/api/game-stats", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                opponentName: opponentName,
+                gameLevel: "Multiplayer",
+                userScore: playerTeamData.score,
+                opponentScore: opponentTeamData.score,
+                wonByQuestion: false,
+                isMultiplayer: true,
+                matchId: finalGameState.match.id,
+              }),
+            })
+            if (response.ok) {
+              const data = await response.json()
+              if (data.didYouKnow) {
+                setDidYouKnowTip(data.didYouKnow)
+                setShowDidYouKnowDialog(true)
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching did you know tip:", error)
+          }
+        }
+        fetchDidYouKnow()
+      }
+    }
+  }, [finalGameState, connectionState.matchStatus, playerTeamId])
 
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
@@ -253,6 +302,7 @@ function MultiplayerLobby() {
         } else if (type === "hand_dealt") {
           setHand(payload.hand)
         } else if (type === "card_played") {
+          setLastPlayground(payload.gameState.gameplay.playground)
           updateStateFromGameState(payload.gameState)
           const { player, card } = payload.playedCard
           setNotification({
@@ -263,6 +313,11 @@ function MultiplayerLobby() {
         } else if (type === "round_completed") {
           updateStateFromGameState(payload.gameState)
           setRoundResult(payload.roundResult)
+        } else if (type === "match_ended") {
+          const { gameState } = payload
+          updateStateFromGameState(gameState)
+          setFinalGameState(gameState)
+          setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
         } else if (type === "game_state_update") {
           // Client-side patch for a server bug.
           // After a round completes, the server sends a game_state_update with an incorrect
@@ -383,6 +438,218 @@ function MultiplayerLobby() {
         )} */}
       </>
     )
+  }
+
+  // Game Over View
+  if (connectionState.matchStatus === "completed" && finalGameState) {
+    const playerTeamData = finalGameState.teams[playerTeamId];
+    const opponentTeamId = playerTeamId === 'team1' ? 'team2' : 'team1';
+    const opponentTeamData = finalGameState.teams[opponentTeamId];
+    const playerWon = playerTeamData.score > opponentTeamData.score;
+    const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ");
+    
+    const lastPlayerCard = lastPlayground.find(p => {
+      const player = finalGameState.players.all.find((pl: Player) => pl.id === p.playerId);
+      return player?.teamId === playerTeamId;
+    })?.card
+    const lastOpponentCard = lastPlayground.find(p => {
+      const player = finalGameState.players.all.find((pl: Player) => pl.id === p.playerId);
+      return player?.teamId === opponentTeamId;
+    })?.card
+
+    return (
+      <>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+            <Card className="w-full max-w-2xl text-center">
+              <CardHeader>
+                <CardTitle className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
+                  {playerWon ? "Congratulations!" : "Match Over"}
+                </CardTitle>
+                <CardDescription className="text-gray-500 md:text-xl">
+                  {playerWon ? "Your team won the match!" : `Your team lost to ${opponentName}.`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-8 my-8">
+                  <div className="p-6 border rounded-md">
+                    <h2 className="text-2xl font-bold mb-4">Your Team's Score</h2>
+                    <p className="text-4xl font-bold text-green-600">{playerTeamData.score}</p>
+                  </div>
+                  <div className="p-6 border rounded-md">
+                    <h2 className="text-2xl font-bold mb-4">Opponent's Score</h2>
+                    <p className="text-4xl font-bold text-red-600">{opponentTeamData.score}</p>
+
+                  </div>
+                </div>
+
+                {!playerWon && lastPlayerCard && lastOpponentCard && (
+                    <div>
+                      <h2 className="text-xl font-bold mb-4">Choose a card from the last round to answer a question for a chance to win.</h2>
+                      <CardChoice
+                          cards={{
+                              playerCard: lastPlayerCard,
+                              aiCard: lastOpponentCard
+                          }}
+                          onSelect={async (selectedCard) => {
+                              try {
+                                  const response = await fetch('/api/game-stats', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                          opponentName: opponentName,
+                                          gameLevel: 'Multiplayer',
+                                          userScore: playerTeamData.score,
+                                          opponentScore: opponentTeamData.score,
+                                          wonByQuestion: false,
+                                          selectedCard: selectedCard,
+                                          isMultiplayer: true,
+                                          matchId: finalGameState.match.id,
+                                      }),
+                                  });
+
+                                  if (response.ok) {
+                                      const data = await response.json();
+                                      if (data.question) {
+                                          setQuestion(data.question);
+                                          setShowQuestionDialog(true);
+                                          if (data.gameStats) {
+                                              setGameStatsId(data.gameStats._id);
+                                          }
+                                      } else if (data.didYouKnow) {
+                                          setDidYouKnowTip(data.didYouKnow);
+                                          setShowDidYouKnowDialog(true);
+                                      }
+                                  } else {
+                                      toast.error('Failed to get question');
+                                  }
+                              } catch (error) {
+                                  console.error('Error getting question:', error);
+                                  toast.error('Failed to get question');
+                              }
+                          }}
+                      />
+                    </div>
+                )}
+                
+                <Button onClick={() => router.push('/game-selection')} className="mt-8">
+                  Play Again
+                </Button>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+        <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Answer the Question</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-lg break-words whitespace-pre-wrap">{question?.question}</p>
+              <div className="space-y-2">
+                {question?.options.map((option: any) => (
+                  <Button
+                    key={option.id}
+                    variant={selectedOptions.includes(option.id) ? "default" : "outline"}
+                    onClick={() => {
+                      if (Array.isArray(question.correctAnswer)) {
+                        setSelectedOptions(prev => {
+                          if (prev.includes(option.id)) {
+                            return prev.filter(id => id !== option.id);
+                          } else {
+                            return [...prev, option.id];
+                          }
+                        });
+                      } else {
+                        setSelectedOptions([option.id]);
+                      }
+                    }}
+                    className="w-full text-left justify-start py-2 px-4 h-auto min-h-[44px] break-words whitespace-pre-wrap"
+                  >
+                    {option.text}
+                  </Button>
+                ))}
+              </div>
+              {Array.isArray(question?.correctAnswer) && (
+                <p className="text-sm text-gray-500">
+                  Select {question.correctAnswer.length} correct answer{question.correctAnswer.length > 1 ? 's' : ''}
+                </p>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowQuestionDialog(false);
+                    setSelectedOptions([]);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!question) return;
+                    try {
+                      const response = await fetch('/api/game-stats', {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                          questionId: question.id,
+                          selectedOption: selectedOptions,
+                          gameId: gameStatsId
+                        }),
+                      });
+
+                      if (response.ok) {
+                        const data = await response.json();
+                        if (data.correct) {
+                          toast.success(data.message);
+                        } else {
+                          toast.error(data.message);
+                        }
+                      } else {
+                        toast.error('Failed to verify answer');
+                      }
+                    } catch (error) {
+                      console.error('Error verifying answer:', error);
+                      toast.error('Failed to verify answer');
+                    }
+                    setShowQuestionDialog(false);
+                    setSelectedOptions([]);
+                  }}
+                  disabled={Array.isArray(question?.correctAnswer) 
+                    ? selectedOptions.length !== question.correctAnswer.length
+                    : selectedOptions.length === 0}
+                >
+                  Submit Answer
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={showDidYouKnowDialog} onOpenChange={setShowDidYouKnowDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Fun Fact?</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <p className="text-lg break-words whitespace-pre-wrap">{didYouKnowTip}</p>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => setShowDidYouKnowDialog(false)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
   }
 
   // Creator's Lobby View
