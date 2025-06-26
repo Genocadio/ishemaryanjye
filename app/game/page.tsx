@@ -95,55 +95,108 @@ export default function DuoPlayerGame() {
     const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false);
     const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null);
 
-    useEffect(() => {
-        // Redirect if not authenticated
-        
-        const initializeGame = () => {
-            // Create and shuffle deck
-            const deck = createDeck();
+    const initializeGame = () => {
+        // Create and shuffle deck
+        const deck = createDeck();
 
-            // Deal 3 cards to each player initially
-            const hands = dealCards(deck, 2, 3);
+        // Deal 3 cards to each player initially
+        const hands = dealCards(deck, 2, 3);
 
-            // The remaining cards go to the card holder
-            const cardHolder = [...deck];
+        // The remaining cards go to the card holder
+        const cardHolder = [...deck];
 
-            // Randomly select starting player (0 for human, 1 for AI)
-            const startingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
+        // Randomly select starting player (0 for human, 1 for AI)
+        const startingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
 
-            // Create initial game state
-            const initialGameState: GameState = {
-                trumpSuit: getRandomTrumpSuit(),
-                players: [
-                    { hand: hands[0], collectedCards: [], score: 0 }, // Human player
-                    { hand: hands[1], collectedCards: [], score: 0 }  // AI player
-                ],
-                currentPlayer: startingPlayer,
-                cardsOnTable: [],
-                roundStake: 0,
-                roundHistory: [],
-                currentRound: 0,
-                totalRounds: 18,
-                cardHolder: cardHolder // Add the remaining cards to the card holder
-            };
-
-            // Initialize AI player with selected difficulty and fixed personality
-            const ai = new CardGameAI('Analytical', selectedDifficulty);
-            ai.initialize(initialGameState, 1);
-
-            // Initialize round evaluator
-            const evaluator = new RoundEvaluator(initialGameState.trumpSuit);
-
-            setGameState(initialGameState);
-            setAiPlayer(ai);
-            setRoundEvaluator(evaluator);
-            setCurrentTurn(startingPlayer === 0 ? "player" : "character");
-
-            // Show message about who starts
-            setGameMessage(startingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
+        // Create initial game state
+        const initialGameState: GameState = {
+            trumpSuit: getRandomTrumpSuit(),
+            players: [
+                { hand: hands[0], collectedCards: [], score: 0 }, // Human player
+                { hand: hands[1], collectedCards: [], score: 0 }  // AI player
+            ],
+            currentPlayer: startingPlayer,
+            cardsOnTable: [],
+            roundStake: 0,
+            roundHistory: [],
+            currentRound: 0,
+            totalRounds: 18,
+            cardHolder: cardHolder // Add the remaining cards to the card holder
         };
 
-        initializeGame();
+        // Initialize AI player with selected difficulty and fixed personality
+        const ai = new CardGameAI('Analytical', selectedDifficulty);
+        ai.initialize(initialGameState, 1);
+
+        // Initialize round evaluator
+        const evaluator = new RoundEvaluator(initialGameState.trumpSuit);
+
+        setGameState(initialGameState);
+        setAiPlayer(ai);
+        setRoundEvaluator(evaluator);
+        setCurrentTurn(startingPlayer === 0 ? "player" : "character");
+
+        // Show message about who starts
+        setGameMessage(startingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
+    };
+
+    useEffect(() => {
+        const reconnectionData = sessionStorage.getItem("reconnection_data")
+        if (reconnectionData) {
+            try {
+                const restoredState = JSON.parse(reconnectionData)
+                console.log("Restoring game state from session storage:", restoredState)
+                
+                // Check if players exists and is an array
+                if (Array.isArray(restoredState.players)) {
+                    const humanPlayer = restoredState.players.find((p: any) => p.id === restoredState.playerId)
+                    const aiPlayerObject = restoredState.players.find((p: any) => p.id !== restoredState.playerId)
+                    
+                    if (humanPlayer && aiPlayerObject) {
+                         const initialGameState: GameState = {
+                            trumpSuit: restoredState.trumpSuit,
+                            players: [
+                                { hand: restoredState.hand, collectedCards: [], score: restoredState.teamScores.team1 },
+                                { hand: [], collectedCards: [], score: restoredState.teamScores.team2 }
+                            ],
+                            currentPlayer: restoredState.currentPlayerId === restoredState.playerId ? 0 : 1,
+                            cardsOnTable: restoredState.currentRound,
+                            roundStake: 0,
+                            roundHistory: [],
+                            currentRound: restoredState.currentRoundNumber,
+                            totalRounds: 18, 
+                            cardHolder: [] 
+                        };
+
+                        setGameState(initialGameState)
+                        setGameStatus("playing")
+                        
+                        // Restore other necessary states
+                        setTotalGameScore(restoredState.teamScores.team1 + restoredState.teamScores.team2)
+                        // You might need to adjust how playerRoundsPlayed is restored based on game logic
+                        // setPlayerRoundsPlayed(...)
+
+                        // Clean up session storage
+                        sessionStorage.removeItem("reconnection_data")
+                        return;
+                    }
+                }
+                // If not valid, fallback to normal initialization
+                sessionStorage.removeItem("reconnection_data")
+                initializeGame();
+            } catch (error) {
+                console.error("Failed to restore game state:", error)
+                sessionStorage.removeItem("reconnection_data")
+                // Fallback to normal initialization
+                initializeGame();
+            }
+        } else {
+            initializeGame();
+        }
+
+        // Redirect if not authenticated
+        
+        // ... rest of useEffect ...
     }, [selectedDifficulty, status, router]);
 
     useEffect(() => {

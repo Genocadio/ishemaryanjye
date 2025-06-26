@@ -36,14 +36,16 @@ function AuthContent() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated" && session?.user) {
+      localStorage.setItem('id', session.user.id)
+      localStorage.setItem('username', session.user.username || session.user.name)
       if (players) {
         router.push(`/game?players=${players}`)
       } else {
         router.push(redirectTo)
       }
     }
-  }, [status, router, players, redirectTo])
+  }, [status, session, router, players, redirectTo])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -59,17 +61,8 @@ function AuthContent() {
       if (result?.error) {
         throw new Error(result.error)
       }
-
-      // Store username in localStorage
-      localStorage.setItem('username', name)
       
       toast.success('Login successful!')
-      
-      if (players) {
-        router.push(`/game?players=${players}`)
-      } else {
-        router.push(redirectTo)
-      }
     } catch (error) {
       console.error('Login error:', error)
       toast.error(error instanceof Error ? error.message : 'Login failed')
@@ -103,9 +96,6 @@ function AuthContent() {
         throw new Error(data.error || 'Registration failed')
       }
 
-      // Store username in localStorage
-      localStorage.setItem('username', name)
-
       // Auto-login after registration
       const result = await signIn("credentials", {
         email,
@@ -118,12 +108,6 @@ function AuthContent() {
       }
 
       toast.success('Registration successful!')
-      
-      if (players) {
-        router.push(`/game?players=${players}`)
-      } else {
-        router.push(redirectTo)
-      }
     } catch (error) {
       console.error('Registration error:', error)
       toast.error(error instanceof Error ? error.message : 'Registration failed')

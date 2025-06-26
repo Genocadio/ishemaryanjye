@@ -174,6 +174,16 @@ type TranslationKeys = {
   // Common
   "common.cancel": string;
   "common.download": string;
+
+  // Connect
+  "connect.title": string;
+  "connect.description": string;
+  "connect.createMatch": string;
+  "connect.joinMatch": string;
+  "connect.enterCode": string;
+  "connect.connectionCode": string;
+  "connect.join": string;
+  "common.back": string;
 }
 
 type LanguageContextType = {
@@ -356,6 +366,16 @@ const translations: Record<Language, TranslationKeys> = {
     // Common
     "common.cancel": "Cancel",
     "common.download": "Download",
+    "common.back": "Back",
+
+    // Connect
+    "connect.title": "Connect to a Game",
+    "connect.description": "Create a new match or join an existing one.",
+    "connect.createMatch": "Create a New Match",
+    "connect.joinMatch": "Join a Match",
+    "connect.enterCode": "Enter the connection code to join an existing game.",
+    "connect.connectionCode": "Connection Code",
+    "connect.join": "Join",
   },
   fr: {
     // Header
@@ -524,11 +544,21 @@ const translations: Record<Language, TranslationKeys> = {
      "waitingRoom.connected": "Connecté",
      "waitingRoom.readyToPlay": "Prêt à jouer",
      "waitingRoom.player": "Joueur {0}",
-     "waitingRoom.connecting": "Connexion en cours...",
+     "waitingRoom.connecting": "Connexion...",
 
     // Common
     "common.cancel": "Annuler",
     "common.download": "Télécharger",
+    "common.back": "Retour",
+
+    // Connect
+    "connect.title": "Se connecter à une partie",
+    "connect.description": "Créez une nouvelle partie ou rejoignez-en une existante.",
+    "connect.createMatch": "Créer une nouvelle partie",
+    "connect.joinMatch": "Rejoindre une partie",
+    "connect.enterCode": "Entrez le code de connexion pour rejoindre une partie existante.",
+    "connect.connectionCode": "Code de connexion",
+    "connect.join": "Rejoindre",
   },
   rw: {
     // Header
@@ -699,11 +729,21 @@ const translations: Record<Language, TranslationKeys> = {
       "waitingRoom.connected": "Wahuye",
       "waitingRoom.readyToPlay": "Witeguye gukina",
       "waitingRoom.player": "Umukinnyi {0}",
-      "waitingRoom.connecting": "Guhuza...",
+      "waitingRoom.connecting": "Kwinjira...",
 
     // Common
-    "common.cancel": "Reka",
-    "common.download": "Kuramo",
+    "common.cancel": "Siba",
+    "common.download": "Manura",
+    "common.back": "Subira inyuma",
+
+    // Connect
+    "connect.title": "Injira mu mukino",
+    "connect.description": "Kora umukino mushya cyangwa winjire mu watangiye.",
+    "connect.createMatch": "Kora umukino mushya",
+    "connect.joinMatch": "Injira mu mukino",
+    "connect.enterCode": "Shyiramo kode kugirango winjire mu mukino.",
+    "connect.connectionCode": "Kode y'umukino",
+    "connect.join": "Injira",
   },
 }
 
