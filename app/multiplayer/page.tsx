@@ -23,6 +23,7 @@ import CardHolder from "@/components/layout/CardHolder";
 import { Footer } from "@/components/layout/footer";
 import MultiplayerPlayground from "@/components/layout/MultiplayerPlayground";
 import CardChoice from "@/components/layout/CardChoice";
+import { useNotificationSound } from "@/components/providers";
 
 function MultiplayerLobby() {
   const router = useRouter()
@@ -66,6 +67,8 @@ function MultiplayerLobby() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false)
   const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null)
+
+  const { play: playNotificationSound } = useNotificationSound();
 
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
@@ -215,6 +218,7 @@ function MultiplayerLobby() {
         const { type, payload } = message
 
         if (type === "connection_established") {
+          playNotificationSound("connect");
           setConnectionState((prev: ConnectionState) => ({
             ...prev,
             matchId: payload.match.id,
@@ -251,6 +255,12 @@ function MultiplayerLobby() {
         } else if (type === "player_disconnected" || type === "player_returned") {
             const isDisconnect = type === "player_disconnected"
             console.log(`Player ${isDisconnect ? "disconnected" : "returned"}:`, payload)
+
+            if (isDisconnect) {
+              playNotificationSound("disconnect");
+            } else {
+              playNotificationSound("connect");
+            }
 
             setTeams((prevTeams: Teams | null) => {
                 if (!prevTeams) return null
@@ -302,6 +312,7 @@ function MultiplayerLobby() {
         } else if (type === "hand_dealt") {
           setHand(payload.hand)
         } else if (type === "card_played") {
+          playNotificationSound("play");
           setLastPlayground(payload.gameState.gameplay.playground)
           updateStateFromGameState(payload.gameState)
           const { player, card } = payload.playedCard
