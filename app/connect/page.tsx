@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,6 +18,17 @@ function ConnectContent() {
   const [joinCode, setJoinCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [resumeInviteCode, setResumeInviteCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const code = localStorage.getItem('incompleteInviteCode')
+      const matchId = localStorage.getItem('incompleteMatchId')
+      if (code && matchId) {
+        setResumeInviteCode(code)
+      }
+    }
+  }, [])
 
   const handleCreateMatch = async () => {
     setIsLoading(true)
@@ -98,6 +109,19 @@ function ConnectContent() {
             <CardTitle>{t("connect.title")}</CardTitle>
             <CardDescription>{t("connect.description")}</CardDescription>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {resumeInviteCode && (
+              <div className="mt-4">
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => {
+                    setError(null)
+                    router.push(`/multiplayer?inviteCode=${resumeInviteCode}`)
+                  }}
+                >
+                  Resume Game
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="grid gap-4">
             <Button onClick={handleCreateMatch} disabled={isLoading}>

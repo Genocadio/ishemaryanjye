@@ -219,6 +219,8 @@ function MultiplayerLobby() {
 
         if (type === "connection_established") {
           playNotificationSound("connect");
+          localStorage.setItem('incompleteMatchId', payload.match.id);
+          localStorage.setItem('incompleteInviteCode', code);
           setConnectionState((prev: ConnectionState) => ({
             ...prev,
             matchId: payload.match.id,
@@ -239,6 +241,8 @@ function MultiplayerLobby() {
           console.log("Reconnection successful, using new gameState:", gameState)
           sessionStorage.setItem("reconnection_data", JSON.stringify(payload))
           updateStateFromGameState(gameState)
+          if (code) localStorage.setItem('incompleteInviteCode', code);
+          if (gameState.match?.id) localStorage.setItem('incompleteMatchId', gameState.match.id);
           // Announce paused state if match is paused or any player is disconnected
           if (gameState.match.status === "paused") {
             const disconnectedPlayers = (gameState.players?.all ?? []).filter((p: Player) => !p.connected)
@@ -325,6 +329,8 @@ function MultiplayerLobby() {
           updateStateFromGameState(payload.gameState)
           setRoundResult(payload.roundResult)
         } else if (type === "match_ended") {
+          localStorage.removeItem('incompleteMatchId');
+          localStorage.removeItem('incompleteInviteCode');
           const { gameState } = payload
           updateStateFromGameState(gameState)
           setFinalGameState(gameState)
@@ -382,6 +388,10 @@ function MultiplayerLobby() {
     const opponentTeamId = playerTeamId === 'team1' ? 'team2' : 'team1';
     const opponentTeam = teams ? teams[opponentTeamId] : null;
     
+    const is1v1 = teamSize === 1;
+    const displayHand = is1v1 ? hand.slice(0, 3) : hand;
+    const cardHolderCards = is1v1 ? hand.slice(3) : (connectionState.cardHolder || []);
+    
     return (
       <>
         <div className="flex min-h-screen flex-col">
@@ -405,14 +415,14 @@ function MultiplayerLobby() {
                     isPlayerTurn={isPlayerTurn}
                   />
                   <div className="absolute top-1/2 right-4 -translate-y-1/2">
-                    <CardHolder cards={connectionState.cardHolder || []} />
+                    <CardHolder cards={cardHolderCards} />
                   </div>
                 </div>
                  
                  <CompactCard title="Your Hand">
                     <CardHand
-                        cards={hand}
-                        onCardSelect={(cardIndex) => handlePlayCard(hand[cardIndex].id)}
+                        cards={displayHand}
+                        onCardSelect={(cardIndex) => handlePlayCard(displayHand[cardIndex].id)}
                     />
                  </CompactCard>
 
