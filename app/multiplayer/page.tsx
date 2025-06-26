@@ -387,7 +387,11 @@ function MultiplayerLobby() {
                 
                 <Progress value={((connectionState.currentRound ?? 0) / (connectionState.totalRounds ?? 18)) * 100} />
                 <div className="relative">
-                  <MultiplayerPlayground playground={playground} allPlayers={allPlayers} />
+                  <MultiplayerPlayground 
+                    playground={playground} 
+                    allPlayers={allPlayers}
+                    currentPlayerName={connectionState.currentPlayerName}
+                  />
                   <div className="absolute top-1/2 right-4 -translate-y-1/2">
                     <CardHolder cards={connectionState.cardHolder || []} />
                   </div>

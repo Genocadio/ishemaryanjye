@@ -5,9 +5,10 @@ import { PlaygroundEntry, Player } from "@/app/multiplayer/types";
 interface MultiplayerPlaygroundProps {
     playground: PlaygroundEntry[];
     allPlayers: Player[];
+    currentPlayerName?: string;
 }
 
-const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playground, allPlayers }) => {
+const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playground, allPlayers, currentPlayerName }) => {
     return (
         <div className="my-4">
             <h3 className="text-lg font-semibold text-center mb-2">Playground</h3>
@@ -23,7 +24,9 @@ const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playgroun
                         );
                     })
                 ) : (
-                    <p className="text-gray-500">No cards played yet in this round.</p>
+                    <p className="text-gray-500">
+                        {currentPlayerName ? `Waiting for ${currentPlayerName} to play...` : "No cards played yet in this round."}
+                    </p>
                 )}
             </div>
         </div>
