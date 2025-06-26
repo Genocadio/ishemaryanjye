@@ -15,14 +15,14 @@ const PlaygroundArea: React.FC<PlaygroundAreaProps> = ({ player1Card, player2Car
     <div className="w-full h-[180px] bg-green-200 rounded-lg shadow-sm border border-gray-200 p-4">
       <div className="h-full flex items-center justify-center">
         <div className="flex gap-8 items-center justify-center">
-          <div className={`flex-shrink-0 ${currentTurn === 'player1' ? 'border-4 border-green-600 rounded-lg scale-105 shadow-lg' : 'border-2 border-gray-200 rounded-lg'}`}">
+          <div className={`flex-shrink-0 ${currentTurn === 'player1' ? 'border-4 border-green-600 rounded-lg scale-105 shadow-lg' : 'border-2 border-gray-200 rounded-lg'}`}>
             {player1Card ? (
               <PlaygroundCard label="" card={player1Card} />
             ) : (
               <div className="w-[120px] h-[180px]" />
             )}
           </div>
-          <div className={`flex-shrink-0 ${currentTurn === 'player2' ? 'border-4 border-green-600 rounded-lg scale-105 shadow-lg' : 'border-2 border-gray-200 rounded-lg'}`}">
+          <div className={`flex-shrink-0 ${currentTurn === 'player2' ? 'border-4 border-green-600 rounded-lg scale-105 shadow-lg' : 'border-2 border-gray-200 rounded-lg'}`}>
             {player2Card ? (
               <PlaygroundCard label="" card={player2Card} />
             ) : (
