@@ -391,6 +391,7 @@ function MultiplayerLobby() {
                     playground={playground} 
                     allPlayers={allPlayers}
                     currentPlayerName={connectionState.currentPlayerName}
+                    isPlayerTurn={isPlayerTurn}
                   />
                   <div className="absolute top-1/2 right-4 -translate-y-1/2">
                     <CardHolder cards={connectionState.cardHolder || []} />

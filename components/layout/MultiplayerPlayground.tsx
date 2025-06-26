@@ -6,9 +6,10 @@ interface MultiplayerPlaygroundProps {
     playground: PlaygroundEntry[];
     allPlayers: Player[];
     currentPlayerName?: string;
+    isPlayerTurn?: boolean;
 }
 
-const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playground, allPlayers, currentPlayerName }) => {
+const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playground, allPlayers, currentPlayerName, isPlayerTurn }) => {
     return (
         <div className="my-4">
             <h3 className="text-lg font-semibold text-center mb-2">Playground</h3>
@@ -25,7 +26,11 @@ const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playgroun
                     })
                 ) : (
                     <p className="text-gray-500">
-                        {currentPlayerName ? `Waiting for ${currentPlayerName} to play...` : "No cards played yet in this round."}
+                        {isPlayerTurn
+                            ? "It's your turn to play."
+                            : currentPlayerName 
+                                ? `Waiting for ${currentPlayerName} to play...` 
+                                : "No cards played yet in this round."}
                     </p>
                 )}
             </div>
