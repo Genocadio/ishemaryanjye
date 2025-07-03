@@ -64,16 +64,10 @@ export default function GameSelection() {
               {[2, 4, 6].map((players) => (
                 <Card
                   key={players}
-                  className={`transition-all ${
-                    players > 2
-                      ? "cursor-not-allowed opacity-50"
-                      : "cursor-pointer hover:border-green-500"
-                  }`}
-                  onClick={
-                    players === 2
-                      ? () => handleMultiplayerSelection(players)
-                      : undefined
+                  className={
+                    "cursor-pointer transition-all hover:border-green-500"
                   }
+                  onClick={() => handleMultiplayerSelection(players)}
                 >
                   <CardHeader className="text-center">
                     <CardTitle>{players} Players</CardTitle>
@@ -94,11 +88,7 @@ export default function GameSelection() {
                     </div>
                   </CardContent>
                   <CardFooter className="text-sm text-center text-gray-500 flex justify-center">
-                    {players > 2
-                      ? "Coming soon"
-                      : session
-                      ? "Play with friends"
-                      : "Requires sign in"}
+                    {session ? "Play with friends" : "Requires sign in"}
                   </CardFooter>
                 </Card>
               ))}

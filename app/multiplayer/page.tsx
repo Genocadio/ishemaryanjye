@@ -414,9 +414,11 @@ function MultiplayerLobby() {
                     currentPlayerName={connectionState.currentPlayerName}
                     isPlayerTurn={isPlayerTurn}
                   />
-                  <div className="absolute top-1/2 right-4 -translate-y-1/2">
-                    <CardHolder cards={cardHolderCards} />
-                  </div>
+                  {teamSize === 1 && (
+                    <div className="absolute top-1/2 right-4 -translate-y-1/2">
+                      <CardHolder cards={cardHolderCards} />
+                    </div>
+                  )}
                 </div>
                  
                  <CompactCard title="Your Hand">
