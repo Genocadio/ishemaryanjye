@@ -443,8 +443,8 @@ function MultiplayerLobby() {
       };
     });
     const orderedPlayers = initialPlayOrderRef.current.map(pid => allPlayersById[pid]).filter(Boolean);
-    // Find the current player's index in the current play order
-    const currentTurnIndex = playOrder.findIndex(pid => pid === connectionState.currentPlayerId);
+    // Find the current player's index in the initial arrangement (not playOrder)
+    const currentTurnIndex = initialPlayOrderRef.current.findIndex(pid => pid === connectionState.currentPlayerId);
     // Debug log to confirm playOrder updates
     console.log('Current playOrder for round:', playOrder);
 
