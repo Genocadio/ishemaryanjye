@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, Suspense } from "react"
+import React, { useState, useEffect, Suspense, useRef } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,6 +24,7 @@ import { Footer } from "@/components/layout/footer";
 import MultiplayerPlayground from "@/components/layout/MultiplayerPlayground";
 import CardChoice from "@/components/layout/CardChoice";
 import { useNotificationSound } from "@/components/providers";
+import PlayerTurnIndicator from "@/components/player-turn-indicator";
 
 function MultiplayerLobby() {
   const router = useRouter()
@@ -43,6 +44,9 @@ function MultiplayerLobby() {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(true)
+  const [playOrder, setPlayOrder] = useState<string[]>([])
+  const [firstPlayerIndex, setFirstPlayerIndex] = useState<number>(0)
+  const initialPlayOrderRef = useRef<string[]>([])
 
   const {
     connectionState,
@@ -67,6 +71,8 @@ function MultiplayerLobby() {
   const [selectedOptions, setSelectedOptions] = useState<string[]>([])
   const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false)
   const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null)
+  const [showTurnIndicator, setShowTurnIndicator] = useState(false);
+  const [autoShowIndicator, setAutoShowIndicator] = useState(false);
 
   const { play: playNotificationSound } = useNotificationSound();
 
@@ -132,6 +138,26 @@ function MultiplayerLobby() {
       }
     }
   }, [finalGameState, connectionState.matchStatus, playerTeamId])
+
+  useEffect(() => {
+    // On mount, restore initial play order and first player index from localStorage if present
+    const storedOrder = localStorage.getItem('initialPlayOrder');
+    const storedFirstIdx = localStorage.getItem('initialFirstPlayerIndex');
+    if (storedOrder) initialPlayOrderRef.current = JSON.parse(storedOrder);
+    if (storedFirstIdx) setFirstPlayerIndex(parseInt(storedFirstIdx, 10));
+    if (storedOrder) setPlayOrder(JSON.parse(storedOrder));
+  }, []);
+
+  // Auto-hide indicator after 2 seconds if autoShowIndicator is true
+  useEffect(() => {
+    if (autoShowIndicator) {
+      const timeout = setTimeout(() => {
+        setShowTurnIndicator(false);
+        setAutoShowIndicator(false);
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [autoShowIndicator]);
 
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
@@ -297,6 +323,8 @@ function MultiplayerLobby() {
           setNotification({ text: `${payload.resumedBy} has resumed the game. The match is now live!`, type: "success" })
           setTimeout(() => setNotification(null), 5000)
           toast.success("Match resumed! All players are connected.");
+          setShowTurnIndicator(true);
+          setAutoShowIndicator(true);
         } else if (type === "match_started") {
           updateStateFromGameState(payload.gameState)
           const startingPlayerName = payload.startingPlayer.name
@@ -306,6 +334,15 @@ function MultiplayerLobby() {
             type: "success",
           })
           setTimeout(() => setNotification(null), 5000)
+          if (payload.gameState.match) {
+            setPlayOrder(payload.gameState.match.playOrder);
+            setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex);
+            initialPlayOrderRef.current = payload.gameState.match.playOrder;
+            localStorage.setItem('initialPlayOrder', JSON.stringify(payload.gameState.match.playOrder));
+            localStorage.setItem('initialFirstPlayerIndex', payload.gameState.match.firstPlayerIndex.toString());
+          }
+          setShowTurnIndicator(true);
+          setAutoShowIndicator(true);
         } else if (type === "turn_changed") {
           updateStateFromGameState(payload.gameState)
           const notifText = payload.isYourTurn
@@ -313,6 +350,10 @@ function MultiplayerLobby() {
             : `It's ${payload.currentPlayer.name}'s turn.`
           setNotification({ text: notifText, type: payload.isYourTurn ? "success" : "info" })
           setTimeout(() => setNotification(null), 4000)
+          if (payload.gameState.match) {
+            setPlayOrder(payload.gameState.match.playOrder);
+            setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex);
+          }
         } else if (type === "hand_dealt") {
           setHand(payload.hand)
         } else if (type === "card_played") {
@@ -391,20 +432,49 @@ function MultiplayerLobby() {
     const is1v1 = teamSize === 1;
     const displayHand = is1v1 ? hand.slice(0, 3) : hand;
     const cardHolderCards = is1v1 ? hand.slice(3) : (connectionState.cardHolder || []);
-    
+
+    // Arrange players according to initial play order (from match start)
+    const allPlayersById: Record<string, { id: string; name: string; team: 'A' | 'B' }> = {};
+    [...(teams?.team1.players ?? []), ...(teams?.team2.players ?? [])].forEach(p => {
+      allPlayersById[p.id] = {
+        id: p.id,
+        name: p.name,
+        team: p.teamId === 'team1' ? 'A' : 'B',
+      };
+    });
+    const orderedPlayers = initialPlayOrderRef.current.map(pid => allPlayersById[pid]).filter(Boolean);
+    // Find the current player's index in the current play order
+    const currentTurnIndex = playOrder.findIndex(pid => pid === connectionState.currentPlayerId);
+    // Debug log to confirm playOrder updates
+    console.log('Current playOrder for round:', playOrder);
+
     return (
       <>
+        {showTurnIndicator && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowTurnIndicator(false)}>
+            <div onClick={e => e.stopPropagation()} className="relative">
+              <PlayerTurnIndicator
+                players={orderedPlayers}
+                currentTurnIndex={currentTurnIndex}
+                roundFirstPlayerIndex={firstPlayerIndex}
+                playOrder={playOrder}
+              />
+            </div>
+          </div>
+        )}
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
-               <GameStatus 
-                  currentTurn={isPlayerTurn ? 'player' : 'character'}
-                  selectedCharacter={`Team ${opponentTeamId.slice(-1)}`}
-                  playerScore={playerTeam?.score ?? 0}
-                  aiScore={opponentTeam?.score ?? 0}
-                  trumpSuit={connectionState.trumpSuit as any}
-               />
+               <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
+                 <GameStatus 
+                    currentTurn={isPlayerTurn ? 'player' : 'character'}
+                    selectedCharacter={`Team ${opponentTeamId.slice(-1)}`}
+                    playerScore={playerTeam?.score ?? 0}
+                    aiScore={opponentTeam?.score ?? 0}
+                    trumpSuit={connectionState.trumpSuit as any}
+                 />
+               </div>
                 
                 <Progress value={((connectionState.currentRound ?? 0) / (connectionState.totalRounds ?? 18)) * 100} />
                 <div className="relative">
