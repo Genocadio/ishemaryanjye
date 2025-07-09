@@ -35,7 +35,7 @@ function MultiplayerLobby() {
   const team1InviteCode = searchParams.get("team1InviteCode")
   const team2InviteCode = searchParams.get("team2InviteCode")
   const inviteCode = searchParams.get("inviteCode")
-  const teamSize = Number(searchParams.get("teamSize") || 1)
+  const urlTeamSize = Number(searchParams.get("teamSize") || 1)
 
   // --- STATE ---
   const [playerName, setPlayerName] = useState<string>("")
@@ -58,6 +58,8 @@ function MultiplayerLobby() {
     playground,
     setPlayground,
     allPlayers,
+    teamSize,
+    setTeamSize,
     updateStateFromGameState,
   } = useGameState()
   
@@ -78,6 +80,9 @@ function MultiplayerLobby() {
 
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
+  
+  // Calculate team size from teams data - fallback to URL param if teams not loaded yet
+  const effectiveTeamSize = teamSize || urlTeamSize;
 
   // --- EFFECTS ---
   useEffect(() => {
@@ -429,7 +434,7 @@ function MultiplayerLobby() {
     const opponentTeamId = playerTeamId === 'team1' ? 'team2' : 'team1';
     const opponentTeam = teams ? teams[opponentTeamId] : null;
     
-    const is1v1 = teamSize === 1;
+    const is1v1 = effectiveTeamSize === 1;
     const displayHand = is1v1 ? hand.slice(0, 3) : hand;
     const cardHolderCards = is1v1 ? hand.slice(3) : (connectionState.cardHolder || []);
 
@@ -484,7 +489,7 @@ function MultiplayerLobby() {
                     currentPlayerName={connectionState.currentPlayerName}
                     isPlayerTurn={isPlayerTurn}
                   />
-                  {teamSize === 1 && (
+                  {effectiveTeamSize === 1 && (
                     <div className="absolute top-1/2 right-4 -translate-y-1/2">
                       <CardHolder cards={cardHolderCards} />
                     </div>
@@ -785,10 +790,10 @@ function MultiplayerLobby() {
             <CardContent>
               {!allPlayersJoined && (
                 <div className="mb-8 text-center">
-                  <h3 className="font-semibold mb-2">Invite Code{teamSize > 1 ? 's' : ''}</h3>
-                  <p className="text-sm text-gray-500 mb-2">Share this code{teamSize > 1 ? 's' : ''} with the next player{teamSize > 1 ? 's' : ''} joining.</p>
+                  <h3 className="font-semibold mb-2">Invite Code{effectiveTeamSize > 1 ? 's' : ''}</h3>
+                  <p className="text-sm text-gray-500 mb-2">Share this code{effectiveTeamSize > 1 ? 's' : ''} with the next player{effectiveTeamSize > 1 ? 's' : ''} joining.</p>
                   <div className="max-w-xs mx-auto space-y-2">
-                    {teamSize > 1 ? (
+                    {effectiveTeamSize > 1 ? (
                       <>
                         {team1InviteCode && (
                           <div className="flex items-center gap-2">

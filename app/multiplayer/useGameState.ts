@@ -20,6 +20,7 @@ export const useGameState = () => {
   const [hand, setHand] = useState<CardType[]>([]);
   const [playground, setPlayground] = useState<PlaygroundEntry[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [teamSize, setTeamSize] = useState<number>(1);
 
   const updateStateFromGameState = useCallback((gameState: GameState) => {
     if (!gameState) return;
@@ -44,6 +45,11 @@ export const useGameState = () => {
         },
       };
       setTeams(updatedTeams);
+      
+      // Extract team size from teams data
+      if (gameState.teams.team1?.totalSlots) {
+        setTeamSize(gameState.teams.team1.totalSlots);
+      }
     }
 
     // 3. Update hand and playground from gameplay object
@@ -81,6 +87,8 @@ export const useGameState = () => {
     playground,
     setPlayground,
     allPlayers,
+    teamSize,
+    setTeamSize,
     updateStateFromGameState,
   };
 }; 
