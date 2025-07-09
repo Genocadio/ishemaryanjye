@@ -81,8 +81,12 @@ function MultiplayerLobby() {
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
   
-  // Calculate team size from teams data - fallback to URL param if teams not loaded yet
-  const effectiveTeamSize = teamSize || urlTeamSize;
+  // Determine if this is the match creator (has matchId) or a joiner (has inviteCode)
+  const isMatchCreator = !!matchIdFromUrl;
+  
+  // Use URL parameter for creators (to show correct number of invite codes in lobby),
+  // WebSocket data for joiners (for correct card distribution and game logic)
+  const effectiveTeamSize = isMatchCreator ? urlTeamSize : (teamSize || 1);
 
   // --- EFFECTS ---
   useEffect(() => {

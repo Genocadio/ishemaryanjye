@@ -46,7 +46,8 @@ export const useGameState = () => {
       };
       setTeams(updatedTeams);
       
-      // Extract team size from teams data
+      // Extract team size from teams data - this is primarily for joiners
+      // Creators will use URL parameters for lobby display
       if (gameState.teams.team1?.totalSlots) {
         setTeamSize(gameState.teams.team1.totalSlots);
       }
