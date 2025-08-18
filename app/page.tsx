@@ -10,29 +10,34 @@ import { useState, useEffect } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function Home() {
   const { t } = useLanguage()
   const [shuffledCards, setShuffledCards] = useState<string[]>([])
 
-  useEffect(() => {
+  const generateShuffledCards = (count = 3) => {
     const suits = ["clubs", "spades", "diamonds", "hearts"]
     const ranks = ["3", "4", "5", "6", "7", "A", "J", "K", "Q"]
-
-    // Create all possible card combinations
-    const allCards = suits.flatMap(suit =>
-      ranks.map(rank => `/cards/${suit}/${rank}.webp`)
-    )
-
-    // Shuffle all cards
+    const allCards = suits.flatMap(suit => ranks.map(rank => `/cards/${suit}/${rank}.webp`))
     const shuffled = [...allCards]
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
+    return shuffled.slice(0, count)
+  }
 
-    // Take first 3 cards
-    setShuffledCards(shuffled.slice(0, 3))
+  useEffect(() => {
+    // initial draw
+    setShuffledCards(generateShuffledCards())
+
+    // periodic reshuffle after page load
+    const intervalId = setInterval(() => {
+      setShuffledCards(generateShuffledCards())
+    }, 8000)
+
+    return () => clearInterval(intervalId)
   }, [])
 
   return (
@@ -53,16 +58,23 @@ export default function Home() {
                   <p className="max-w-[600px] text-gray-500 md:text-xl">{t("hero.description")}</p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/game-selection">
-                  <Button className="inline-flex h-10 items-center justify-center rounded-md bg-green-600 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
-                    {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
+                <motion.div
+                  animate={{ scale: [1, 1, 1.06, 1] }}
+                  transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 2.5 }}
+                  whileHover={{ scale: 1.06 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Link href="/game-selection">
+                    <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-12 text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50">
+                      {t("hero.playNow")} <ChevronRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-1" />
+                    </Button>
                   </Link>
+                </motion.div>
                   <Link href="/info"><Button
                     variant="outline"
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+                    className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
                   >
-                    {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+                    {t("hero.learnMore")} <BookOpen className="ml-3 h-6 w-6" />
                   </Button></Link>
 
                 </div>
@@ -71,25 +83,49 @@ export default function Home() {
                 <div className="relative h-[350px] w-[350px] rotate-6 overflow-hidden rounded-2xl bg-green-100 shadow-xl">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="grid grid-cols-2 gap-4 p-6">
-                      {shuffledCards.map((card, index) => (
-                        <div
-                          key={index}
-                          className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden"
-                          style={{ transform: `rotate(${(index - 1) * 5}deg)` }}
-                        >
-                          <img
-                            src={card}
-                            alt={`Card ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ))}
-                      <div
+                      <AnimatePresence mode="popLayout" initial={false}>
+                        {shuffledCards.map((card, index) => {
+                          const baseRotation = (index - 1) * 5
+                          return (
+                            <motion.div
+                              key={card}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.35 }}
+                            >
+                              <motion.div
+                                className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden"
+                                animate={{
+                                  rotate: [baseRotation - 1.5, baseRotation + 1.5, baseRotation - 1.5],
+                                  y: [0, -6, 0, 6, 0],
+                                  scale: [1, 1.02, 1]
+                                }}
+                                transition={{
+                                  duration: 6 + index,
+                                  repeat: Infinity,
+                                  repeatType: "mirror",
+                                  ease: "easeInOut",
+                                  delay: index * 0.25
+                                }}
+                              >
+                                <img
+                                  src={card}
+                                  alt={`Card ${index + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </motion.div>
+                            </motion.div>
+                          )
+                        })}
+                      </AnimatePresence>
+                      <motion.div
                         className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden flex items-center justify-center"
-                        style={{ transform: "rotate(3deg)" }}
+                        animate={{ rotate: [1, -1, 1], y: [0, -4, 0, 4, 0] }}
+                        transition={{ duration: 7.5, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
                       >
                         <div className="text-4xl font-bold">🎴</div>
-                      </div>
+                      </motion.div>
                     </div>
                   </div>
                 </div>
