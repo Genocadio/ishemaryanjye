@@ -33,6 +33,9 @@ export function Header({ variant = "default" }: HeaderProps) {
           </nav>
         )}
         <div className="ml-auto flex items-center space-x-4">
+          {/* Language selector is always available */}
+          <LanguageSelector />
+          
           {variant === "home" && (
             <Link href="/auth">
               <Button>{t("nav.getStarted")}</Button>
@@ -65,10 +68,6 @@ export function Header({ variant = "default" }: HeaderProps) {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <div className="px-2 py-1.5">
-                        <LanguageSelector />
-                      </div>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
                         onClick={() => signOut()}
@@ -81,7 +80,6 @@ export function Header({ variant = "default" }: HeaderProps) {
                 </>
               ) : (
                 <>
-                  <LanguageSelector />
                   <Link href="/auth">
                     <Button variant="outline" size="sm" className="h-8">
                       {t("auth.signin")}
