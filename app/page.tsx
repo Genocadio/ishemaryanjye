@@ -62,7 +62,7 @@ export default function Home() {
                   </h2>
                   <p className="max-w-[600px] text-gray-500 md:text-xl mx-auto">{t("hero.description")}</p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <div className="flex flex-row gap-2">
                 <motion.div
                   animate={{ scale: [1, 1, 1.06, 1] }}
                   transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 2.5 }}
