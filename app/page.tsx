@@ -16,7 +16,7 @@ export default function Home() {
   const { t } = useLanguage()
   const [shuffledCards, setShuffledCards] = useState<string[]>([])
 
-  const generateShuffledCards = (count = 3) => {
+  const generateShuffledCards = (count = 4) => {
     const suits = ["clubs", "spades", "diamonds", "hearts"]
     const ranks = ["3", "4", "5", "6", "7", "A", "J", "K", "Q"]
     const allCards = suits.flatMap(suit => ranks.map(rank => `/cards/${suit}/${rank}.webp`))
@@ -48,14 +48,19 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-8">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                <div className="space-y-2 text-center">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none flex items-center justify-center gap-2">
+                    <img 
+                      src="/cards/spades/Q.webp" 
+                      alt="Spade Q" 
+                      className="w-8 h-8 sm:w-10 sm:h-10 xl:w-12 xl:h-12 object-contain"
+                    />
                     {t("hero.title")}
                   </h1>
                   <h2 className="text-xl font-bold tracking-tighter sm:text-3xl xl:text-4xl/none">
                     {t("hero.subtitle")}
                   </h2>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl">{t("hero.description")}</p>
+                  <p className="max-w-[600px] text-gray-500 md:text-xl mx-auto">{t("hero.description")}</p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <motion.div
@@ -82,50 +87,43 @@ export default function Home() {
               <div className="flex items-center justify-center">
                 <div className="relative h-[350px] w-[350px] rotate-6 overflow-hidden rounded-2xl bg-green-100 shadow-xl">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="grid grid-cols-2 gap-4 p-6">
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        {shuffledCards.map((card, index) => {
-                          const baseRotation = (index - 1) * 5
-                          return (
-                            <motion.div
-                              key={card}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              transition={{ duration: 0.35 }}
-                            >
-                              <motion.div
-                                className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden"
-                                animate={{
-                                  rotate: [baseRotation - 1.5, baseRotation + 1.5, baseRotation - 1.5],
-                                  y: [0, -6, 0, 6, 0],
-                                  scale: [1, 1.02, 1]
-                                }}
-                                transition={{
-                                  duration: 6 + index,
-                                  repeat: Infinity,
-                                  repeatType: "mirror",
-                                  ease: "easeInOut",
-                                  delay: index * 0.25
-                                }}
-                              >
-                                <img
-                                  src={card}
-                                  alt={`Card ${index + 1}`}
-                                  className="w-full h-full object-cover"
-                                />
-                              </motion.div>
-                            </motion.div>
-                          )
-                        })}
-                      </AnimatePresence>
-                      <motion.div
-                        className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden flex items-center justify-center"
-                        animate={{ rotate: [1, -1, 1], y: [0, -4, 0, 4, 0] }}
-                        transition={{ duration: 7.5, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
-                      >
-                        <div className="text-4xl font-bold">🎴</div>
-                      </motion.div>
+                    <div className="grid grid-cols-2 gap-3 p-4">
+                                             <AnimatePresence mode="popLayout" initial={false}>
+                         {shuffledCards.map((card, index) => {
+                           const baseRotation = (index - 1) * 5
+                           return (
+                             <motion.div
+                               key={card}
+                               initial={{ opacity: 0, y: 10 }}
+                               animate={{ opacity: 1, y: 0 }}
+                               exit={{ opacity: 0, y: -10 }}
+                               transition={{ duration: 0.35 }}
+                             >
+                               <motion.div
+                                 className="h-32 w-24 rounded-lg bg-white shadow-md overflow-hidden"
+                                 animate={{
+                                   rotate: [baseRotation - 1.5, baseRotation + 1.5, baseRotation - 1.5],
+                                   y: [0, -6, 0, 6, 0],
+                                   scale: [1, 1.02, 1]
+                                 }}
+                                 transition={{
+                                   duration: 6 + index,
+                                   repeat: Infinity,
+                                   repeatType: "mirror",
+                                   ease: "easeInOut",
+                                   delay: index * 0.25
+                                 }}
+                               >
+                                 <img
+                                   src={card}
+                                   alt={`Card ${index + 1}`}
+                                   className="w-full h-full object-cover"
+                                 />
+                               </motion.div>
+                             </motion.div>
+                           )
+                         })}
+                       </AnimatePresence>
                     </div>
                   </div>
                 </div>

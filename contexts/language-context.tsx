@@ -203,8 +203,8 @@ const translations: Record<Language, TranslationKeys> = {
     "nav.logout": "Log Out",
 
     // Hero
-    "hero.title": "🎴 Ishema Ryanjye ",
-    "hero.subtitle": "Learn, Play, Grow!",
+    "hero.title": "Ishema Ryanjye ",
+    "hero.subtitle": "Play While Learning",
     "hero.description":
       "A fun, interactive card game that empowers young people with life-changing knowledge about reproductive health and gender equality.",
     "hero.playNow": "👉 Play Now",
@@ -387,8 +387,8 @@ const translations: Record<Language, TranslationKeys> = {
     "nav.logout": "Déconnexion",
 
     // Hero
-    "hero.title": "🎴 Ishema Ryanjye",
-    "hero.subtitle": "Apprendre, Jouer, Grandir!",
+    "hero.title": "Ishema Ryanjye",
+    "hero.subtitle": "Jouer et apprendre",
     "hero.description":
       "Un jeu de cartes amusant et interactif qui donne aux jeunes des connaissances qui changent leur vie sur la santé reproductive et l'égalité des sexes.",
     "hero.playNow": "👉 Jouer maintenant",
@@ -570,8 +570,8 @@ const translations: Record<Language, TranslationKeys> = {
     "nav.logout": "Gusohoka",
 
     // Hero
-    "hero.title": "🎴 Ishema Ryanjye",
-    "hero.subtitle": "Kwiga, Gukina, Gukura!",
+    "hero.title": "Ishema Ryanjye",
+    "hero.subtitle": "Kina Wiga",
     "hero.description":
       "Umukino w'amakarita ushimishije kandi ufite ubushobozi bwo guha urubyiruko ubumenyi bugira ingaruka ku buzima bw'imyororokere n'uburinganire.",
     "hero.playNow": "👉 Kina Nonaha",
