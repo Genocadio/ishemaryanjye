@@ -82,7 +82,7 @@ function SessionMonitor() {
 
 export function Providers({ children, session }: { children: React.ReactNode; session?: Session | null }) {
   return (
-    <SessionProvider session={session ?? undefined} refetchOnWindowFocus={false} staleTime={60 * 1000}>
+    <SessionProvider session={session ?? undefined} refetchOnWindowFocus={false}>
       <LanguageProvider>
         <NotificationSoundProvider>
           <Toaster position="top-center" richColors />
