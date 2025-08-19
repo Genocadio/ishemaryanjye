@@ -291,6 +291,38 @@ function MultiplayerLobby() {
           }
           setNotification(null)
           setHasEntered(true)
+        } else if (type === "match_paused") {
+          console.log("Match paused:", payload)
+          
+          // Update game state from the paused match
+          updateStateFromGameState(payload.gameState)
+          
+          // Set match status to paused
+          setConnectionState((prev: ConnectionState) => ({ 
+            ...prev, 
+            matchStatus: "paused",
+            currentRound: payload.gameState.match.currentRound,
+            totalRounds: payload.gameState.match.totalRounds,
+            trumpSuit: payload.gameState.match.trumpSuit
+          }))
+          
+          // Show appropriate notification based on reason
+          if (payload.reason === "player_disconnected") {
+            const disconnectedPlayer = payload.payload.pausedBy
+            playNotificationSound("disconnect")
+            setNotification({ 
+              text: `${disconnectedPlayer.name} has disconnected. The match is paused.`, 
+              type: "warning" 
+            })
+            toast.warning(`${disconnectedPlayer.name} disconnected. Match paused.`)
+          } else {
+            setNotification({ 
+              text: "Match has been paused.", 
+              type: "warning" 
+            })
+            toast.warning("Match paused.")
+          }
+          
         } else if (type === "player_disconnected" || type === "player_returned") {
             const isDisconnect = type === "player_disconnected"
             console.log(`Player ${isDisconnect ? "disconnected" : "returned"}:`, payload)
@@ -305,7 +337,7 @@ function MultiplayerLobby() {
                 if (!prevTeams) return null
                 const newTeams = JSON.parse(JSON.stringify(prevTeams))
                 const updatePlayer = (p: Player) => {
-                    if (p.name === payload.playerName) {
+                    if (p.name === payload.player.name) {
                         return { ...p, connected: !isDisconnect }
                     }
                     return p
@@ -315,16 +347,16 @@ function MultiplayerLobby() {
                 return newTeams
             })
 
-            setConnectionState((prev: ConnectionState) => ({ ...prev, matchStatus: payload.matchStatus }))
+            setConnectionState((prev: ConnectionState) => ({ ...prev, matchStatus: payload.match.status }))
 
             const notifText = isDisconnect 
-                ? `${payload.playerName} has disconnected. The game is paused.`
-                : `${payload.playerName} has returned! The game is still paused.`
+                ? `${payload.player.name} has disconnected. The game is paused.`
+                : `${payload.player.name} has returned! The game is still paused.`
             setNotification({ text: notifText, type: isDisconnect ? "warning" : "info" })
             if (isDisconnect) {
-              toast.warning(`${payload.playerName} disconnected. Match paused.`)
+              toast.warning(`${payload.player.name} disconnected. Match paused.`)
             } else {
-              toast.info(`${payload.playerName} reconnected. Waiting for all players...`)
+              toast.info(`${payload.player.name} reconnected. Waiting for all players...`)
             }
             if (!isDisconnect) setTimeout(() => setNotification(null), 5000)
         } else if (type === "match_resumed") {
