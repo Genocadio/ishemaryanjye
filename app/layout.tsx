@@ -2,7 +2,8 @@ import { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { Toaster } from "sonner"
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,11 +27,12 @@ export const metadata: Metadata = {
   }
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const session = await getServerSession(authOptions)
   return (
     <html lang="en">
       <head>
@@ -59,7 +61,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Providers>
+        <Providers session={session}>
           {children}
           {/* <Toaster richColors position="top-center" /> */}
         </Providers>

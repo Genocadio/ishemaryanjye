@@ -3,7 +3,9 @@
 import { SessionProvider } from "next-auth/react"
 import { LanguageProvider } from "@/contexts/language-context"
 import { Toaster } from 'sonner'
-import React, { createContext, useContext, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import type { Session } from "next-auth"
+import { useSession } from "next-auth/react"
 
 // Notification sound types
 export type NotificationType = "connect" | "disconnect" | "play";
@@ -54,15 +56,40 @@ export const useNotificationSound = () => {
   return ctx;
 };
 
-export function Providers({ children }: { children: React.ReactNode }) {
+function SessionMonitor() {
+  const { data: session, status } = useSession()
+
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      try {
+        localStorage.setItem('id', session.user.id)
+        if (session.user.name) localStorage.setItem('username', session.user.username || session.user.name)
+      } catch (_err) {
+        // Ignore storage errors (e.g., in private mode)
+      }
+    } else if (status === "unauthenticated") {
+      try {
+        localStorage.removeItem('id')
+        localStorage.removeItem('username')
+      } catch (_err) {
+        // Ignore
+      }
+    }
+  }, [status, session])
+
+  return null
+}
+
+export function Providers({ children, session }: { children: React.ReactNode; session?: Session | null }) {
   return (
-    <SessionProvider>
+    <SessionProvider session={session ?? undefined} refetchOnWindowFocus={false} staleTime={60 * 1000}>
       <LanguageProvider>
         <NotificationSoundProvider>
           <Toaster position="top-center" richColors />
+          <SessionMonitor />
           {children}
         </NotificationSoundProvider>
       </LanguageProvider>
     </SessionProvider>
   )
-} 
+}

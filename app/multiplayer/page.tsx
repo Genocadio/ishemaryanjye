@@ -437,6 +437,7 @@ function MultiplayerLobby() {
     const playerTeam = teams ? teams[playerTeamId] : null;
     const opponentTeamId = playerTeamId === 'team1' ? 'team2' : 'team1';
     const opponentTeam = teams ? teams[opponentTeamId] : null;
+    const disconnectedPlayers = [...(teams?.team1.players ?? []), ...(teams?.team2.players ?? [])].filter(p => !p.connected);
     
     const is1v1 = effectiveTeamSize === 1;
     const displayHand = is1v1 ? hand.slice(0, 3) : hand;
@@ -475,6 +476,14 @@ function MultiplayerLobby() {
           <Header />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
+               {connectionState.matchStatus === "paused" && disconnectedPlayers.length > 0 && (
+                 <div className="flex items-center gap-3 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-yellow-900">
+                   <Loader2 className="h-5 w-5 animate-spin" />
+                   <div className="text-sm font-medium">
+                     Waiting for {disconnectedPlayers.map(p => p.name).join(', ')} to reconnect...
+                   </div>
+                 </div>
+               )}
                <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
                  <GameStatus 
                     currentTurn={isPlayerTurn ? 'player' : 'character'}
@@ -849,18 +858,31 @@ function MultiplayerLobby() {
   }
 
   // Fallback view for users not in a game yet
+  const hasInvite = Boolean(inviteCode || team1InviteCode)
+  const isAuthenticated = status === "authenticated"
+  const title = isAuthenticated && hasEntered ? "Waiting for Other Players" : "Join Multiplayer Game"
+  const description = isAuthenticated
+    ? (hasEntered
+        ? "Waiting for other players to join..."
+        : hasInvite
+          ? "You're signed in. Click below if the connection doesn't start automatically."
+          : "You're signed in. Provide an invite link to join a lobby.")
+    : "Sign in to join the lobby."
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Join Multiplayer Game</CardTitle>
-            <CardDescription>Sign in to join the lobby.</CardDescription>
+            <CardTitle>{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {error && <p className="text-sm text-red-500">{error}</p>}
-            <Button onClick={handleConnect} className="w-full">Enter Lobby</Button>
+            <Button onClick={handleConnect} className="w-full" disabled={!hasInvite && !isAuthenticated}>
+              {isAuthenticated ? (hasInvite ? "Enter Lobby" : "Invite Required") : "Enter Lobby"}
+            </Button>
           </CardContent>
         </Card>
       </main>
