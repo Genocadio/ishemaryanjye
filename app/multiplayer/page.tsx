@@ -476,12 +476,53 @@ function MultiplayerLobby() {
           <Header />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
+               {/* Enhanced disconnection handling */}
                {connectionState.matchStatus === "paused" && disconnectedPlayers.length > 0 && (
-                 <div className="flex items-center gap-3 rounded-md border border-yellow-200 bg-yellow-50 p-3 text-yellow-900">
-                   <Loader2 className="h-5 w-5 animate-spin" />
-                   <div className="text-sm font-medium">
-                     Waiting for {disconnectedPlayers.map(p => p.name).join(', ')} to reconnect...
+                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+                   <div className="flex items-center justify-center gap-3 mb-4">
+                     <Loader2 className="h-8 w-8 animate-spin text-yellow-600" />
+                     <h2 className="text-xl font-semibold text-yellow-800">Match Paused - Waiting for Players</h2>
                    </div>
+                   
+                   <div className="grid md:grid-cols-2 gap-6 mb-4">
+                     {/* Team 1 Status */}
+                     <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                       <h3 className="font-semibold text-yellow-800 mb-2">Team A</h3>
+                       <div className="space-y-2">
+                         {teams?.team1.players.map((p: Player) => (
+                           <div key={p.id} className={`flex items-center justify-between ${!p.connected ? "opacity-60" : ""}`}>
+                             <span className="text-sm">{p.name}</span>
+                             <span className={`text-xs px-2 py-1 rounded-full ${
+                               p.connected ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                             }`}>
+                               {p.connected ? "Connected" : "Disconnected"}
+                             </span>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                     
+                     {/* Team 2 Status */}
+                     <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                       <h3 className="font-semibold text-yellow-800 mb-2">Team B</h3>
+                       <div className="space-y-2">
+                         {teams?.team2.players.map((p: Player) => (
+                           <div key={p.id} className={`flex items-center justify-between ${!p.connected ? "opacity-60" : ""}`}>
+                             <span className="text-sm">{p.name}</span>
+                             <span className={`text-xs px-2 py-1 rounded-full ${
+                               p.connected ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                             }`}>
+                               {p.connected ? "Connected" : "Disconnected"}
+                             </span>
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   </div>
+                   
+                   <p className="text-yellow-700 text-sm">
+                     The match will resume automatically when all players reconnect.
+                   </p>
                  </div>
                )}
                <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">

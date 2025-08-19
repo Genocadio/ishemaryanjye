@@ -1,13 +1,7 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env');
-}
-
-// After the check, we know MONGODB_URI is a string
-const validatedMongoUri = MONGODB_URI;
+// Defer validation to connection time to avoid build-time crashes
+let validatedMongoUri: string | null = process.env.MONGODB_URI ?? null;
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -28,6 +22,9 @@ async function connectDB() {
   }
 
   if (!cached.promise) {
+    if (!validatedMongoUri) {
+      throw new Error('Please define the MONGODB_URI environment variable inside .env');
+    }
     const opts = {
       bufferCommands: false,
       serverSelectionTimeoutMS: 10000,
