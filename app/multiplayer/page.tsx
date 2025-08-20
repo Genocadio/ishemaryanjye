@@ -75,6 +75,7 @@ function MultiplayerLobby() {
   const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null)
   const [showTurnIndicator, setShowTurnIndicator] = useState(false);
   const [autoShowIndicator, setAutoShowIndicator] = useState(false);
+  const [questionAnswered, setQuestionAnswered] = useState(false);
 
   const { play: playNotificationSound } = useNotificationSound();
 
@@ -637,6 +638,13 @@ function MultiplayerLobby() {
     const playerWon = playerTeamData.score > opponentTeamData.score;
     const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ");
     
+    // Delete match ID from localStorage for winners immediately
+    // For losers, it will be deleted after answering the question
+    if (playerWon) {
+      localStorage.removeItem('incompleteMatchId');
+      localStorage.removeItem('incompleteInviteCode');
+    }
+    
     const lastPlayerCard = lastPlayground.find(p => {
       const player = finalGameState.players.all.find((pl: Player) => pl.id === p.playerId);
       return player?.teamId === playerTeamId;
@@ -676,6 +684,7 @@ function MultiplayerLobby() {
                 {!playerWon && lastPlayerCard && lastOpponentCard && (
                     <div>
                       <h2 className="text-xl font-bold mb-4">Choose a card from the last round to answer a question for a chance to win.</h2>
+                      <p className="text-sm text-gray-600 mb-4">Answer the question to continue to the next match.</p>
                       <CardChoice
                           cards={{
                               playerCard: lastPlayerCard,
@@ -709,6 +718,11 @@ function MultiplayerLobby() {
                                       } else if (data.didYouKnow) {
                                           setDidYouKnowTip(data.didYouKnow);
                                           setShowDidYouKnowDialog(true);
+                                          setQuestionAnswered(true); // Show Play Again button after tip
+                                          
+                                          // Delete match ID from localStorage after getting tip
+                                          localStorage.removeItem('incompleteMatchId');
+                                          localStorage.removeItem('incompleteInviteCode');
                                       }
                                   } else {
                                       toast.error('Failed to get question');
@@ -722,9 +736,21 @@ function MultiplayerLobby() {
                     </div>
                 )}
                 
-                <Button onClick={() => router.push('/game-selection')} className="mt-8">
-                  Play Again
-                </Button>
+                {(questionAnswered || playerWon) && (
+                  <div className="mt-8">
+                    <p className="text-sm text-gray-600 mb-4">
+                      {playerWon ? "Ready for another match?" : "Question completed! Ready for another match?"}
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        const playerCount = effectiveTeamSize * 2; // 2 teams * team size
+                        router.push(`/connect?players=${playerCount}`);
+                      }} 
+                    >
+                      Play Again
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </main>
@@ -807,6 +833,11 @@ function MultiplayerLobby() {
                     }
                     setShowQuestionDialog(false);
                     setSelectedOptions([]);
+                    setQuestionAnswered(true);
+                    
+                    // Delete match ID from localStorage after answering question
+                    localStorage.removeItem('incompleteMatchId');
+                    localStorage.removeItem('incompleteInviteCode');
                   }}
                   disabled={Array.isArray(question?.correctAnswer) 
                     ? selectedOptions.length !== question.correctAnswer.length
@@ -828,7 +859,14 @@ function MultiplayerLobby() {
               <p className="text-lg break-words whitespace-pre-wrap">{didYouKnowTip}</p>
               <div className="flex justify-end">
                 <Button
-                  onClick={() => setShowDidYouKnowDialog(false)}
+                  onClick={() => {
+                    setShowDidYouKnowDialog(false);
+                    setQuestionAnswered(true); // Show Play Again button after closing tip
+                    
+                    // Delete match ID from localStorage after closing tip
+                    localStorage.removeItem('incompleteMatchId');
+                    localStorage.removeItem('incompleteInviteCode');
+                  }}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   Close
