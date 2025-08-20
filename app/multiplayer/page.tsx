@@ -248,7 +248,7 @@ function MultiplayerLobby() {
         console.log("Reconnection successful");
         setSocket(ws);
         setIsReconnecting(false);
-        toast.success("Reconnected successfully!");
+        // Don't show success toast here as it will be shown in onopen
       };
       
       ws.onclose = () => {
@@ -323,6 +323,12 @@ function MultiplayerLobby() {
         clearTimeout(reconnectionTimeout);
         setReconnectionTimeout(null);
       }
+      
+      // If this was a reconnection, show success message
+      if (reconnectionAttempts > 0) {
+        toast.success("Reconnected successfully!");
+        console.log("Reconnection completed successfully");
+      }
     }
 
     ws.onclose = () => {
@@ -330,6 +336,7 @@ function MultiplayerLobby() {
       
       // If this is the first disconnection and we were in a game, attempt reconnection
       if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+        console.log("Current player disconnected, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
         setError("Connection closed. You have been disconnected.")
@@ -347,6 +354,7 @@ function MultiplayerLobby() {
       
       // If this is the first error and we were in a game, attempt reconnection
       if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+        console.log("Current player connection error, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
         setError("Connection error. Please try again.")
@@ -389,6 +397,15 @@ function MultiplayerLobby() {
           updateStateFromGameState(gameState)
           if (code) localStorage.setItem('incompleteInviteCode', code);
           if (gameState.match?.id) localStorage.setItem('incompleteMatchId', gameState.match.id);
+          
+          // Reset reconnection state
+          setIsReconnecting(false);
+          setReconnectionAttempts(0);
+          if (reconnectionTimeout) {
+            clearTimeout(reconnectionTimeout);
+            setReconnectionTimeout(null);
+          }
+          
           // Announce paused state if match is paused or any player is disconnected
           if (gameState.match.status === "paused") {
             const disconnectedPlayers = (gameState.players?.all ?? []).filter((p: Player) => !p.connected)
@@ -406,20 +423,33 @@ function MultiplayerLobby() {
           console.log("Match paused:", payload)
           
           // Update game state from the paused match
-          updateStateFromGameState(payload.gameState)
-          
-          // Set match status to paused
-          setConnectionState((prev: ConnectionState) => ({ 
-            ...prev, 
-            matchStatus: "paused",
-            currentRound: payload.gameState.match.currentRound,
-            totalRounds: payload.gameState.match.totalRounds,
-            trumpSuit: payload.gameState.match.trumpSuit
-          }))
+          if (payload.gameState) {
+            updateStateFromGameState(payload.gameState)
+            
+            // Set match status to paused
+            setConnectionState((prev: ConnectionState) => ({ 
+              ...prev, 
+              matchStatus: "paused",
+              currentRound: payload.gameState.match?.currentRound,
+              totalRounds: payload.gameState.match?.totalRounds,
+              trumpSuit: payload.gameState.match?.trumpSuit
+            }))
+          }
           
           // Show appropriate notification based on reason
-          if (payload.reason === "player_disconnected") {
-            const disconnectedPlayer = payload.payload.pausedBy
+          if (payload.reason === "player_disconnected" && payload.pausedBy) {
+            const disconnectedPlayer = payload.pausedBy
+            
+            // Check if this is the current player who disconnected
+            if (disconnectedPlayer.id === playerId) {
+              console.log("Current player disconnected via match_paused, attempting reconnection...")
+              if (!isReconnecting) {
+                handleReconnectionAttempt(code);
+              }
+              return; // Don't show disconnection UI for current player
+            }
+            
+            // Other player disconnected
             playNotificationSound("disconnect")
             setNotification({ 
               text: `${disconnectedPlayer.name} has disconnected. The match is paused.`, 
@@ -438,17 +468,28 @@ function MultiplayerLobby() {
             const isDisconnect = type === "player_disconnected"
             console.log(`Player ${isDisconnect ? "disconnected" : "returned"}:`, payload)
 
+            // Check if this is the current player disconnecting
+            if (isDisconnect && payload.player && payload.player.id === playerId) {
+              // Current player disconnected - handle reconnection
+              console.log("Current player disconnected via message, attempting reconnection...")
+              if (!isReconnecting) {
+                handleReconnectionAttempt(code);
+              }
+              return; // Don't update UI state for current player disconnection
+            }
+
             if (isDisconnect) {
               playNotificationSound("disconnect");
             } else {
               playNotificationSound("connect");
             }
 
+            // Update teams state
             setTeams((prevTeams: Teams | null) => {
                 if (!prevTeams) return null
                 const newTeams = JSON.parse(JSON.stringify(prevTeams))
                 const updatePlayer = (p: Player) => {
-                    if (p.name === payload.player.name) {
+                    if (p.id === payload.player.id) {
                         return { ...p, connected: !isDisconnect }
                     }
                     return p
@@ -458,7 +499,13 @@ function MultiplayerLobby() {
                 return newTeams
             })
 
-            setConnectionState((prev: ConnectionState) => ({ ...prev, matchStatus: payload.match.status }))
+            // Update connection state
+            if (payload.match) {
+              setConnectionState((prev: ConnectionState) => ({ 
+                ...prev, 
+                matchStatus: payload.match.status 
+              }))
+            }
 
             const notifText = isDisconnect 
                 ? `${payload.player.name} has disconnected. The game is paused.`
@@ -471,68 +518,88 @@ function MultiplayerLobby() {
             }
             if (!isDisconnect) setTimeout(() => setNotification(null), 5000)
         } else if (type === "match_resumed") {
-          setConnectionState((prev: ConnectionState) => ({ ...prev, matchStatus: "active", currentPlayerId: payload.currentPlayerId, currentPlayerName: payload.currentPlayerName }))
-          setNotification({ text: `${payload.resumedBy} has resumed the game. The match is now live!`, type: "success" })
-          setTimeout(() => setNotification(null), 5000)
-          toast.success("Match resumed! All players are connected.");
-          setShowTurnIndicator(true);
-          setAutoShowIndicator(true);
-        } else if (type === "match_started") {
-          updateStateFromGameState(payload.gameState)
-          const startingPlayerName = payload.startingPlayer.name
-          setConnectionState((prev: ConnectionState) => ({ ...prev, firstPlayerName: startingPlayerName }))
-          setNotification({
-            text: `Match started! ${startingPlayerName} plays first. Trump is ${payload.trumpSuit}.`,
-            type: "success",
-          })
-          setTimeout(() => setNotification(null), 5000)
-          if (payload.gameState.match) {
-            setPlayOrder(payload.gameState.match.playOrder);
-            setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex);
-            initialPlayOrderRef.current = payload.gameState.match.playOrder;
-            localStorage.setItem('initialPlayOrder', JSON.stringify(payload.gameState.match.playOrder));
-            localStorage.setItem('initialFirstPlayerIndex', payload.gameState.match.firstPlayerIndex.toString());
+          if (payload.currentPlayerId && payload.currentPlayerName) {
+            setConnectionState((prev: ConnectionState) => ({ 
+              ...prev, 
+              matchStatus: "active", 
+              currentPlayerId: payload.currentPlayerId, 
+              currentPlayerName: payload.currentPlayerName 
+            }))
+            setNotification({ text: `${payload.resumedBy || 'Someone'} has resumed the game. The match is now live!`, type: "success" })
+            setTimeout(() => setNotification(null), 5000)
+            toast.success("Match resumed! All players are connected.");
+            setShowTurnIndicator(true);
+            setAutoShowIndicator(true);
           }
-          setShowTurnIndicator(true);
-          setAutoShowIndicator(true);
+        } else if (type === "match_started") {
+          if (payload.gameState) {
+            updateStateFromGameState(payload.gameState)
+            const startingPlayerName = payload.startingPlayer?.name || 'Unknown Player'
+            setConnectionState((prev: ConnectionState) => ({ ...prev, firstPlayerName: startingPlayerName }))
+            setNotification({
+              text: `Match started! ${startingPlayerName} plays first. Trump is ${payload.trumpSuit || 'Unknown'}.`,
+              type: "success",
+            })
+            setTimeout(() => setNotification(null), 5000)
+            if (payload.gameState.match) {
+              setPlayOrder(payload.gameState.match.playOrder || []);
+              setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
+              initialPlayOrderRef.current = payload.gameState.match.playOrder || [];
+              localStorage.setItem('initialPlayOrder', JSON.stringify(payload.gameState.match.playOrder || []));
+              localStorage.setItem('initialFirstPlayerIndex', (payload.gameState.match.firstPlayerIndex || 0).toString());
+            }
+            setShowTurnIndicator(true);
+            setAutoShowIndicator(true);
+          }
         } else if (type === "turn_changed") {
-          updateStateFromGameState(payload.gameState)
-          const notifText = payload.isYourTurn
-            ? "It's your turn to play!"
-            : `It's ${payload.currentPlayer.name}'s turn.`
-          setNotification({ text: notifText, type: payload.isYourTurn ? "success" : "info" })
-          setTimeout(() => setNotification(null), 4000)
-          if (payload.gameState.match) {
-            setPlayOrder(payload.gameState.match.playOrder);
-            setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex);
+          if (payload.gameState) {
+            updateStateFromGameState(payload.gameState)
+            const notifText = payload.isYourTurn
+              ? "It's your turn to play!"
+              : `It's ${payload.currentPlayer?.name || 'Unknown Player'}'s turn.`
+            setNotification({ text: notifText, type: payload.isYourTurn ? "success" : "info" })
+            setTimeout(() => setNotification(null), 4000)
+            if (payload.gameState.match) {
+              setPlayOrder(payload.gameState.match.playOrder || []);
+              setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
+            }
           }
         } else if (type === "hand_dealt") {
-          setHand(payload.hand)
+          if (payload.hand) {
+            setHand(payload.hand)
+          }
         } else if (type === "card_played") {
-          playNotificationSound("play");
-          setLastPlayground(payload.gameState.gameplay.playground)
-          updateStateFromGameState(payload.gameState)
-          const { player, card } = payload.playedCard
-          setNotification({
-            text: `${player.name} played the ${card.value} of ${card.suit}.`,
-            type: "info",
-          })
-          setTimeout(() => setNotification(null), 4000)
+          if (payload.gameState && payload.playedCard) {
+            playNotificationSound("play");
+            setLastPlayground(payload.gameState.gameplay?.playground || [])
+            updateStateFromGameState(payload.gameState)
+            const { player, card } = payload.playedCard
+            if (player && card) {
+              setNotification({
+                text: `${player.name || 'Unknown Player'} played the ${card.value || 'Unknown'} of ${card.suit || 'Unknown'}.`,
+                type: "info",
+              })
+              setTimeout(() => setNotification(null), 4000)
+            }
+          }
         } else if (type === "round_completed") {
-          updateStateFromGameState(payload.gameState)
-          setRoundResult(payload.roundResult)
+          if (payload.gameState && payload.roundResult) {
+            updateStateFromGameState(payload.gameState)
+            setRoundResult(payload.roundResult)
+          }
         } else if (type === "match_ended") {
           localStorage.removeItem('incompleteMatchId');
           localStorage.removeItem('incompleteInviteCode');
-          const { gameState } = payload
-          updateStateFromGameState(gameState)
-          setFinalGameState(gameState)
-          setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
+          if (payload.gameState) {
+            updateStateFromGameState(payload.gameState)
+            setFinalGameState(payload.gameState)
+            setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
+          }
         } else if (type === "game_state_update") {
           // Client-side patch for a server bug.
           // After a round completes, the server sends a game_state_update with an incorrect
           // ID for the next player. We use the winner from the roundResult to correct this.
-          if (roundResult) {
+          if (roundResult && payload.players) {
             const winner = roundResult.winner
             const patchedPayload = {
               ...payload,
@@ -542,14 +609,19 @@ function MultiplayerLobby() {
               },
             }
             updateStateFromGameState(patchedPayload)
-          } else {
+          } else if (payload) {
             updateStateFromGameState(payload)
           }
         } else if (message.error) {
           setError(message.error)
+        } else {
+          // Log unhandled message types for debugging
+          console.log("Unhandled message type:", type, payload)
         }
       } catch (e) {
         console.error("Error parsing message", e)
+        // Don't crash the app on message parsing errors
+        setError("Error processing server message. Please refresh the page.")
       }
     }
   }
@@ -684,6 +756,11 @@ function MultiplayerLobby() {
                        Please wait while we attempt to restore your connection. 
                        This may take a few moments.
                      </p>
+                   </div>
+                   <div className="mt-4 text-xs text-blue-600">
+                     <p>• Your game progress is being preserved</p>
+                     <p>• You'll rejoin automatically when connection is restored</p>
+                     <p>• If reconnection fails, you'll be redirected to the lobby</p>
                    </div>
                  </div>
                )}
