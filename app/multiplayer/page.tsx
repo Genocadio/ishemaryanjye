@@ -76,6 +76,9 @@ function MultiplayerLobby() {
   const [showTurnIndicator, setShowTurnIndicator] = useState(false);
   const [autoShowIndicator, setAutoShowIndicator] = useState(false);
   const [questionAnswered, setQuestionAnswered] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
+  const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
+  const [reconnectionTimeout, setReconnectionTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const { play: playNotificationSound } = useNotificationSound();
 
@@ -169,6 +172,15 @@ function MultiplayerLobby() {
     }
   }, [autoShowIndicator]);
 
+  // Cleanup reconnection timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (reconnectionTimeout) {
+        clearTimeout(reconnectionTimeout);
+      }
+    };
+  }, [reconnectionTimeout]);
+
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
     // Prevent play if match is paused or any player is disconnected
@@ -190,6 +202,13 @@ function MultiplayerLobby() {
       toast.error("You are not connected to the match.");
       return;
     }
+
+    // Prevent play if currently reconnecting
+    if (isReconnecting) {
+      toast.warning("Please wait while reconnecting to the match.");
+      return;
+    }
+
     socket.send(JSON.stringify({ type: "play_card_request", payload: { cardId } }))
   }
   
@@ -200,6 +219,79 @@ function MultiplayerLobby() {
       (err) => console.error("Failed to copy:", err)
     )
   }
+
+  const handleReconnectionAttempt = (code: string) => {
+    if (isReconnecting || reconnectionAttempts >= 3) {
+      // Max attempts reached or already reconnecting, redirect to connect page
+      toast.error("Connection lost. Redirecting to connect page...");
+      setTimeout(() => {
+        router.push('/connect');
+      }, 1000);
+      return;
+    }
+
+    setIsReconnecting(true);
+    setReconnectionAttempts(prev => prev + 1);
+    
+    toast.warning(`Bad network detected. Attempting to reconnect... (${reconnectionAttempts + 1}/3)`, {
+      duration: 7000,
+    });
+
+    // Wait 7 seconds before attempting reconnection
+    const timeout = setTimeout(() => {
+      console.log(`Attempting reconnection ${reconnectionAttempts + 1}/3`);
+      
+      const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/invite/${code}?name=${encodeURIComponent(playerName)}&playerId=${encodeURIComponent(playerId)}`;
+      const ws = new WebSocket(wsUrl);
+      
+      ws.onopen = () => {
+        console.log("Reconnection successful");
+        setSocket(ws);
+        setIsReconnecting(false);
+        toast.success("Reconnected successfully!");
+      };
+      
+      ws.onclose = () => {
+        console.log("Reconnection failed");
+        setIsReconnecting(false);
+        
+        if (reconnectionAttempts + 1 >= 3) {
+          toast.error("Failed to reconnect after 3 attempts. Redirecting to connect page...");
+          setTimeout(() => {
+            router.push('/connect');
+          }, 2000);
+        } else {
+          // Try again
+          handleReconnectionAttempt(code);
+        }
+      };
+      
+      ws.onerror = () => {
+        console.log("Reconnection error");
+        setIsReconnecting(false);
+        
+        if (reconnectionAttempts + 1 >= 3) {
+          toast.error("Failed to reconnect after 3 attempts. Redirecting to connect page...");
+          setTimeout(() => {
+            router.push('/connect');
+          }, 2000);
+        } else {
+          // Try again
+          handleReconnectionAttempt(code);
+        }
+      };
+      
+      // Set a timeout for this reconnection attempt
+      setTimeout(() => {
+        if (ws.readyState !== WebSocket.OPEN) {
+          ws.close();
+        }
+      }, 10000); // 10 second timeout for each attempt
+      
+    }, 7000);
+    
+    setReconnectionTimeout(timeout);
+  };
 
   const handleConnect = () => {
     if (!playerName.trim()) {
@@ -225,25 +317,43 @@ function MultiplayerLobby() {
     ws.onopen = () => {
       console.log("WebSocket connected")
       setHasEntered(true)
+      setIsReconnecting(false)
+      setReconnectionAttempts(0)
+      if (reconnectionTimeout) {
+        clearTimeout(reconnectionTimeout);
+        setReconnectionTimeout(null);
+      }
     }
 
     ws.onclose = () => {
       console.log("WebSocket disconnected")
-      setError("Connection closed. You have been disconnected.")
-      setHasEntered(false)
-      setSocket(null)
-      if (!hasEntered) {
-        toast.error("Failed to connect to the match. Please try again later.")
-        setTimeout(() => router.back(), 1500)
+      
+      // If this is the first disconnection and we were in a game, attempt reconnection
+      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+        handleReconnectionAttempt(code);
+      } else {
+        setError("Connection closed. You have been disconnected.")
+        setHasEntered(false)
+        setSocket(null)
+        if (!hasEntered) {
+          toast.error("Failed to connect to the match. Please try again later.")
+          setTimeout(() => router.back(), 1500)
+        }
       }
     }
 
     ws.onerror = (err) => {
       console.error("WebSocket error", err)
-      setError("Connection error. Please try again.")
-      if (!hasEntered) {
-        toast.error("Failed to connect to the match. Please try again later.")
-        setTimeout(() => router.back(), 1500)
+      
+      // If this is the first error and we were in a game, attempt reconnection
+      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+        handleReconnectionAttempt(code);
+      } else {
+        setError("Connection error. Please try again.")
+        if (!hasEntered) {
+          toast.error("Failed to connect to the match. Please try again later.")
+          setTimeout(() => router.back(), 1500)
+        }
       }
     }
 
@@ -493,7 +603,7 @@ function MultiplayerLobby() {
 
     return (
       <>
-        {showTurnIndicator && (
+        {showTurnIndicator && !isReconnecting && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40" onClick={() => setShowTurnIndicator(false)}>
             <div onClick={e => e.stopPropagation()} className="relative">
               <PlayerTurnIndicator
@@ -510,7 +620,7 @@ function MultiplayerLobby() {
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
                {/* Enhanced disconnection handling */}
-               {connectionState.matchStatus === "paused" && disconnectedPlayers.length > 0 && (
+               {connectionState.matchStatus === "paused" && disconnectedPlayers.length > 0 && !isReconnecting && (
                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
                    <div className="flex items-center justify-center gap-3 mb-4">
                      <Loader2 className="h-8 w-8 animate-spin text-yellow-600" />
@@ -558,37 +668,71 @@ function MultiplayerLobby() {
                    </p>
                  </div>
                )}
-               <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
-                 <GameStatus 
-                    currentTurn={isPlayerTurn ? 'player' : 'character'}
-                    selectedCharacter={`Team ${opponentTeamId.slice(-1)}`}
-                    playerScore={playerTeam?.score ?? 0}
-                    aiScore={opponentTeam?.score ?? 0}
-                    trumpSuit={connectionState.trumpSuit as any}
-                 />
-               </div>
-                
-                <Progress value={((connectionState.currentRound ?? 0) / (connectionState.totalRounds ?? 18)) * 100} />
+
+               {/* Reconnection indicator for current player */}
+               {isReconnecting && (
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                   <div className="flex items-center justify-center gap-3 mb-4">
+                     <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                     <h2 className="text-xl font-semibold text-blue-800">Reconnecting...</h2>
+                   </div>
+                   <p className="text-blue-700 text-sm mb-4">
+                     Attempting to reconnect to the match... (Attempt {reconnectionAttempts}/3)
+                   </p>
+                   <div className="bg-white rounded-lg p-4 border border-blue-200">
+                     <p className="text-sm text-blue-800">
+                       Please wait while we attempt to restore your connection. 
+                       This may take a few moments.
+                     </p>
+                   </div>
+                 </div>
+               )}
+                              {!isReconnecting && (
+                 <>
+                   <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
+                     <GameStatus 
+                        currentTurn={isPlayerTurn ? 'player' : 'character'}
+                        selectedCharacter={`Team ${opponentTeamId.slice(-1)}`}
+                        playerScore={playerTeam?.score ?? 0}
+                        aiScore={opponentTeam?.score ?? 0}
+                        trumpSuit={connectionState.trumpSuit as any}
+                     />
+                   </div>
+                   
+                   <Progress value={((connectionState.currentRound ?? 0) / (connectionState.totalRounds ?? 18)) * 100} />
+                 </>
+               )}
                 <div className="relative">
-                  <MultiplayerPlayground 
-                    playground={playground} 
-                    allPlayers={allPlayers}
-                    currentPlayerName={connectionState.currentPlayerName}
-                    isPlayerTurn={isPlayerTurn}
-                  />
-                  {effectiveTeamSize === 1 && (
-                    <div className="absolute top-1/2 right-4 -translate-y-1/2">
-                      <CardHolder cards={cardHolderCards} />
+                  {!isReconnecting ? (
+                    <>
+                      <MultiplayerPlayground 
+                        playground={playground} 
+                        allPlayers={allPlayers}
+                        currentPlayerName={connectionState.currentPlayerName}
+                        isPlayerTurn={isPlayerTurn}
+                      />
+                      {effectiveTeamSize === 1 && (
+                        <div className="absolute top-1/2 right-4 -translate-y-1/2">
+                          <CardHolder cards={cardHolderCards} />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="my-4 p-8 text-center bg-gray-50 border rounded-lg">
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-600">Game paused during reconnection...</p>
                     </div>
                   )}
                 </div>
                  
-                 <CompactCard title="Your Hand">
-                    <CardHand
-                        cards={displayHand}
-                        onCardSelect={(cardIndex) => handlePlayCard(displayHand[cardIndex].id)}
-                    />
-                 </CompactCard>
+                 {!isReconnecting && (
+                   <CompactCard title="Your Hand">
+                      <CardHand
+                          cards={displayHand}
+                          onCardSelect={(cardIndex) => handlePlayCard(displayHand[cardIndex].id)}
+                      />
+                   </CompactCard>
+                 )}
 
                 {/* <div>
                   <h3 className="font-semibold mb-2">Connected Players</h3>
