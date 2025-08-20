@@ -325,7 +325,7 @@ function MultiplayerLobby() {
         setHasEntered(false)
         setSocket(null)
         if (!hasEntered) {
-          toast.error("Failed to connect to the match. Please try again later.")
+          // toast.error("Failed to connect to the match. Please try again later.")
           setTimeout(() => router.back(), 1500)
         }
       }
