@@ -223,7 +223,7 @@ function MultiplayerLobby() {
   const handleReconnectionAttempt = (code: string) => {
     if (isReconnecting || reconnectionAttempts >= 3) {
       // Max attempts reached or already reconnecting, redirect to connect page
-      toast.error("Connection lost. Redirecting to connect page...");
+      // Don't show error toast again, just redirect
       setTimeout(() => {
         router.push('/connect');
       }, 1000);
@@ -256,7 +256,7 @@ function MultiplayerLobby() {
         setIsReconnecting(false);
         
         if (reconnectionAttempts + 1 >= 3) {
-          toast.error("Failed to reconnect after 3 attempts. Redirecting to connect page...");
+          // Don't show error toast, just redirect
           setTimeout(() => {
             router.push('/connect');
           }, 2000);
@@ -271,7 +271,7 @@ function MultiplayerLobby() {
         setIsReconnecting(false);
         
         if (reconnectionAttempts + 1 >= 3) {
-          toast.error("Failed to reconnect after 3 attempts. Redirecting to connect page...");
+          // Don't show error toast, just redirect
           setTimeout(() => {
             router.push('/connect');
           }, 2000);
@@ -410,14 +410,22 @@ function MultiplayerLobby() {
           if (gameState.match.status === "paused") {
             const disconnectedPlayers = (gameState.players?.all ?? []).filter((p: Player) => !p.connected)
             if (disconnectedPlayers.length > 0) {
-              toast.warning(`Match is paused. Waiting for ${disconnectedPlayers.map((p: Player) => p.name).join(', ')} to reconnect.`)
+              // Don't show toast since we have persistent notice, just set notification briefly
+              setNotification({ 
+                text: `Match is paused. Waiting for ${disconnectedPlayers.map((p: Player) => p.name).join(', ')} to reconnect.`, 
+                type: "warning" 
+              })
+              setTimeout(() => setNotification(null), 3000)
             } else {
-              toast.warning("Match is paused.")
+              setNotification({ 
+                text: "Match is paused.", 
+                type: "warning" 
+              })
+              setTimeout(() => setNotification(null), 3000)
             }
           } else {
             toast.info("Reconnected successfully! Waiting for all players...");
           }
-          setNotification(null)
           setHasEntered(true)
         } else if (type === "match_paused") {
           console.log("Match paused:", payload)
@@ -451,17 +459,20 @@ function MultiplayerLobby() {
             
             // Other player disconnected
             playNotificationSound("disconnect")
+            // Don't show toast since we have persistent notice, just set notification briefly
             setNotification({ 
-              text: `${disconnectedPlayer.name} has disconnected. The match is paused.`, 
+              text: `${disconnectedPlayer.name} has disconnected.`, 
               type: "warning" 
             })
-            toast.warning(`${disconnectedPlayer.name} disconnected. Match paused.`)
+            // Clear notification after 3 seconds since we have persistent notice
+            setTimeout(() => setNotification(null), 3000)
           } else {
             setNotification({ 
               text: "Match has been paused.", 
               type: "warning" 
             })
-            toast.warning("Match paused.")
+            // Clear notification after 3 seconds since we have persistent notice
+            setTimeout(() => setNotification(null), 3000)
           }
           
         } else if (type === "player_disconnected" || type === "player_returned") {
@@ -508,15 +519,16 @@ function MultiplayerLobby() {
             }
 
             const notifText = isDisconnect 
-                ? `${payload.player.name} has disconnected. The game is paused.`
-                : `${payload.player.name} has returned! The game is still paused.`
+                ? `${payload.player.name} has disconnected.`
+                : `${payload.player.name} has returned!`
             setNotification({ text: notifText, type: isDisconnect ? "warning" : "info" })
             if (isDisconnect) {
-              toast.warning(`${payload.player.name} disconnected. Match paused.`)
+              // Don't show toast since we have persistent notice
             } else {
               toast.info(`${payload.player.name} reconnected. Waiting for all players...`)
             }
-            if (!isDisconnect) setTimeout(() => setNotification(null), 5000)
+            // Clear notification after 3 seconds since we have persistent notice for disconnections
+            setTimeout(() => setNotification(null), 3000)
         } else if (type === "match_resumed") {
           if (payload.currentPlayerId && payload.currentPlayerName) {
             setConnectionState((prev: ConnectionState) => ({ 
@@ -525,7 +537,7 @@ function MultiplayerLobby() {
               currentPlayerId: payload.currentPlayerId, 
               currentPlayerName: payload.currentPlayerName 
             }))
-            setNotification({ text: `${payload.resumedBy || 'Someone'} has resumed the game. The match is now live!`, type: "success" })
+            setNotification({ text: `Match resumed by ${payload.resumedBy || 'Someone'}. The match is now live!`, type: "success" })
             setTimeout(() => setNotification(null), 5000)
             toast.success("Match resumed! All players are connected.");
             setShowTurnIndicator(true);
@@ -691,6 +703,36 @@ function MultiplayerLobby() {
           <Header />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
+               {/* Persistent paused match notice */}
+               {connectionState.matchStatus === "paused" && !isReconnecting && (
+                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                   <div className="flex items-center justify-center gap-3 mb-2">
+                     <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                     <h2 className="text-lg font-semibold text-orange-800">Match Paused</h2>
+                   </div>
+                   <p className="text-orange-700 text-sm">
+                     The match is currently paused. Game will resume automatically when all players reconnect.
+                   </p>
+                   <div className="mt-2 text-xs text-orange-600">
+                     <p>• Players can still reconnect and resume the game</p>
+                     <p>• Your game progress is preserved</p>
+                   </div>
+                 </div>
+               )}
+
+               {/* Match resumed success notice */}
+               {connectionState.matchStatus === "active" && notification?.type === "success" && notification?.text?.includes("resumed") && (
+                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center animate-in slide-in-from-top-2 duration-500">
+                   <div className="flex items-center justify-center gap-3 mb-2">
+                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                     <h2 className="text-lg font-semibold text-green-800">Match Resumed!</h2>
+                   </div>
+                   <p className="text-green-700 text-sm">
+                     All players are connected. The match is now live!
+                   </p>
+                 </div>
+               )}
+
                {/* Enhanced disconnection handling */}
                {connectionState.matchStatus === "paused" && disconnectedPlayers.length > 0 && !isReconnecting && (
                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
