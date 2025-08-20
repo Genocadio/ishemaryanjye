@@ -77,7 +77,6 @@ function MultiplayerLobby() {
   const [autoShowIndicator, setAutoShowIndicator] = useState(false);
   const [questionAnswered, setQuestionAnswered] = useState(false);
   const [isReconnecting, setIsReconnecting] = useState(false);
-  const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
   const [reconnectionTimeout, setReconnectionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -182,15 +181,7 @@ function MultiplayerLobby() {
     };
   }, [reconnectionTimeout]);
 
-  // Debug logging for connection state changes
-  useEffect(() => {
-    console.log("Connection state changed:", connectionState);
-  }, [connectionState]);
 
-  // Debug logging for teams state changes
-  useEffect(() => {
-    console.log("Teams state changed:", teams);
-  }, [teams]);
 
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
@@ -232,25 +223,16 @@ function MultiplayerLobby() {
   }
 
   const handleReconnectionAttempt = (code: string) => {
-    if (isReconnecting || reconnectionAttempts >= 3) {
-      // Max attempts reached or already reconnecting, redirect to connect page
-      // Don't show error toast again, just redirect
-      setTimeout(() => {
-        router.push('/connect');
-      }, 1000);
+    if (isReconnecting) {
+      // Already reconnecting, don't start another attempt
       return;
     }
 
     setIsReconnecting(true);
-    setReconnectionAttempts(prev => prev + 1);
     
-    toast.warning(`Bad network detected. Attempting to reconnect... (${reconnectionAttempts + 1}/3)`, {
-      duration: 7000,
-    });
-
     // Wait 7 seconds before attempting reconnection
     const timeout = setTimeout(() => {
-      console.log(`Attempting reconnection ${reconnectionAttempts + 1}/3`);
+      console.log("Attempting reconnection after 7 second wait");
       
       const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL}/invite/${code}?name=${encodeURIComponent(playerName)}&playerId=${encodeURIComponent(playerId)}`;
       const ws = new WebSocket(wsUrl);
@@ -266,30 +248,20 @@ function MultiplayerLobby() {
         console.log("Reconnection failed");
         setIsReconnecting(false);
         
-        if (reconnectionAttempts + 1 >= 3) {
-          // Don't show error toast, just redirect
-          setTimeout(() => {
-            router.push('/connect');
-          }, 2000);
-        } else {
-          // Try again
-          handleReconnectionAttempt(code);
-        }
+        // Redirect to connect page on failure
+        setTimeout(() => {
+          router.push('/connect');
+        }, 1000);
       };
       
       ws.onerror = () => {
         console.log("Reconnection error");
         setIsReconnecting(false);
         
-        if (reconnectionAttempts + 1 >= 3) {
-          // Don't show error toast, just redirect
-          setTimeout(() => {
-            router.push('/connect');
-          }, 2000);
-        } else {
-          // Try again
-          handleReconnectionAttempt(code);
-        }
+        // Redirect to connect page on failure
+        setTimeout(() => {
+          router.push('/connect');
+        }, 1000);
       };
       
       // Set a timeout for this reconnection attempt
@@ -329,14 +301,13 @@ function MultiplayerLobby() {
       console.log("WebSocket connected")
       setHasEntered(true)
       setIsReconnecting(false)
-      setReconnectionAttempts(0)
       if (reconnectionTimeout) {
         clearTimeout(reconnectionTimeout);
         setReconnectionTimeout(null);
       }
       
       // If this was a reconnection, show success message
-      if (reconnectionAttempts > 0) {
+      if (isReconnecting) {
         toast.success("Reconnected successfully!");
         console.log("Reconnection completed successfully");
       }
@@ -411,7 +382,6 @@ function MultiplayerLobby() {
           
           // Reset reconnection state
           setIsReconnecting(false);
-          setReconnectionAttempts(0);
           if (reconnectionTimeout) {
             clearTimeout(reconnectionTimeout);
             setReconnectionTimeout(null);
@@ -852,7 +822,7 @@ function MultiplayerLobby() {
                      <h2 className="text-xl font-semibold text-blue-800">Reconnecting...</h2>
                    </div>
                    <p className="text-blue-700 text-sm mb-4">
-                     Attempting to reconnect to the match... (Attempt {reconnectionAttempts}/3)
+                     Attempting to reconnect to the match...
                    </p>
                    <div className="bg-white rounded-lg p-4 border border-blue-200">
                      <p className="text-sm text-blue-800">
