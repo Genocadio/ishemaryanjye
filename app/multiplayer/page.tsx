@@ -79,6 +79,7 @@ function MultiplayerLobby() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [reconnectionAttempts, setReconnectionAttempts] = useState(0);
   const [reconnectionTimeout, setReconnectionTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [forceUpdate, setForceUpdate] = useState(0);
 
   const { play: playNotificationSound } = useNotificationSound();
 
@@ -180,6 +181,16 @@ function MultiplayerLobby() {
       }
     };
   }, [reconnectionTimeout]);
+
+  // Debug logging for connection state changes
+  useEffect(() => {
+    console.log("Connection state changed:", connectionState);
+  }, [connectionState]);
+
+  // Debug logging for teams state changes
+  useEffect(() => {
+    console.log("Teams state changed:", teams);
+  }, [teams]);
 
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
@@ -432,6 +443,7 @@ function MultiplayerLobby() {
           
           // Update game state from the paused match
           if (payload.gameState) {
+            console.log("Updating game state from match_paused message:", payload.gameState)
             updateStateFromGameState(payload.gameState)
             
             // Set match status to paused
@@ -442,6 +454,25 @@ function MultiplayerLobby() {
               totalRounds: payload.gameState.match?.totalRounds,
               trumpSuit: payload.gameState.match?.trumpSuit
             }))
+            
+            // Also ensure teams state is updated with the latest connection status
+            if (payload.gameState.teams) {
+              console.log("Setting teams state from match_paused:", payload.gameState.teams)
+              setTeams(payload.gameState.teams);
+            }
+            
+            // Force UI update
+            setForceUpdate(prev => prev + 1)
+          } else {
+            console.log("No gameState in match_paused payload, setting match status to paused manually")
+            // If no gameState, at least set the match status to paused
+            setConnectionState((prev: ConnectionState) => ({ 
+              ...prev, 
+              matchStatus: "paused"
+            }))
+            
+            // Force UI update
+            setForceUpdate(prev => prev + 1)
           }
           
           // Show appropriate notification based on reason
@@ -495,7 +526,7 @@ function MultiplayerLobby() {
               playNotificationSound("connect");
             }
 
-            // Update teams state
+            // Update teams state and connection state together to ensure UI updates immediately
             setTeams((prevTeams: Teams | null) => {
                 if (!prevTeams) return null
                 const newTeams = JSON.parse(JSON.stringify(prevTeams))
@@ -507,15 +538,45 @@ function MultiplayerLobby() {
                 }
                 newTeams.team1.players = newTeams.team1.players.map(updatePlayer)
                 newTeams.team2.players = newTeams.team2.players.map(updatePlayer)
+                
+                console.log("Updated teams state after player disconnection:", newTeams);
+                
+                // Immediately update connection state when teams state changes
+                if (isDisconnect) {
+                  console.log("Setting match status to paused due to player disconnection");
+                  // Force immediate update of connection state
+                  setTimeout(() => {
+                    setConnectionState((prev: ConnectionState) => ({ 
+                      ...prev, 
+                      matchStatus: "paused"
+                    }))
+                    // Force UI update
+                    setForceUpdate(prev => prev + 1)
+                  }, 0)
+                }
+                
                 return newTeams
             })
 
-            // Update connection state
+            // Update connection state from payload if available
             if (payload.match) {
               setConnectionState((prev: ConnectionState) => ({ 
                 ...prev, 
                 matchStatus: payload.match.status 
               }))
+            } else {
+              // Player returned - check if all players are now connected to potentially resume
+              const updatedTeams = teams;
+              if (updatedTeams) {
+                const allPlayers = [...updatedTeams.team1.players, ...updatedTeams.team2.players];
+                const allConnected = allPlayers.every(p => p.connected);
+                
+                if (allConnected && connectionState.matchStatus === "paused") {
+                  // All players are connected, but match is still paused
+                  // The server should send a match_resumed message, but we can prepare the UI
+                  console.log("All players are now connected, waiting for match resume...");
+                }
+              }
             }
 
             const notifText = isDisconnect 
@@ -705,7 +766,7 @@ function MultiplayerLobby() {
              <div className="space-y-4">
                {/* Persistent paused match notice */}
                {connectionState.matchStatus === "paused" && !isReconnecting && (
-                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                 <div key={`paused-${connectionState.matchId}-${teams?.team1.players.filter(p => !p.connected).length}-${teams?.team2.players.filter(p => !p.connected).length}`} className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
                    <div className="flex items-center justify-center gap-3 mb-2">
                      <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
                      <h2 className="text-lg font-semibold text-orange-800">Match Paused</h2>
