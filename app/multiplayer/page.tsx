@@ -235,6 +235,7 @@ function MultiplayerLobby() {
 
     // Don't attempt reconnection if match is completed
     if (connectionState.matchStatus === "completed" as any) {
+      console.log("Skipping reconnection attempt - match is already completed");
       return;
     }
 
@@ -331,12 +332,17 @@ function MultiplayerLobby() {
         console.log("Current player disconnected, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
-        setError("Connection closed. You have been disconnected.")
-        setHasEntered(false)
-        setSocket(null)
-        if (!hasEntered) {
-          // toast.error("Failed to connect to the match. Please try again later.")
-          setTimeout(() => router.back(), 1500)
+        // Don't show disconnection error if match is completed
+        if (connectionState.matchStatus !== "completed" as any) {
+          setError("Connection closed. You have been disconnected.")
+          setHasEntered(false)
+          setSocket(null)
+          if (!hasEntered) {
+            // toast.error("Failed to connect to the match. Please try again later.")
+            setTimeout(() => router.back(), 1500)
+          }
+        } else {
+          console.log("WebSocket closed after match completion - this is expected");
         }
       }
     }
@@ -349,10 +355,15 @@ function MultiplayerLobby() {
         console.log("Current player connection error, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
-        setError("Connection error. Please try again.")
-        if (!hasEntered) {
-          toast.error("Failed to connect to the match. Please try again later.")
-          setTimeout(() => router.back(), 1500)
+        // Don't show connection error if match is completed
+        if (connectionState.matchStatus !== "completed" as any) {
+          setError("Connection error. Please try again.")
+          if (!hasEntered) {
+            toast.error("Failed to connect to the match. Please try again later.")
+            setTimeout(() => router.back(), 1500)
+          }
+        } else {
+          console.log("WebSocket error after match completion - this is expected");
         }
       }
     }
@@ -365,33 +376,79 @@ function MultiplayerLobby() {
 
         // Ignore WebSocket messages if match is completed (prevents interference during question phase)
         if (connectionState.matchStatus === "completed" as any) {
+          console.log("Ignoring message type:", type, "- match is already completed");
+          return;
+        }
+
+        // Also ignore messages if we're in the process of ending the match
+        if (type === "match_ended" && finalGameState) {
+          console.log("Ignoring duplicate match_ended message - match already processed");
+          return;
+        }
+
+        // Ignore all messages if we have a final game state (match is ending/ended)
+        if (finalGameState) {
+          console.log("Ignoring message type:", type, "- match has ended, ignoring all messages");
           return;
         }
 
         if (type === "connection_established") {
+          // Don't process connection established if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring connection_established message - match is already completed");
+            return;
+          }
+          
           playNotificationSound("connect");
           localStorage.setItem('incompleteMatchId', payload.match.id);
           localStorage.setItem('incompleteInviteCode', code);
-          setConnectionState((prev: ConnectionState) => ({
-            ...prev,
-            matchId: payload.match.id,
-            matchStatus: payload.match.status,
-          }))
+          // Only update connection state if match is not already completed
+          if (connectionState.matchStatus !== "completed" as any) {
+            setConnectionState((prev: ConnectionState) => ({
+              ...prev,
+              matchId: payload.match.id,
+              matchStatus: payload.match.status,
+            }))
+          } else {
+            console.log("Not updating connection state - match is already completed");
+          }
           setPlayerId(payload.player.id)
         } else if (type === "player_joined") {
-          setTeams(payload.teams)
-          setConnectionState((prev: ConnectionState) => ({
-            ...prev,
-            matchId: payload.match.id,
-            matchStatus: payload.match.status,
-            maxPlayers: payload.match.maxPlayers,
-            playersCount: payload.match.playersCount,
-          }))
+          // Don't process player joined if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring player_joined message - match is already completed");
+            return;
+          }
+          
+          // Only update teams and connection state if match is not already completed
+          if (connectionState.matchStatus !== "completed" as any) {
+            setTeams(payload.teams)
+            setConnectionState((prev: ConnectionState) => ({
+              ...prev,
+              matchId: payload.match.id,
+              matchStatus: payload.match.status,
+              maxPlayers: payload.match.maxPlayers,
+              playersCount: payload.match.playersCount,
+            }))
+          } else {
+            console.log("Not updating teams and connection state - match is already completed");
+          }
         } else if (type === "reconnection_successful") {
+          // Don't process reconnection if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring reconnection_successful message - match is already completed");
+            return;
+          }
+          
           const { gameState } = payload
           console.log("Reconnection successful, using new gameState:", gameState)
           sessionStorage.setItem("reconnection_data", JSON.stringify(payload))
-          updateStateFromGameState(gameState)
+          // Only update game state if match is not already completed
+          if (connectionState.matchStatus !== "completed" as any) {
+            updateStateFromGameState(gameState)
+          } else {
+            console.log("Not updating game state - match is already completed");
+          }
           if (code) localStorage.setItem('incompleteInviteCode', code);
           if (gameState.match?.id) localStorage.setItem('incompleteMatchId', gameState.match.id);
           
@@ -428,41 +485,57 @@ function MultiplayerLobby() {
           
           // Don't process match_paused if match is completed
           if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring match_paused message - match is already completed");
             return;
           }
           
           // Update game state from the paused match
           if (payload.gameState) {
             console.log("Updating game state from match_paused message:", payload.gameState)
-            updateStateFromGameState(payload.gameState)
-            
-            // Set match status to paused
-            setConnectionState((prev: ConnectionState) => ({ 
-              ...prev, 
-              matchStatus: "paused",
-              currentRound: payload.gameState.match?.currentRound,
-              totalRounds: payload.gameState.match?.totalRounds,
-              trumpSuit: payload.gameState.match?.trumpSuit
-            }))
-            
-            // Also ensure teams state is updated with the latest connection status
-            if (payload.gameState.teams) {
-              console.log("Setting teams state from match_paused:", payload.gameState.teams)
-              setTeams(payload.gameState.teams);
+            // Only update game state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(payload.gameState)
+            } else {
+              console.log("Not updating game state - match is already completed");
             }
+            
+            // Set match status to paused (only if not already completed)
+            if (connectionState.matchStatus !== "completed" as any) {
+              setConnectionState((prev: ConnectionState) => ({ 
+                ...prev, 
+                matchStatus: "paused",
+                currentRound: payload.gameState.match?.currentRound,
+                totalRounds: payload.gameState.match?.totalRounds,
+                trumpSuit: payload.gameState.match?.trumpSuit
+              }))
+            } else {
+              console.log("Not setting match status to paused - match is already completed");
+            }
+            
+                      // Also ensure teams state is updated with the latest connection status (only if not already completed)
+          if (payload.gameState.teams && connectionState.matchStatus !== "completed" as any) {
+            console.log("Setting teams state from match_paused:", payload.gameState.teams)
+            setTeams(payload.gameState.teams);
+          } else if (payload.gameState.teams && connectionState.matchStatus === "completed" as any) {
+            console.log("Not updating teams state - match is already completed");
+          }
             
             // Force UI update
             setForceUpdate(prev => prev + 1)
           } else {
             console.log("No gameState in match_paused payload, setting match status to paused manually")
-            // If no gameState, at least set the match status to paused
-            setConnectionState((prev: ConnectionState) => ({ 
-              ...prev, 
-              matchStatus: "paused"
-            }))
-            
-            // Force UI update
-            setForceUpdate(prev => prev + 1)
+            // If no gameState, at least set the match status to paused (only if not already completed)
+            if (connectionState.matchStatus !== "completed" as any) {
+              setConnectionState((prev: ConnectionState) => ({ 
+                ...prev, 
+                matchStatus: "paused"
+              }))
+              
+              // Force UI update
+              setForceUpdate(prev => prev + 1)
+            } else {
+              console.log("Not setting match status to paused manually - match is already completed");
+            }
           }
           
           // Show appropriate notification based on reason
@@ -501,6 +574,12 @@ function MultiplayerLobby() {
             const isDisconnect = type === "player_disconnected"
             console.log(`Player ${isDisconnect ? "disconnected" : "returned"}:`, payload)
 
+            // Don't process player disconnection/return messages if match is completed
+            if (connectionState.matchStatus === "completed" as any) {
+              console.log("Ignoring player disconnection/return message - match is already completed");
+              return;
+            }
+
             // Check if this is the current player disconnecting
             if (isDisconnect && payload.player && payload.player.id === playerId) {
               // Current player disconnected - handle reconnection (only if match is not completed)
@@ -517,44 +596,55 @@ function MultiplayerLobby() {
               playNotificationSound("connect");
             }
 
-            // Update teams state and connection state together to ensure UI updates immediately
-            setTeams((prevTeams: Teams | null) => {
-                if (!prevTeams) return null
-                const newTeams = JSON.parse(JSON.stringify(prevTeams))
-                const updatePlayer = (p: Player) => {
-                    if (p.id === payload.player.id) {
-                        return { ...p, connected: !isDisconnect }
-                    }
-                    return p
-                }
-                newTeams.team1.players = newTeams.team1.players.map(updatePlayer)
-                newTeams.team2.players = newTeams.team2.players.map(updatePlayer)
-                
-                console.log("Updated teams state after player disconnection:", newTeams);
-                
-                // Immediately update connection state when teams state changes
-                if (isDisconnect) {
-                  console.log("Setting match status to paused due to player disconnection");
-                  // Force immediate update of connection state
-                  setTimeout(() => {
-                    setConnectionState((prev: ConnectionState) => ({ 
-                      ...prev, 
-                      matchStatus: "paused"
-                    }))
-                    // Force UI update
-                    setForceUpdate(prev => prev + 1)
-                  }, 0)
-                }
-                
-                return newTeams
-            })
+            // Update teams state and connection state together to ensure UI updates immediately (only if not already completed)
+            if (connectionState.matchStatus !== "completed" as any) {
+              setTeams((prevTeams: Teams | null) => {
+                  if (!prevTeams) return null
+                  const newTeams = JSON.parse(JSON.stringify(prevTeams))
+                  const updatePlayer = (p: Player) => {
+                      if (p.id === payload.player.id) {
+                          return { ...p, connected: !isDisconnect }
+                      }
+                      return p
+                  }
+                  newTeams.team1.players = newTeams.team1.players.map(updatePlayer)
+                  newTeams.team2.players = newTeams.team2.players.map(updatePlayer)
+                  
+                  console.log("Updated teams state after player disconnection:", newTeams);
+                  
+                  // Immediately update connection state when teams state changes
+                  if (isDisconnect) {
+                    console.log("Setting match status to paused due to player disconnection");
+                    // Force immediate update of connection state
+                    setTimeout(() => {
+                      // Don't set match status to paused if match is already completed
+                      if (connectionState.matchStatus !== "completed" as any) {
+                        setConnectionState((prev: ConnectionState) => ({ 
+                          ...prev, 
+                          matchStatus: "paused"
+                        }))
+                        // Force UI update
+                        setForceUpdate(prev => prev + 1)
+                      } else {
+                        console.log("Not setting match status to paused - match is already completed");
+                      }
+                    }, 0)
+                  }
+                  
+                  return newTeams
+              })
+            } else {
+              console.log("Not updating teams state - match is already completed");
+            }
 
-            // Update connection state from payload if available
-            if (payload.match) {
+            // Update connection state from payload if available (only if not already completed)
+            if (payload.match && connectionState.matchStatus !== "completed" as any) {
               setConnectionState((prev: ConnectionState) => ({ 
                 ...prev, 
                 matchStatus: payload.match.status 
               }))
+            } else if (payload.match && connectionState.matchStatus === "completed" as any) {
+              console.log("Not updating match status from payload - match is already completed");
             } else {
               // Player returned - check if all players are now connected to potentially resume
               const updatedTeams = teams;
@@ -582,13 +672,25 @@ function MultiplayerLobby() {
             // Clear notification after 3 seconds since we have persistent notice for disconnections
             setTimeout(() => setNotification(null), 3000)
         } else if (type === "match_resumed") {
+          // Don't process match resume if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring match_resumed message - match is already completed");
+            return;
+          }
+          
           if (payload.currentPlayerId && payload.currentPlayerName) {
-            setConnectionState((prev: ConnectionState) => ({ 
-              ...prev, 
-              matchStatus: "active", 
-              currentPlayerId: payload.currentPlayerId, 
-              currentPlayerName: payload.currentPlayerName 
-            }))
+            // Only update connection state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              setConnectionState((prev: ConnectionState) => ({ 
+                ...prev, 
+                matchStatus: "active", 
+                currentPlayerId: payload.currentPlayerId, 
+                currentPlayerName: payload.currentPlayerName 
+              }))
+            } else {
+              console.log("Not updating connection state - match is already completed");
+              return;
+            }
             setNotification({ text: `Match resumed by ${payload.resumedBy || 'Someone'}. The match is now live!`, type: "success" })
             setTimeout(() => setNotification(null), 5000)
             toast.success("Match resumed! All players are connected.");
@@ -596,47 +698,98 @@ function MultiplayerLobby() {
             setAutoShowIndicator(true);
           }
         } else if (type === "match_started") {
+          // Don't process match started if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring match_started message - match is already completed");
+            return;
+          }
+          
           if (payload.gameState) {
-            updateStateFromGameState(payload.gameState)
-            const startingPlayerName = payload.startingPlayer?.name || 'Unknown Player'
-            setConnectionState((prev: ConnectionState) => ({ ...prev, firstPlayerName: startingPlayerName }))
-            setNotification({
-              text: `Match started! ${startingPlayerName} plays first. Trump is ${payload.trumpSuit || 'Unknown'}.`,
-              type: "success",
-            })
-            setTimeout(() => setNotification(null), 5000)
-            if (payload.gameState.match) {
-              setPlayOrder(payload.gameState.match.playOrder || []);
-              setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
-              initialPlayOrderRef.current = payload.gameState.match.playOrder || [];
-              localStorage.setItem('initialPlayOrder', JSON.stringify(payload.gameState.match.playOrder || []));
-              localStorage.setItem('initialFirstPlayerIndex', (payload.gameState.match.firstPlayerIndex || 0).toString());
+            // Only update game state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(payload.gameState)
+              const startingPlayerName = payload.startingPlayer?.name || 'Unknown Player'
+              setConnectionState((prev: ConnectionState) => ({ ...prev, firstPlayerName: startingPlayerName }))
+              
+              setNotification({
+                text: `Match started! ${startingPlayerName} plays first. Trump is ${payload.trumpSuit || 'Unknown'}.`,
+                type: "success",
+              })
+              setTimeout(() => setNotification(null), 5000)
+              if (payload.gameState.match) {
+                setPlayOrder(payload.gameState.match.playOrder || []);
+                setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
+                initialPlayOrderRef.current = payload.gameState.match.playOrder || [];
+                localStorage.setItem('initialPlayOrder', JSON.stringify(payload.gameState.match.playOrder || []));
+                localStorage.setItem('initialFirstPlayerIndex', (payload.gameState.match.firstPlayerIndex || 0).toString());
+              }
+              setShowTurnIndicator(true);
+              setAutoShowIndicator(true);
+            } else {
+              console.log("Not updating game state and connection state - match is already completed");
+              return;
             }
-            setShowTurnIndicator(true);
-            setAutoShowIndicator(true);
           }
         } else if (type === "turn_changed") {
+          // Don't process turn changes if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring turn_changed message - match is already completed");
+            return;
+          }
+          
           if (payload.gameState) {
-            updateStateFromGameState(payload.gameState)
-            const notifText = payload.isYourTurn
-              ? "It's your turn to play!"
-              : `It's ${payload.currentPlayer?.name || 'Unknown Player'}'s turn.`
-            setNotification({ text: notifText, type: payload.isYourTurn ? "success" : "info" })
-            setTimeout(() => setNotification(null), 4000)
-            if (payload.gameState.match) {
-              setPlayOrder(payload.gameState.match.playOrder || []);
-              setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
+            // Only update game state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(payload.gameState)
+              const notifText = payload.isYourTurn
+                ? "It's your turn to play!"
+                : `It's ${payload.currentPlayer?.name || 'Unknown Player'}'s turn.`
+              setNotification({ text: notifText, type: payload.isYourTurn ? "success" : "info" })
+              setTimeout(() => setNotification(null), 4000)
+              if (payload.gameState.match) {
+                // Only update play order if match is not already completed
+                if (connectionState.matchStatus !== "completed" as any) {
+                  setPlayOrder(payload.gameState.match.playOrder || []);
+                  setFirstPlayerIndex(payload.gameState.match.firstPlayerIndex || 0);
+                } else {
+                  console.log("Not updating play order - match is already completed");
+                }
+              }
+            } else {
+              console.log("Not updating game state - match is already completed");
             }
           }
         } else if (type === "hand_dealt") {
+          // Don't process hand dealt if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring hand_dealt message - match is already completed");
+            return;
+          }
+          
           if (payload.hand) {
-            setHand(payload.hand)
+            // Only update hand if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              setHand(payload.hand)
+            } else {
+              console.log("Not updating hand - match is already completed");
+            }
           }
         } else if (type === "card_played") {
+          // Don't process card played if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring card_played message - match is already completed");
+            return;
+          }
+          
           if (payload.gameState && payload.playedCard) {
             playNotificationSound("play");
-            setLastPlayground(payload.gameState.gameplay?.playground || [])
-            updateStateFromGameState(payload.gameState)
+            // Only update playground if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              setLastPlayground(payload.gameState.gameplay?.playground || [])
+              updateStateFromGameState(payload.gameState)
+            } else {
+              console.log("Not updating playground - match is already completed");
+            }
             const { player, card } = payload.playedCard
             if (player && card) {
               setNotification({
@@ -647,25 +800,68 @@ function MultiplayerLobby() {
             }
           }
         } else if (type === "round_completed") {
+          // Don't process round completed if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring round_completed message - match is already completed");
+            return;
+          }
+          
           if (payload.gameState && payload.roundResult) {
-            updateStateFromGameState(payload.gameState)
-            setRoundResult(payload.roundResult)
+            // Only update game state and round result if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(payload.gameState)
+              setRoundResult(payload.roundResult)
+            } else {
+              console.log("Not updating game state and round result - match is already completed");
+            }
           }
         } else if (type === "match_ended") {
+          console.log("Match ended, setting final game state and closing connection");
+          
+          // Prevent processing multiple match_ended messages
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring duplicate match_ended message - match already completed");
+            return;
+          }
+          
+          // Immediately set match status to completed to prevent processing any more messages
+          setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
+          
           localStorage.removeItem('incompleteMatchId');
           localStorage.removeItem('incompleteInviteCode');
           if (payload.gameState) {
+            // Always update game state for match_ended (this is the final state)
             updateStateFromGameState(payload.gameState)
             setFinalGameState(payload.gameState)
-            setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
           }
           
           // Close WebSocket connection after match ends to prevent interference during question phase
           if (socket) {
+            console.log("Match ended - closing WebSocket connection");
             socket.close();
             setSocket(null);
           }
+          
+          // Clear any pending notifications or states that shouldn't persist after match end
+          setNotification(null);
+          setRoundResult(null);
+          setShowTurnIndicator(false);
+          setAutoShowIndicator(false);
+          setIsReconnecting(false);
+          if (reconnectionTimeout) {
+            clearTimeout(reconnectionTimeout);
+            setReconnectionTimeout(null);
+          }
+          
+          // Force a re-render to ensure the completed state is shown immediately
+          setForceUpdate(prev => prev + 1);
         } else if (type === "game_state_update") {
+          // Don't process game state updates if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring game_state_update message - match is already completed");
+            return;
+          }
+          
           // Client-side patch for a server bug.
           // After a round completes, the server sends a game_state_update with an incorrect
           // ID for the next player. We use the winner from the roundResult to correct this.
@@ -678,9 +874,19 @@ function MultiplayerLobby() {
                 current: winner.id,
               },
             }
-            updateStateFromGameState(patchedPayload)
+            // Only update game state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(patchedPayload)
+            } else {
+              console.log("Not updating game state from patched payload - match is already completed");
+            }
           } else if (payload) {
-            updateStateFromGameState(payload)
+            // Only update game state if match is not already completed
+            if (connectionState.matchStatus !== "completed" as any) {
+              updateStateFromGameState(payload)
+            } else {
+              console.log("Not updating game state from payload - match is already completed");
+            }
           }
         } else if (message.error) {
           setError(message.error)
