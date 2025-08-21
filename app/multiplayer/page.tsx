@@ -1152,6 +1152,7 @@ function MultiplayerLobby() {
                      totalRounds={connectionState.totalRounds ?? 18}
                      team1Score={teams.team1.score ?? 0}
                      team2Score={teams.team2.score ?? 0}
+                     currentPlayerId={playerId}
                    />
                  </div>
                )}

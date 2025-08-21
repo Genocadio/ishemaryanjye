@@ -22,6 +22,7 @@ interface GameLayoutProps {
   totalRounds: number
   team1Score: number
   team2Score: number
+  currentPlayerId: string
 }
 
 export default function GameLayout({
@@ -35,6 +36,7 @@ export default function GameLayout({
   totalRounds,
   team1Score,
   team2Score,
+  currentPlayerId,
 }: GameLayoutProps) {
   const playerCount = players.length
 
@@ -113,6 +115,9 @@ export default function GameLayout({
           <div className="text-sm font-semibold text-foreground">
             {currentRound}/{totalRounds}
           </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            {players[currentTurnIndex]?.id === currentPlayerId ? "Your Turn" : `${players[currentTurnIndex]?.name}'s Turn`}
+          </div>
         </div>
 
         {/* Players positioned horizontally */}
@@ -141,7 +146,7 @@ export default function GameLayout({
                     isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
-                  {player.name}
+                  {player.id === currentPlayerId ? "You" : player.name}
                 </div>
                 <div
                   className={`text-xs px-1.5 py-0.5 rounded-full mt-1 transition-all duration-300 ${
@@ -179,6 +184,9 @@ export default function GameLayout({
         <div className="text-sm font-semibold text-foreground">
           {currentRound}/{totalRounds}
         </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {players[currentTurnIndex]?.id === currentPlayerId ? "Your Turn" : `${players[currentTurnIndex]?.name}'s Turn`}
+        </div>
       </div>
 
       {/* Players positioned around the layout */}
@@ -213,7 +221,7 @@ export default function GameLayout({
                   isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                 }`}
               >
-                {player.name}
+                {player.id === currentPlayerId ? "You" : player.name}
               </div>
 
               {/* Turn order number */}
