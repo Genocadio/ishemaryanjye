@@ -115,9 +115,6 @@ export default function GameLayout({
           <div className="text-sm font-semibold text-foreground">
             {currentRound}/{totalRounds}
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {players[currentTurnIndex]?.id === currentPlayerId ? "Your Turn" : `${players[currentTurnIndex]?.name}'s Turn`}
-          </div>
         </div>
 
         {/* Players positioned horizontally */}
@@ -183,9 +180,6 @@ export default function GameLayout({
         </div>
         <div className="text-sm font-semibold text-foreground">
           {currentRound}/{totalRounds}
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-          {players[currentTurnIndex]?.id === currentPlayerId ? "Your Turn" : `${players[currentTurnIndex]?.name}'s Turn`}
         </div>
       </div>
 
