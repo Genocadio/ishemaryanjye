@@ -10,9 +10,22 @@ interface MultiplayerPlaygroundProps {
 }
 
 const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playground, allPlayers, currentPlayerName, isPlayerTurn }) => {
+    // Determine what to show in the title
+    const getPlaygroundTitle = () => {
+        if (playground.length === 0) {
+            return "Playground";
+        }
+        
+        if (currentPlayerName) {
+            return `Waiting for ${currentPlayerName} to play...`;
+        }
+        
+        return "Playground";
+    };
+
     return (
         <div className="my-4">
-            <h3 className="text-lg font-semibold text-center mb-2">Playground</h3>
+            <h3 className="text-lg font-semibold text-center mb-2">{getPlaygroundTitle()}</h3>
             <div className="flex justify-center items-center gap-4 p-4 min-h-[220px] bg-green-50/50 border rounded-lg">
                 {playground.length > 0 ? (
                     playground.map(({ playerId, card }) => {
