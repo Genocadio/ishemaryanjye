@@ -54,7 +54,7 @@ export default function GameLayout({
     return team === "A" ? "bg-blue-500" : "bg-red-500"
   }
 
-  // Position players based on count - exactly like PlayerTurnIndicator
+  // Responsive positioning with proper scaling
   const getPlayerPositions = () => {
     if (playerCount === 2) {
       // Two opponents facing each other horizontally
@@ -63,22 +63,25 @@ export default function GameLayout({
         { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
       ]
     } else if (playerCount === 4) {
-      // Square formation for 4 players - more stable and visible
+      // Square formation with responsive radius
+      const baseRadius = "35%" // Responsive radius that scales with container
       return [
-        { top: "15%", left: "50%", transform: "translateX(-50%)" }, // Top
-        { top: "50%", right: "15%", transform: "translateY(-50%)" }, // Right
-        { bottom: "15%", left: "50%", transform: "translateX(-50%)" }, // Bottom
-        { top: "50%", left: "15%", transform: "translateY(-50%)" }, // Left
+        { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
+        { top: "50%", right: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Right
+        { bottom: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Bottom
+        { top: "50%", left: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Left
       ]
     } else if (playerCount === 6) {
-      // Hexagon formation for 6 players - more stable and visible
+      // Hexagon formation with responsive radius
+      const baseRadius = "40%" // Responsive radius that scales with container
+      const angleStep = (2 * Math.PI) / 6
       return [
-        { top: "10%", left: "50%", transform: "translateX(-50%)" }, // Top
-        { top: "25%", right: "20%", transform: "translateY(-50%)" }, // Top-Right
-        { bottom: "25%", right: "20%", transform: "translateY(-50%)" }, // Bottom-Right
-        { bottom: "10%", left: "50%", transform: "translateX(-50%)" }, // Bottom
-        { bottom: "25%", left: "20%", transform: "translateY(-50%)" }, // Bottom-Left
-        { top: "25%", left: "20%", transform: "translateY(-50%)" }, // Top-Left
+        { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
+        { top: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Right
+        { bottom: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Bottom-Right
+        { bottom: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Bottom
+        { bottom: `calc(50% - ${baseRadius} * 0.5)`, left: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Bottom-Left
+        { top: `calc(50% - ${baseRadius} * 0.5)`, left: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Left
       ]
     }
     return []
@@ -93,10 +96,10 @@ export default function GameLayout({
     return idx !== -1 ? idx + 1 : ""
   }
 
-  // Special layout for 2 players: horizontal arrangement
+  // Special layout for 2 players: horizontal arrangement with responsive scaling
   if (playerCount === 2) {
     return (
-      <Card className={`min-w-[120px] min-h-[80px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+      <Card className={`min-w-[120px] min-h-[80px] w-full h-full max-w-[300px] max-h-[200px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
         {/* Team A Score - Top Left */}
         <div className="absolute top-1 left-1">
           <div className="text-sm font-bold text-blue-600">{team1Score}</div>
@@ -117,15 +120,15 @@ export default function GameLayout({
           </div>
         </div>
 
-        {/* Players positioned horizontally */}
-        <div className="flex items-center justify-center gap-6 w-full h-full pt-6 pb-2">
+        {/* Players positioned horizontally with responsive spacing */}
+        <div className="flex items-center justify-center gap-4 sm:gap-6 w-full h-full pt-6 pb-2 px-4">
           {players.map((player, index) => {
             const isCurrentTurn = index === currentTurnIndex
             return (
-              <div key={player.id} className="flex flex-col items-center relative">
+              <div key={player.id} className="flex flex-col items-center relative flex-1 max-w-20">
                 <div className="relative">
                   <div
-                    className={`text-lg transition-all duration-300 ${
+                    className={`text-base sm:text-lg transition-all duration-300 ${
                       isCurrentTurn
                         ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1 bg-yellow-50"
                         : ""
@@ -133,13 +136,13 @@ export default function GameLayout({
                   >
                     👤
                   </div>
-                  {/* Team indicator dot */}
+                  {/* Team indicator dot with responsive sizing */}
                   <div
-                    className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white ${getTeamColor(player.team)}`}
+                    className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full border border-white ${getTeamColor(player.team)}`}
                   />
                 </div>
                 <div
-                  className={`mt-0.5 text-xs text-center max-w-12 truncate transition-all duration-300 ${
+                  className={`mt-0.5 text-xs text-center max-w-full truncate transition-all duration-300 ${
                     isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
@@ -160,9 +163,9 @@ export default function GameLayout({
     )
   }
 
-  // Layout for 4/6 players: consistent with 2-player layout
+  // Layout for 4/6 players: consistent with responsive scaling
   return (
-    <Card className={`min-w-[150px] min-h-[150px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+    <Card className={`min-w-[150px] min-h-[150px] w-full h-full max-w-[400px] max-h-[400px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
       {/* Team A Score - Top Left */}
       <div className="absolute top-1 left-1">
         <div className="text-sm font-bold text-blue-600">{team1Score}</div>
@@ -183,7 +186,7 @@ export default function GameLayout({
         </div>
       </div>
 
-      {/* Players positioned around the layout */}
+      {/* Players positioned around the layout with responsive scaling */}
       {players.map((player, index) => {
         const position = positions[index]
         const isCurrentTurn = index === currentTurnIndex
@@ -191,10 +194,10 @@ export default function GameLayout({
         return (
           <div key={player.id} className="absolute z-10" style={position}>
             <div className="relative flex flex-col items-center">
-              {/* Person emoji with team indicator */}
+              {/* Person emoji with team indicator and responsive sizing */}
               <div className="relative">
                 <div
-                  className={`text-sm transition-all duration-300 ${
+                  className={`text-sm sm:text-base transition-all duration-300 ${
                     isCurrentTurn
                       ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1 bg-yellow-50"
                       : ""
@@ -203,22 +206,22 @@ export default function GameLayout({
                   👤
                 </div>
 
-                {/* Team indicator dot */}
+                {/* Team indicator dot with responsive sizing */}
                 <div
-                  className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-white ${getTeamColor(player.team)}`}
+                  className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full border border-white ${getTeamColor(player.team)}`}
                 />
               </div>
 
-              {/* Player name */}
+              {/* Player name with responsive text sizing */}
               <div
-                className={`mt-0.5 text-xs text-center max-w-12 truncate transition-all duration-300 ${
+                className={`mt-0.5 text-xs sm:text-sm text-center max-w-16 sm:max-w-20 truncate transition-all duration-300 ${
                   isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {player.id === currentPlayerId ? "You" : player.name}
               </div>
 
-              {/* Turn order number */}
+              {/* Turn order number with responsive sizing */}
               <div
                 className={`text-xs px-1 py-0 rounded-full mt-0.5 transition-all duration-300 ${
                   isCurrentTurn ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"
