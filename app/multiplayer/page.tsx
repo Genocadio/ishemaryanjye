@@ -25,6 +25,7 @@ import MultiplayerPlayground from "@/components/layout/MultiplayerPlayground";
 import CardChoice from "@/components/layout/CardChoice";
 import { useNotificationSound } from "@/components/providers";
 import PlayerTurnIndicator from "@/components/player-turn-indicator";
+import { GameControls } from "@/components/layout/GameControls";
 
 function MultiplayerLobby() {
   const router = useRouter()
@@ -226,6 +227,45 @@ function MultiplayerLobby() {
       (err) => console.error("Failed to copy:", err)
     )
   }
+
+  const handleExitGame = () => {
+    // Close WebSocket connection
+    if (socket) {
+      socket.close();
+      setSocket(null);
+    }
+    
+    // Clear localStorage
+    localStorage.removeItem('incompleteMatchId');
+    localStorage.removeItem('incompleteInviteCode');
+    
+    // Clear any pending timeouts
+    if (reconnectionTimeout) {
+      clearTimeout(reconnectionTimeout);
+      setReconnectionTimeout(null);
+    }
+    
+    // Reset game state
+    setConnectionState({
+      matchId: undefined,
+      matchStatus: "waiting",
+      currentPlayerId: undefined,
+      currentPlayerName: undefined,
+      maxPlayers: 0,
+      playersCount: 0,
+      firstPlayerName: undefined,
+      currentRound: undefined,
+      totalRounds: undefined,
+      trumpSuit: undefined,
+      cardHolder: undefined,
+    });
+    setTeams(null);
+    setHand([]);
+    setPlayground([]);
+    setFinalGameState(null);
+    setHasEntered(false);
+    setIsReconnecting(false);
+  };
 
   const handleReconnectionAttempt = (code: string) => {
     if (isReconnecting) {
@@ -906,7 +946,11 @@ function MultiplayerLobby() {
   if (isConnecting && !hasEntered) {
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
+        <GameControls 
+          teams={teams}
+          currentPlayerId={connectionState.currentPlayerId || null}
+          onExitGame={handleExitGame}
+        />
         <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
           <Card className="w-full max-w-md text-center">
             <CardHeader>
@@ -964,7 +1008,11 @@ function MultiplayerLobby() {
           </div>
         )}
         <div className="flex min-h-screen flex-col">
-          <Header />
+          <GameControls 
+            teams={teams}
+            currentPlayerId={connectionState.currentPlayerId || null}
+            onExitGame={handleExitGame}
+          />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
              <div className="space-y-4">
                {/* Persistent paused match notice */}
@@ -1070,7 +1118,64 @@ function MultiplayerLobby() {
                    </div>
                  </div>
                )}
-                              {!isReconnecting && (
+                              {/* Player Teams Display */}
+               {!isReconnecting && teams && (
+                 <div className="bg-white rounded-lg border p-4 shadow-sm">
+                   <div className="grid md:grid-cols-2 gap-6">
+                     {/* Team A */}
+                     <div>
+                       <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">Team A</h3>
+                       <div className="space-y-2">
+                         {teams.team1.players.map((player: Player) => (
+                           <div key={player.id} className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                               <div className={`w-2 h-2 rounded-full ${
+                                 player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                               }`} />
+                               <span className={`text-sm ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
+                                 {player.name}
+                                 {player.id === playerId && ' (You)'}
+                               </span>
+                             </div>
+                             {player.id === connectionState.currentPlayerId && (
+                               <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                 Current Turn
+                               </span>
+                             )}
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                     
+                     {/* Team B */}
+                     <div>
+                       <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">Team B</h3>
+                       <div className="space-y-2">
+                         {teams.team2.players.map((player: Player) => (
+                           <div key={player.id} className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                               <div className={`w-2 h-2 rounded-full ${
+                                 player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
+                               }`} />
+                               <span className={`text-sm ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
+                                 {player.name}
+                                 {player.id === playerId && ' (You)'}
+                               </span>
+                             </div>
+                             {player.id === connectionState.currentPlayerId && (
+                               <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                 Current Turn
+                               </span>
+                             )}
+                           </div>
+                         ))}
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               {!isReconnecting && (
                  <>
                    <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
                      <GameStatus 
@@ -1134,7 +1239,6 @@ function MultiplayerLobby() {
 
              </div>
           </main>
-          <Footer />
         </div>
         {/* {roundResult && (
           <Dialog open={!!roundResult} onOpenChange={isOpen => !isOpen && setRoundResult(null)}>
@@ -1184,7 +1288,11 @@ function MultiplayerLobby() {
     return (
       <>
         <div className="flex min-h-screen flex-col">
-          <Header />
+          <GameControls 
+            teams={teams}
+            currentPlayerId={connectionState.currentPlayerId || null}
+            onExitGame={handleExitGame}
+          />
           <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
             <Card className="w-full max-w-2xl text-center">
               <CardHeader>
@@ -1431,7 +1539,11 @@ function MultiplayerLobby() {
 
     return (
       <div className="flex min-h-screen flex-col">
-        <Header />
+        <GameControls 
+          teams={teams}
+          currentPlayerId={connectionState.currentPlayerId || null}
+          onExitGame={handleExitGame}
+        />
         <main className="flex-1 container mx-auto px-4 py-12">
           <Card>
             <CardHeader>
