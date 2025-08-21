@@ -1,8 +1,6 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import { Users } from "lucide-react"
 import { getTrumpSuitIcon } from "@/lib/utils/gameUtils"
 import { Suit } from "@/lib/gamer/aigamer"
 
@@ -96,31 +94,20 @@ export default function GameLayout({
   // Special layout for 2 players: horizontal arrangement
   if (playerCount === 2) {
     return (
-      <Card className={`min-w-[400px] min-h-[200px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
-        {/* Header */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users className="w-3 h-3" />
-            <span>{playerCount} Players</span>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            Round {currentRound}/{totalRounds}
-          </Badge>
-        </div>
-
+      <Card className={`min-w-[320px] min-h-[180px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
         {/* Team A Score - Top Left */}
         <div className="absolute top-2 left-2">
-          <div className="text-2xl font-bold text-blue-600">{team1Score}</div>
+          <div className="text-xl font-bold text-blue-600">{team1Score}</div>
         </div>
 
         {/* Team B Score - Top Right */}
         <div className="absolute top-2 right-2">
-          <div className="text-2xl font-bold text-red-600">{team2Score}</div>
+          <div className="text-xl font-bold text-red-600">{team2Score}</div>
         </div>
 
         {/* Center: Trump Suit and Round */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-          <div className="text-4xl mb-2">
+          <div className="text-3xl mb-2">
             {getTrumpSuitIcon(trumpSuit)}
           </div>
           <div className="text-sm font-semibold text-foreground">
@@ -129,16 +116,16 @@ export default function GameLayout({
         </div>
 
         {/* Players positioned horizontally */}
-        <div className="flex items-center justify-center gap-16 w-full h-full pt-10 pb-6">
+        <div className="flex items-center justify-center gap-12 w-full h-full pt-8 pb-4">
           {players.map((player, index) => {
             const isCurrentTurn = index === currentTurnIndex
             return (
               <div key={player.id} className="flex flex-col items-center relative">
                 <div className="relative">
                   <div
-                    className={`text-4xl transition-all duration-300 ${
+                    className={`text-2xl transition-all duration-300 ${
                       isCurrentTurn
-                        ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-2 bg-yellow-50"
+                        ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1.5 bg-yellow-50"
                         : ""
                     }`}
                   >
@@ -146,18 +133,18 @@ export default function GameLayout({
                   </div>
                   {/* Team indicator dot */}
                   <div
-                    className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
+                    className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
                   />
                 </div>
                 <div
-                  className={`mt-1 text-base text-center max-w-24 truncate transition-all duration-300 ${
+                  className={`mt-1 text-sm text-center max-w-20 truncate transition-all duration-300 ${
                     isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {player.name}
                 </div>
                 <div
-                  className={`text-xs px-2 py-0.5 rounded-full mt-1 transition-all duration-300 ${
+                  className={`text-xs px-1.5 py-0.5 rounded-full mt-1 transition-all duration-300 ${
                     isCurrentTurn ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -173,31 +160,20 @@ export default function GameLayout({
 
   // Layout for 4/6 players: consistent with 2-player layout
   return (
-    <Card className={`min-w-[500px] min-h-[500px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
-      {/* Header */}
-      <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-          <Users className="w-3 h-3" />
-          <span>{playerCount} Players</span>
-        </div>
-        <Badge variant="outline" className="text-xs">
-          Round {currentRound}/{totalRounds}
-        </Badge>
-      </div>
-
+    <Card className={`min-w-[400px] min-h-[400px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
       {/* Team A Score - Top Left */}
       <div className="absolute top-2 left-2">
-        <div className="text-2xl font-bold text-blue-600">{team1Score}</div>
+        <div className="text-xl font-bold text-blue-600">{team1Score}</div>
       </div>
 
       {/* Team B Score - Top Right */}
       <div className="absolute top-2 right-2">
-        <div className="text-2xl font-bold text-red-600">{team2Score}</div>
+        <div className="text-xl font-bold text-red-600">{team2Score}</div>
       </div>
 
       {/* Center: Trump Suit and Round */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-        <div className="text-4xl mb-2">
+        <div className="text-3xl mb-2">
           {getTrumpSuitIcon(trumpSuit)}
         </div>
         <div className="text-sm font-semibold text-foreground">
@@ -216,9 +192,9 @@ export default function GameLayout({
               {/* Person emoji with team indicator */}
               <div className="relative">
                 <div
-                  className={`text-4xl transition-all duration-300 ${
+                  className={`text-2xl transition-all duration-300 ${
                     isCurrentTurn
-                      ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-2 bg-yellow-50"
+                      ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1.5 bg-yellow-50"
                       : ""
                   }`}
                 >
@@ -227,13 +203,13 @@ export default function GameLayout({
 
                 {/* Team indicator dot */}
                 <div
-                  className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
+                  className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
                 />
               </div>
 
               {/* Player name */}
               <div
-                className={`mt-1 text-base text-center max-w-24 truncate transition-all duration-300 ${
+                className={`mt-1 text-sm text-center max-w-20 truncate transition-all duration-300 ${
                   isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -242,7 +218,7 @@ export default function GameLayout({
 
               {/* Turn order number */}
               <div
-                className={`text-xs px-2 py-0.5 rounded-full mt-1 transition-all duration-300 ${
+                className={`text-xs px-1.5 py-0.5 rounded-full mt-1 transition-all duration-300 ${
                   isCurrentTurn ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"
                 }`}
               >
