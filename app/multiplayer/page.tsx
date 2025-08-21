@@ -83,6 +83,25 @@ function MultiplayerLobby() {
 
   const { play: playNotificationSound } = useNotificationSound();
 
+  // --- HELPER FUNCTIONS ---
+  const getDisplayName = (fullName: string, teamPlayers: Player[], currentIndex: number) => {
+    const firstName = fullName.split(' ')[0];
+    
+    // Check if any other player in the team has the same first name
+    const hasDuplicateFirstName = teamPlayers.some((player, index) => 
+      index !== currentIndex && player.name.split(' ')[0] === firstName
+    );
+    
+    // If duplicate first name exists, show first + second name
+    if (hasDuplicateFirstName) {
+      const nameParts = fullName.split(' ');
+      return nameParts.length > 1 ? `${firstName} ${nameParts[1]}` : fullName;
+    }
+    
+    // Otherwise just show first name
+    return firstName;
+  };
+
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
   
@@ -1118,57 +1137,54 @@ function MultiplayerLobby() {
                    </div>
                  </div>
                )}
-                              {/* Player Teams Display */}
+                              {/* Player Teams Display - Compact T-Shape */}
                {!isReconnecting && teams && (
-                 <div className="bg-white rounded-lg border p-4 shadow-sm">
-                   <div className="grid md:grid-cols-2 gap-6">
-                     {/* Team A */}
-                     <div>
-                       <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wide mb-3">Team A</h3>
-                       <div className="space-y-2">
-                         {teams.team1.players.map((player: Player) => (
-                           <div key={player.id} className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                               <div className={`w-2 h-2 rounded-full ${
+                 <div className="bg-white rounded-lg border p-3 shadow-sm">
+                   <div className="text-center mb-3">
+                     <h3 className="text-sm font-semibold text-gray-700">Players</h3>
+                   </div>
+                   
+                   {/* T-Shape Layout: Team A on left, Team B on right */}
+                   <div className="grid grid-cols-2 gap-4">
+                     {/* Team A - Left Column */}
+                     <div className="text-center">
+                       <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Team A</div>
+                       <div className="space-y-1">
+                         {teams.team1.players.map((player: Player, index: number) => {
+                           const displayName = getDisplayName(player.name, teams.team1.players, index);
+                           return (
+                             <div key={player.id} className="flex items-center justify-center gap-1">
+                               <div className={`w-1.5 h-1.5 rounded-full ${
                                  player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
                                }`} />
-                               <span className={`text-sm ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
-                                 {player.name}
+                               <span className={`text-xs ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
+                                 {displayName}
                                  {player.id === playerId && ' (You)'}
                                </span>
                              </div>
-                             {player.id === connectionState.currentPlayerId && (
-                               <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                 Current Turn
-                               </span>
-                             )}
-                           </div>
-                         ))}
+                           );
+                         })}
                        </div>
                      </div>
                      
-                     {/* Team B */}
-                     <div>
-                       <h3 className="text-sm font-semibold text-red-600 uppercase tracking-wide mb-3">Team B</h3>
-                       <div className="space-y-2">
-                         {teams.team2.players.map((player: Player) => (
-                           <div key={player.id} className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                               <div className={`w-2 h-2 rounded-full ${
+                     {/* Team B - Right Column */}
+                     <div className="text-center">
+                       <div className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Team B</div>
+                       <div className="space-y-1">
+                         {teams.team2.players.map((player: Player, index: number) => {
+                           const displayName = getDisplayName(player.name, teams.team2.players, index);
+                           return (
+                             <div key={player.id} className="flex items-center justify-center gap-1">
+                               <div className={`w-1.5 h-1.5 rounded-full ${
                                  player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
                                }`} />
-                               <span className={`text-sm ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
-                                 {player.name}
+                               <span className={`text-xs ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
+                                 {displayName}
                                  {player.id === playerId && ' (You)'}
                                </span>
                              </div>
-                             {player.id === connectionState.currentPlayerId && (
-                               <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                 Current Turn
-                               </span>
-                             )}
-                           </div>
-                         ))}
+                           );
+                         })}
                        </div>
                      </div>
                    </div>
