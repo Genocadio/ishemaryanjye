@@ -1128,10 +1128,17 @@ function MultiplayerLobby() {
                    </div>
                  </div>
                )}
-                              {/* New Game Layout Component */}
-               {!isReconnecting && teams && (
+                              {/* New Game Layout Component - Only show when match is fully ready with complete player data */}
+               {!isReconnecting && 
+                teams && 
+                connectionState.matchStatus === "active" && 
+                teams.team1.players.length >= (teams.team1.totalSlots || 1) &&
+                teams.team2.players.length >= (teams.team2.totalSlots || 1) &&
+                playOrder.length > 0 &&
+                connectionState.trumpSuit && (
                  <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
                    <GameLayout
+                     key={`game-layout-${connectionState.matchId}-${teams.team1.players.length}-${teams.team2.players.length}-${playOrder.length}-${connectionState.trumpSuit}`}
                      players={[
                        ...teams.team1.players.map((player: Player) => ({
                          id: player.id,
@@ -1156,6 +1163,30 @@ function MultiplayerLobby() {
                    />
                  </div>
                )}
+
+               {/* Show loading state when GameLayout is not ready */}
+               {!isReconnecting && teams && connectionState.matchStatus === "active" && 
+                (teams.team1.players.length < (teams.team1.totalSlots || 1) || 
+                 teams.team2.players.length < (teams.team2.totalSlots || 1) || 
+                 playOrder.length === 0 ||
+                 !connectionState.trumpSuit) && (
+                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                   <div className="flex items-center justify-center gap-3 mb-4">
+                     <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                     <h2 className="text-xl font-semibold text-blue-800">Preparing Game Layout</h2>
+                   </div>
+                   <p className="text-blue-700 text-sm">
+                     Waiting for all players to join and game to initialize...
+                   </p>
+                   <div className="mt-4 text-xs text-blue-600">
+                     <p>• Team A: {teams.team1.players.length}/{teams.team1.totalSlots || 1} players</p>
+                     <p>• Team B: {teams.team2.players.length}/{teams.team2.totalSlots || 1} players</p>
+                     <p>• Game order: {playOrder.length > 0 ? 'Ready' : 'Initializing...'}</p>
+                     <p>• Trump suit: {connectionState.trumpSuit ? 'Set' : 'Initializing...'}</p>
+                   </div>
+                 </div>
+               )}
+
                 <div className="relative">
                   {!isReconnecting ? (
                     <>

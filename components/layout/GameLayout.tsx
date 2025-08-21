@@ -38,7 +38,24 @@ export default function GameLayout({
   team2Score,
   currentPlayerId,
 }: GameLayoutProps) {
+  // Safety check: ensure we have valid data before rendering
+  if (!players || players.length === 0) {
+    return null;
+  }
+  
   const playerCount = players.length
+  
+  // Validate currentTurnIndex is within bounds
+  if (currentTurnIndex < 0 || currentTurnIndex >= playerCount) {
+    console.warn('GameLayout: Invalid currentTurnIndex:', currentTurnIndex, 'for playerCount:', playerCount);
+    return null;
+  }
+  
+  // Validate we have essential game data
+  if (!trumpSuit || !playOrder || playOrder.length === 0) {
+    console.warn('GameLayout: Missing essential game data - trumpSuit:', trumpSuit, 'playOrder length:', playOrder?.length);
+    return null;
+  }
 
   // Get player initials for avatar fallback
   const getInitials = (name: string) => {
