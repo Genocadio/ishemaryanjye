@@ -78,7 +78,31 @@ export default function GameLayout({
     return idx !== -1 ? idx + 1 : ""
   }
 
-  // Responsive positioning with proper scaling
+  // Rearrange players by their turn order instead of by team
+  const getOrderedPlayers = () => {
+    if (!playOrder || playOrder.length === 0) return players;
+    
+    const orderedPlayers: Player[] = [];
+    playOrder.forEach(playerId => {
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        orderedPlayers.push(player);
+      }
+    });
+    
+    // Add any remaining players that might not be in playOrder
+    players.forEach(player => {
+      if (!orderedPlayers.find(p => p.id === player.id)) {
+        orderedPlayers.push(player);
+      }
+    });
+    
+    return orderedPlayers;
+  };
+
+  const orderedPlayers = getOrderedPlayers();
+
+  // Responsive positioning with proper scaling and extra desktop spacing
   const getPlayerPositions = () => {
     if (playerCount === 2) {
       // Two opponents facing each other horizontally
@@ -87,8 +111,8 @@ export default function GameLayout({
         { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
       ]
     } else if (playerCount === 4) {
-      // Cross formation with players at cardinal directions
-      const baseRadius = "35%" // Responsive radius that scales with container
+      // Cross formation with players at cardinal directions - extra spacing for desktop
+      const baseRadius = "40%" // Increased from 35% for better desktop spacing
       return [
         { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top (P1)
         { top: "50%", right: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Right (P2)
@@ -96,8 +120,8 @@ export default function GameLayout({
         { top: "50%", left: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Left (P4)
       ]
     } else if (playerCount === 6) {
-      // Hexagon formation with players at hexagon vertices
-      const baseRadius = "40%" // Responsive radius that scales with container
+      // Hexagon formation with players at hexagon vertices - extra spacing for desktop
+      const baseRadius = "45%" // Increased from 40% for better desktop spacing
       return [
         { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
         { top: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Right
@@ -138,7 +162,7 @@ export default function GameLayout({
 
         {/* Players positioned horizontally with responsive spacing and better centering */}
         <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 w-full h-full pt-6 pb-2 px-2 sm:px-4">
-          {players.map((player, index) => {
+          {orderedPlayers.map((player, index) => {
             const isCurrentTurn = index === currentTurnIndex
             const roundOrder = getCurrentRoundOrder(player.id)
             return (
@@ -207,7 +231,7 @@ export default function GameLayout({
       </div>
 
       {/* Players positioned around the layout with responsive scaling and no overlapping */}
-      {players.map((player, index) => {
+      {orderedPlayers.map((player, index) => {
         const position = positions[index]
         const isCurrentTurn = index === currentTurnIndex
         const roundOrder = getCurrentRoundOrder(player.id)
