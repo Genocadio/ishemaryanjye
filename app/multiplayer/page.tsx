@@ -966,8 +966,6 @@ function MultiplayerLobby() {
     return (
       <div className="flex min-h-screen flex-col">
         <GameControls 
-          teams={teams}
-          currentPlayerId={connectionState.currentPlayerId || null}
           onExitGame={handleExitGame}
         />
         <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
@@ -1028,8 +1026,6 @@ function MultiplayerLobby() {
         )}
         <div className="flex min-h-screen flex-col">
           <GameControls 
-            teams={teams}
-            currentPlayerId={connectionState.currentPlayerId || null}
             onExitGame={handleExitGame}
           />
           <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
@@ -1305,8 +1301,6 @@ function MultiplayerLobby() {
       <>
         <div className="flex min-h-screen flex-col">
           <GameControls 
-            teams={teams}
-            currentPlayerId={connectionState.currentPlayerId || null}
             onExitGame={handleExitGame}
           />
           <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
@@ -1556,8 +1550,6 @@ function MultiplayerLobby() {
     return (
       <div className="flex min-h-screen flex-col">
         <GameControls 
-          teams={teams}
-          currentPlayerId={connectionState.currentPlayerId || null}
           onExitGame={handleExitGame}
         />
         <main className="flex-1 container mx-auto px-4 py-12">
