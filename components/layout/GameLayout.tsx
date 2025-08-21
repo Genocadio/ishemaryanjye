@@ -63,7 +63,7 @@ export default function GameLayout({
         { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
       ]
     } else if (playerCount === 4) {
-      // Square formation with responsive radius
+      // Square formation with responsive radius - better small screen centering
       const baseRadius = "35%" // Responsive radius that scales with container
       return [
         { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
@@ -72,9 +72,8 @@ export default function GameLayout({
         { top: "50%", left: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Left
       ]
     } else if (playerCount === 6) {
-      // Hexagon formation with responsive radius
+      // Hexagon formation with responsive radius - better small screen centering
       const baseRadius = "40%" // Responsive radius that scales with container
-      const angleStep = (2 * Math.PI) / 6
       return [
         { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
         { top: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Right
@@ -99,7 +98,7 @@ export default function GameLayout({
   // Special layout for 2 players: horizontal arrangement with responsive scaling
   if (playerCount === 2) {
     return (
-      <Card className={`min-w-[120px] min-h-[80px] w-full h-full max-w-[300px] max-h-[200px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+      <Card className={`min-w-[120px] min-h-[80px] w-full h-full max-w-[300px] max-h-[200px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg mx-auto ${className}`}>
         {/* Team A Score - Top Left */}
         <div className="absolute top-1 left-1">
           <div className="text-sm font-bold text-blue-600">{team1Score}</div>
@@ -120,12 +119,12 @@ export default function GameLayout({
           </div>
         </div>
 
-        {/* Players positioned horizontally with responsive spacing */}
-        <div className="flex items-center justify-center gap-4 sm:gap-6 w-full h-full pt-6 pb-2 px-4">
+        {/* Players positioned horizontally with responsive spacing and better centering */}
+        <div className="flex items-center justify-center gap-3 sm:gap-4 md:gap-6 w-full h-full pt-6 pb-2 px-2 sm:px-4">
           {players.map((player, index) => {
             const isCurrentTurn = index === currentTurnIndex
             return (
-              <div key={player.id} className="flex flex-col items-center relative flex-1 max-w-20">
+              <div key={player.id} className="flex flex-col items-center relative flex-1 max-w-16 sm:max-w-20">
                 <div className="relative">
                   <div
                     className={`text-base sm:text-lg transition-all duration-300 ${
@@ -163,9 +162,9 @@ export default function GameLayout({
     )
   }
 
-  // Layout for 4/6 players: consistent with responsive scaling
+  // Layout for 4/6 players: consistent with responsive scaling and better centering
   return (
-    <Card className={`min-w-[150px] min-h-[150px] w-full h-full max-w-[400px] max-h-[400px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+    <Card className={`min-w-[150px] min-h-[150px] w-full h-full max-w-[400px] max-h-[400px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg mx-auto ${className}`}>
       {/* Team A Score - Top Left */}
       <div className="absolute top-1 left-1">
         <div className="text-sm font-bold text-blue-600">{team1Score}</div>
@@ -186,7 +185,7 @@ export default function GameLayout({
         </div>
       </div>
 
-      {/* Players positioned around the layout with responsive scaling */}
+      {/* Players positioned around the layout with responsive scaling and better centering */}
       {players.map((player, index) => {
         const position = positions[index]
         const isCurrentTurn = index === currentTurnIndex
