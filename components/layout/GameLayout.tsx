@@ -63,24 +63,23 @@ export default function GameLayout({
         { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
       ]
     } else if (playerCount === 4) {
-      // Square formation with responsive radius - better small screen centering
-      const baseRadius = "35%" // Responsive radius that scales with container
+      // Square formation with proper circular arrangement
       return [
-        { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
-        { top: "50%", right: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Right
-        { bottom: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Bottom
-        { top: "50%", left: `calc(50% - ${baseRadius})`, transform: "translateY(-50%)" }, // Left
+        { top: "20%", left: "50%", transform: "translateX(-50%)" }, // Top
+        { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
+        { bottom: "20%", left: "50%", transform: "translateX(-50%)" }, // Bottom
+        { top: "50%", left: "20%", transform: "translateY(-50%)" }, // Left
       ]
     } else if (playerCount === 6) {
-      // Hexagon formation with responsive radius - better small screen centering
-      const baseRadius = "40%" // Responsive radius that scales with container
+      // Hexagon formation with proper circular arrangement
+      const baseRadius = "35%" // Adjusted radius for better visual balance
       return [
-        { top: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Top
-        { top: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Right
-        { bottom: `calc(50% - ${baseRadius} * 0.5)`, right: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Bottom-Right
-        { bottom: `calc(50% - ${baseRadius})`, left: "50%", transform: "translateX(-50%)" }, // Bottom
-        { bottom: `calc(50% - ${baseRadius} * 0.5)`, left: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Bottom-Left
-        { top: `calc(50% - ${baseRadius} * 0.5)`, left: `calc(50% - ${baseRadius} * 0.866)`, transform: "translateY(-50%)" }, // Top-Left
+        { top: "15%", left: "50%", transform: "translateX(-50%)" }, // Top
+        { top: "25%", right: "15%", transform: "translateY(-50%)" }, // Top-Right
+        { bottom: "25%", right: "15%", transform: "translateY(-50%)" }, // Bottom-Right
+        { bottom: "15%", left: "50%", transform: "translateX(-50%)" }, // Bottom
+        { bottom: "25%", left: "15%", transform: "translateY(-50%)" }, // Bottom-Left
+        { top: "25%", left: "15%", transform: "translateY(-50%)" }, // Top-Left
       ]
     }
     return []
