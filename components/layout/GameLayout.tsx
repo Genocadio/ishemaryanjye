@@ -54,7 +54,7 @@ export default function GameLayout({
     return team === "A" ? "bg-blue-500" : "bg-red-500"
   }
 
-  // Position players based on count
+  // Position players based on count - exactly like PlayerTurnIndicator
   const getPlayerPositions = () => {
     if (playerCount === 2) {
       // Two opponents facing each other horizontally
@@ -63,7 +63,7 @@ export default function GameLayout({
         { top: "50%", right: "20%", transform: "translateY(-50%)" }, // Right
       ]
     } else if (playerCount === 4) {
-      // Plus sign formation for 4 players
+      // Square formation for 4 players - more stable and visible
       return [
         { top: "15%", left: "50%", transform: "translateX(-50%)" }, // Top
         { top: "50%", right: "15%", transform: "translateY(-50%)" }, // Right
@@ -71,7 +71,7 @@ export default function GameLayout({
         { top: "50%", left: "15%", transform: "translateY(-50%)" }, // Left
       ]
     } else if (playerCount === 6) {
-      // Hexagon formation for 6 players
+      // Hexagon formation for 6 players - more stable and visible
       return [
         { top: "10%", left: "50%", transform: "translateX(-50%)" }, // Top
         { top: "25%", right: "20%", transform: "translateY(-50%)" }, // Top-Right
@@ -96,38 +96,38 @@ export default function GameLayout({
   // Special layout for 2 players: horizontal arrangement
   if (playerCount === 2) {
     return (
-      <Card className={`min-w-[320px] min-h-[180px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+      <Card className={`min-w-[120px] min-h-[80px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
         {/* Team A Score - Top Left */}
-        <div className="absolute top-2 left-2">
-          <div className="text-xl font-bold text-blue-600">{team1Score}</div>
+        <div className="absolute top-1 left-1">
+          <div className="text-sm font-bold text-blue-600">{team1Score}</div>
         </div>
 
         {/* Team B Score - Top Right */}
-        <div className="absolute top-2 right-2">
-          <div className="text-xl font-bold text-red-600">{team2Score}</div>
+        <div className="absolute top-1 right-1">
+          <div className="text-sm font-bold text-red-600">{team2Score}</div>
         </div>
 
         {/* Center: Trump Suit and Round */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-          <div className="text-3xl mb-2">
+          <div className="text-lg mb-1">
             {getTrumpSuitIcon(trumpSuit)}
           </div>
-          <div className="text-sm font-semibold text-foreground">
+          <div className="text-xs font-semibold text-foreground">
             {currentRound}/{totalRounds}
           </div>
         </div>
 
         {/* Players positioned horizontally */}
-        <div className="flex items-center justify-center gap-12 w-full h-full pt-8 pb-4">
+        <div className="flex items-center justify-center gap-6 w-full h-full pt-6 pb-2">
           {players.map((player, index) => {
             const isCurrentTurn = index === currentTurnIndex
             return (
               <div key={player.id} className="flex flex-col items-center relative">
                 <div className="relative">
                   <div
-                    className={`text-2xl transition-all duration-300 ${
+                    className={`text-lg transition-all duration-300 ${
                       isCurrentTurn
-                        ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1.5 bg-yellow-50"
+                        ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1 bg-yellow-50"
                         : ""
                     }`}
                   >
@@ -135,18 +135,18 @@ export default function GameLayout({
                   </div>
                   {/* Team indicator dot */}
                   <div
-                    className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
+                    className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white ${getTeamColor(player.team)}`}
                   />
                 </div>
                 <div
-                  className={`mt-1 text-sm text-center max-w-20 truncate transition-all duration-300 ${
+                  className={`mt-0.5 text-xs text-center max-w-12 truncate transition-all duration-300 ${
                     isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                   }`}
                 >
                   {player.id === currentPlayerId ? "You" : player.name}
                 </div>
                 <div
-                  className={`text-xs px-1.5 py-0.5 rounded-full mt-1 transition-all duration-300 ${
+                  className={`text-xs px-1 py-0 rounded-full mt-0.5 transition-all duration-300 ${
                     isCurrentTurn ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"
                   }`}
                 >
@@ -162,23 +162,23 @@ export default function GameLayout({
 
   // Layout for 4/6 players: consistent with 2-player layout
   return (
-    <Card className={`min-w-[400px] min-h-[400px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
+    <Card className={`min-w-[150px] min-h-[150px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg ${className}`}>
       {/* Team A Score - Top Left */}
-      <div className="absolute top-2 left-2">
-        <div className="text-xl font-bold text-blue-600">{team1Score}</div>
+      <div className="absolute top-1 left-1">
+        <div className="text-sm font-bold text-blue-600">{team1Score}</div>
       </div>
 
       {/* Team B Score - Top Right */}
-      <div className="absolute top-2 right-2">
-        <div className="text-xl font-bold text-red-600">{team2Score}</div>
+      <div className="absolute top-1 right-1">
+        <div className="text-sm font-bold text-red-600">{team2Score}</div>
       </div>
 
       {/* Center: Trump Suit and Round */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-        <div className="text-3xl mb-2">
+        <div className="text-lg mb-1">
           {getTrumpSuitIcon(trumpSuit)}
         </div>
-        <div className="text-sm font-semibold text-foreground">
+        <div className="text-xs font-semibold text-foreground">
           {currentRound}/{totalRounds}
         </div>
       </div>
@@ -194,9 +194,9 @@ export default function GameLayout({
               {/* Person emoji with team indicator */}
               <div className="relative">
                 <div
-                  className={`text-2xl transition-all duration-300 ${
+                  className={`text-sm transition-all duration-300 ${
                     isCurrentTurn
-                      ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1.5 bg-yellow-50"
+                      ? "scale-110 drop-shadow-lg animate-pulse border-2 border-yellow-500 rounded-full p-1 bg-yellow-50"
                       : ""
                   }`}
                 >
@@ -205,13 +205,13 @@ export default function GameLayout({
 
                 {/* Team indicator dot */}
                 <div
-                  className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-white ${getTeamColor(player.team)}`}
+                  className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-white ${getTeamColor(player.team)}`}
                 />
               </div>
 
               {/* Player name */}
               <div
-                className={`mt-1 text-sm text-center max-w-20 truncate transition-all duration-300 ${
+                className={`mt-0.5 text-xs text-center max-w-12 truncate transition-all duration-300 ${
                   isCurrentTurn ? "font-bold text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -220,7 +220,7 @@ export default function GameLayout({
 
               {/* Turn order number */}
               <div
-                className={`text-xs px-1.5 py-0.5 rounded-full mt-1 transition-all duration-300 ${
+                className={`text-xs px-1 py-0 rounded-full mt-0.5 transition-all duration-300 ${
                   isCurrentTurn ? "bg-yellow-100 text-yellow-800" : "bg-gray-100 text-gray-600"
                 }`}
               >

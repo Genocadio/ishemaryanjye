@@ -26,17 +26,19 @@ const MultiplayerPlayground: React.FC<MultiplayerPlaygroundProps> = ({ playgroun
     return (
         <div className="my-4">
             <h3 className="text-lg font-semibold text-center mb-2">{getPlaygroundTitle()}</h3>
-            <div className="flex justify-center items-center gap-4 p-4 min-h-[220px] bg-green-50/50 border rounded-lg">
+            <div className="p-4 min-h-[220px] bg-green-50/50 border rounded-lg">
                 {playground.length > 0 ? (
-                    playground.map(({ playerId, card }) => {
-                        const pName = allPlayers.find(p => p.id === playerId)?.name ?? "Player";
-                        return (
-                            <div key={card.id} className="flex flex-col items-center">
-                                <MultiplayerCard card={card} />
-                                <p className="text-xs text-gray-500 mt-1">{pName}</p>
-                            </div>
-                        );
-                    })
+                    <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                        {playground.map(({ playerId, card }) => {
+                            const pName = allPlayers.find(p => p.id === playerId)?.name ?? "Player";
+                            return (
+                                <div key={card.id} className="flex flex-col items-center flex-shrink-0">
+                                    <MultiplayerCard card={card} />
+                                    <p className="text-xs text-gray-500 mt-1">{pName}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
                 ) : (
                     <p className="text-gray-500">
                         {isPlayerTurn
