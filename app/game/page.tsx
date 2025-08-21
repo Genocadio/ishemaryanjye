@@ -963,62 +963,72 @@ export default function DuoPlayerGame() {
                             </div>
                         )}
 
-                        <div className="mt-8">
-                            <Button
-                                onClick={() => {
-                                    // Reset game state
-                                    setGameState(null);
-                                    setAiPlayer(null);
-                                    setRoundEvaluator(null);
-                                    setSelectedCard(null);
-                                    setGameMessage("");
-                                    setCurrentRoundCards({ human: null, ai: null });
-                                    setGameStatus("character-selection");
-                                    setCurrentTurn("player");
-                                    setSelectedCharacter(null);
-                                    setIsClickCooldown(false);
-                                    setIsPlayerTurn(true);
-                                    setTotalPoints(0);
-                                    setPlayerRoundsPlayed({ human: 0, ai: 0 });
-                                    setTotalGameScore(0);
-                                    
-                                    // Reinitialize the game
-                                    const newDeck = createDeck();
-                                    const newHands = dealCards(newDeck, 2, 3);
-                                    const newCardHolder = [...newDeck];
-                                    const newStartingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
-                                    
-                                    const initialGameState: GameState = {
-                                        trumpSuit: getRandomTrumpSuit(),
-                                        players: [
-                                            { hand: newHands[0], collectedCards: [], score: 0 },
-                                            { hand: newHands[1], collectedCards: [], score: 0 }
-                                        ],
-                                        currentPlayer: newStartingPlayer,
-                                        cardsOnTable: [],
-                                        roundStake: 0,
-                                        roundHistory: [],
-                                        currentRound: 0,
-                                        totalRounds: 18,
-                                        cardHolder: newCardHolder
-                                    };
-                                    
-                                    const ai = new CardGameAI('Analytical', selectedDifficulty);
-                                    ai.initialize(initialGameState, 1);
-                                    
-                                    const evaluator = new RoundEvaluator(initialGameState.trumpSuit);
-                                    
-                                    setGameState(initialGameState);
-                                    setAiPlayer(ai);
-                                    setRoundEvaluator(evaluator);
-                                    setCurrentTurn(newStartingPlayer === 0 ? "player" : "character");
-                                    setGameMessage(newStartingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
-                                }}
-                                className="bg-green-600 hover:bg-green-700 text-white px-8"
-                            >
-                                Play Again
-                            </Button>
-                        </div>
+                        {/* Only show Play Again button if player won or if they've completed the question/answer process */}
+                        {(gameState.players[0].score > gameState.players[1].score || 
+                          (gameState.players[0].score < gameState.players[1].score && 
+                           (question || didYouKnowTip))) && (
+                            <div className="mt-8">
+                                <Button
+                                    onClick={() => {
+                                        // Reset game state
+                                        setGameState(null);
+                                        setAiPlayer(null);
+                                        setRoundEvaluator(null);
+                                        setSelectedCard(null);
+                                        setGameMessage("");
+                                        setCurrentRoundCards({ human: null, ai: null });
+                                        setGameStatus("character-selection");
+                                        setCurrentTurn("player");
+                                        setSelectedCharacter(null);
+                                        setIsClickCooldown(false);
+                                        setIsPlayerTurn(true);
+                                        setTotalPoints(0);
+                                        setPlayerRoundsPlayed({ human: 0, ai: 0 });
+                                        setTotalGameScore(0);
+                                        setQuestion(null);
+                                        setDidYouKnowTip(null);
+                                        setShowQuestionDialog(false);
+                                        setShowDidYouKnowDialog(false);
+                                        setSelectedOptions([]);
+                                        
+                                        // Reinitialize the game
+                                        const newDeck = createDeck();
+                                        const newHands = dealCards(newDeck, 2, 3);
+                                        const newCardHolder = [...newDeck];
+                                        const newStartingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
+                                        
+                                        const initialGameState: GameState = {
+                                            trumpSuit: getRandomTrumpSuit(),
+                                            players: [
+                                                { hand: newHands[0], collectedCards: [], score: 0 },
+                                                { hand: newHands[1], collectedCards: [], score: 0 }
+                                            ],
+                                            currentPlayer: newStartingPlayer,
+                                            cardsOnTable: [],
+                                            roundStake: 0,
+                                            roundHistory: [],
+                                            currentRound: 0,
+                                            totalRounds: 18,
+                                            cardHolder: newCardHolder
+                                        };
+                                        
+                                        const ai = new CardGameAI('Analytical', selectedDifficulty);
+                                        ai.initialize(initialGameState, 1);
+                                        
+                                        const evaluator = new RoundEvaluator(initialGameState.trumpSuit);
+                                        
+                                        setGameState(initialGameState);
+                                        setAiPlayer(ai);
+                                        setRoundEvaluator(evaluator);
+                                        setCurrentTurn(newStartingPlayer === 0 ? "player" : "character");
+                                        setGameMessage(newStartingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
+                                    }}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-8"
+                                >
+                                    Play Again
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )}
             </main>

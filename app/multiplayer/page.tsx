@@ -185,6 +185,11 @@ function MultiplayerLobby() {
 
   // --- HANDLERS ---
   const handlePlayCard = (cardId: string) => {
+    // Prevent play if match is completed
+    if (connectionState.matchStatus === "completed" as any) {
+      return;
+    }
+    
     // Prevent play if match is paused or any player is disconnected
     if (connectionState.matchStatus === "paused") {
       toast.warning("Match is paused. Wait for all players to reconnect.");
@@ -225,6 +230,11 @@ function MultiplayerLobby() {
   const handleReconnectionAttempt = (code: string) => {
     if (isReconnecting) {
       // Already reconnecting, don't start another attempt
+      return;
+    }
+
+    // Don't attempt reconnection if match is completed
+    if (connectionState.matchStatus === "completed" as any) {
       return;
     }
 
@@ -317,7 +327,7 @@ function MultiplayerLobby() {
       console.log("WebSocket disconnected")
       
       // If this is the first disconnection and we were in a game, attempt reconnection
-      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed" as any) {
         console.log("Current player disconnected, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
@@ -335,7 +345,7 @@ function MultiplayerLobby() {
       console.error("WebSocket error", err)
       
       // If this is the first error and we were in a game, attempt reconnection
-      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed") {
+      if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed" as any) {
         console.log("Current player connection error, attempting reconnection...")
         handleReconnectionAttempt(code);
       } else {
@@ -352,6 +362,11 @@ function MultiplayerLobby() {
         const message = JSON.parse(event.data)
         console.log("Received:", message)
         const { type, payload } = message
+
+        // Ignore WebSocket messages if match is completed (prevents interference during question phase)
+        if (connectionState.matchStatus === "completed" as any) {
+          return;
+        }
 
         if (type === "connection_established") {
           playNotificationSound("connect");
@@ -411,6 +426,11 @@ function MultiplayerLobby() {
         } else if (type === "match_paused") {
           console.log("Match paused:", payload)
           
+          // Don't process match_paused if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            return;
+          }
+          
           // Update game state from the paused match
           if (payload.gameState) {
             console.log("Updating game state from match_paused message:", payload.gameState)
@@ -451,8 +471,9 @@ function MultiplayerLobby() {
             
             // Check if this is the current player who disconnected
             if (disconnectedPlayer.id === playerId) {
-              console.log("Current player disconnected via match_paused, attempting reconnection...")
-              if (!isReconnecting) {
+              // Only attempt reconnection if match is not completed
+              if (connectionState.matchStatus !== "completed" as any && !isReconnecting) {
+                console.log("Current player disconnected via match_paused, attempting reconnection...")
                 handleReconnectionAttempt(code);
               }
               return; // Don't show disconnection UI for current player
@@ -482,9 +503,9 @@ function MultiplayerLobby() {
 
             // Check if this is the current player disconnecting
             if (isDisconnect && payload.player && payload.player.id === playerId) {
-              // Current player disconnected - handle reconnection
-              console.log("Current player disconnected via message, attempting reconnection...")
-              if (!isReconnecting) {
+              // Current player disconnected - handle reconnection (only if match is not completed)
+              if (connectionState.matchStatus !== "completed" as any && !isReconnecting) {
+                console.log("Current player disconnected via message, attempting reconnection...")
                 handleReconnectionAttempt(code);
               }
               return; // Don't update UI state for current player disconnection
@@ -637,6 +658,12 @@ function MultiplayerLobby() {
             updateStateFromGameState(payload.gameState)
             setFinalGameState(payload.gameState)
             setConnectionState(prev => ({ ...prev, matchStatus: "completed" }))
+          }
+          
+          // Close WebSocket connection after match ends to prevent interference during question phase
+          if (socket) {
+            socket.close();
+            setSocket(null);
           }
         } else if (type === "game_state_update") {
           // Client-side patch for a server bug.
