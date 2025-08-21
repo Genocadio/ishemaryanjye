@@ -110,30 +110,21 @@ export default function GameLayout({
 
         {/* Team A Score - Top Left */}
         <div className="absolute top-2 left-2">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-            <div className="text-xs font-semibold text-blue-800">Team A</div>
-            <div className="text-lg font-bold text-blue-600">{team1Score}</div>
-          </div>
+          <div className="text-2xl font-bold text-blue-600">{team1Score}</div>
         </div>
 
         {/* Team B Score - Top Right */}
         <div className="absolute top-2 right-2">
-          <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-            <div className="text-xs font-semibold text-red-800">Team B</div>
-            <div className="text-lg font-bold text-red-600">{team2Score}</div>
-          </div>
+          <div className="text-2xl font-bold text-red-600">{team2Score}</div>
         </div>
 
-        {/* Center: Trump Suit and Turn Indicator */}
+        {/* Center: Trump Suit and Round */}
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-          <div className="bg-white/95 backdrop-blur-sm rounded-lg px-6 py-4 border shadow-lg">
-            <div className="text-2xl mb-2">
-              {getTrumpSuitIcon(trumpSuit)}
-            </div>
-            <div className="text-sm font-semibold text-foreground">Trump</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {players[currentTurnIndex]?.name}'s Turn
-            </div>
+          <div className="text-4xl mb-2">
+            {getTrumpSuitIcon(trumpSuit)}
+          </div>
+          <div className="text-sm font-semibold text-foreground">
+            {currentRound}/{totalRounds}
           </div>
         </div>
 
@@ -196,30 +187,21 @@ export default function GameLayout({
 
       {/* Team A Score - Top Left */}
       <div className="absolute top-2 left-2">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-          <div className="text-xs font-semibold text-blue-800">Team A</div>
-          <div className="text-lg font-bold text-blue-600">{team1Score}</div>
-        </div>
+        <div className="text-2xl font-bold text-blue-600">{team1Score}</div>
       </div>
 
       {/* Team B Score - Top Right */}
       <div className="absolute top-2 right-2">
-        <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-          <div className="text-xs font-semibold text-red-800">Team B</div>
-          <div className="text-lg font-bold text-red-600">{team2Score}</div>
-        </div>
+        <div className="text-2xl font-bold text-red-600">{team2Score}</div>
       </div>
 
-      {/* Center: Trump Suit and Turn Indicator */}
+      {/* Center: Trump Suit and Round */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-20">
-        <div className="bg-white/95 backdrop-blur-sm rounded-lg px-6 py-4 border shadow-lg">
-          <div className="text-2xl mb-2">
-            {getTrumpSuitIcon(trumpSuit)}
-          </div>
-          <div className="text-sm font-semibold text-foreground">Trump</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            {players[currentTurnIndex]?.name}'s Turn
-          </div>
+        <div className="text-4xl mb-2">
+          {getTrumpSuitIcon(trumpSuit)}
+        </div>
+        <div className="text-sm font-semibold text-foreground">
+          {currentRound}/{totalRounds}
         </div>
       </div>
 
