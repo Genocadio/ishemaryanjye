@@ -5,8 +5,6 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useLanguage } from "@/contexts/language-context"
 import { Header } from "@/components/layout/header"
 import { Copy, User, Loader2, Trophy } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
@@ -14,18 +12,15 @@ import { useGameState } from "./useGameState"
 import { Player, CardType, PlaygroundEntry, RoundResult, ConnectionState, Teams, Team } from "./types"
 import { useSession } from "next-auth/react"
 import { toast } from 'sonner'
-import MultiplayerCard from "@/components/layout/MultiplayerCard";
-import { GameStatus } from "@/components/layout/GameStatus";
-import { Progress } from "@/components/ui/progress";
 import { CompactCard } from "@/components/layout/GameCard";
 import CardHand from "@/components/layout/CardHand";
 import CardHolder from "@/components/layout/CardHolder";
-import { Footer } from "@/components/layout/footer";
 import MultiplayerPlayground from "@/components/layout/MultiplayerPlayground";
 import CardChoice from "@/components/layout/CardChoice";
 import { useNotificationSound } from "@/components/providers";
 import PlayerTurnIndicator from "@/components/player-turn-indicator";
 import { GameControls } from "@/components/layout/GameControls";
+import GameLayout from "@/components/layout/GameLayout";
 
 function MultiplayerLobby() {
   const router = useRouter()
@@ -1133,74 +1128,32 @@ function MultiplayerLobby() {
                    </div>
                  </div>
                )}
-                              {/* Player Teams Display - Compact T-Shape */}
+                              {/* New Game Layout Component */}
                {!isReconnecting && teams && (
-                 <div className="bg-white rounded-lg border p-3 shadow-sm">
-                   <div className="text-center mb-3">
-                     <h3 className="text-sm font-semibold text-gray-700">Players</h3>
-                   </div>
-                   
-                   {/* T-Shape Layout: Team A on left, Team B on right */}
-                   <div className="grid grid-cols-2 gap-4">
-                     {/* Team A - Left Column */}
-                     <div className="text-center">
-                       <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Team A</div>
-                       <div className="space-y-1">
-                         {teams.team1.players.map((player: Player, index: number) => {
-                           const displayName = getDisplayName(player.name, teams.team1.players, index);
-                           return (
-                             <div key={player.id} className="flex items-center justify-center gap-1">
-                               <div className={`w-1.5 h-1.5 rounded-full ${
-                                 player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                               }`} />
-                               <span className={`text-xs ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
-                                 {displayName}
-                                 {player.id === playerId && ' (You)'}
-                               </span>
-                             </div>
-                           );
-                         })}
-                       </div>
-                     </div>
-                     
-                     {/* Team B - Right Column */}
-                     <div className="text-center">
-                       <div className="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Team B</div>
-                       <div className="space-y-1">
-                         {teams.team2.players.map((player: Player, index: number) => {
-                           const displayName = getDisplayName(player.name, teams.team2.players, index);
-                           return (
-                             <div key={player.id} className="flex items-center justify-center gap-1">
-                               <div className={`w-1.5 h-1.5 rounded-full ${
-                                 player.id === connectionState.currentPlayerId ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
-                               }`} />
-                               <span className={`text-xs ${player.id === connectionState.currentPlayerId ? 'font-medium' : ''}`}>
-                                 {displayName}
-                                 {player.id === playerId && ' (You)'}
-                               </span>
-                             </div>
-                           );
-                         })}
-                       </div>
-                     </div>
-                   </div>
+                 <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
+                   <GameLayout
+                     players={[
+                       ...teams.team1.players.map((player: Player) => ({
+                         id: player.id,
+                         name: getDisplayName(player.name, teams.team1.players, teams.team1.players.findIndex(p => p.id === player.id)),
+                         team: 'A' as const
+                       })),
+                       ...teams.team2.players.map((player: Player) => ({
+                         id: player.id,
+                         name: getDisplayName(player.name, teams.team2.players, teams.team2.players.findIndex(p => p.id === player.id)),
+                         team: 'B' as const
+                       }))
+                     ]}
+                     currentTurnIndex={currentTurnIndex}
+                     roundFirstPlayerIndex={firstPlayerIndex}
+                     playOrder={playOrder}
+                     trumpSuit={connectionState.trumpSuit as any}
+                     currentRound={connectionState.currentRound ?? 0}
+                     totalRounds={connectionState.totalRounds ?? 18}
+                     team1Score={teams.team1.score ?? 0}
+                     team2Score={teams.team2.score ?? 0}
+                   />
                  </div>
-               )}
-
-               {!isReconnecting && (
-                 <>
-                   <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
-                     <GameStatus 
-                        currentTurn={isPlayerTurn ? 'player' : 'character'}
-                        selectedCharacter={`Team ${opponentTeamId.slice(-1)}`}
-                        playerScore={playerTeam?.score ?? 0}
-                        aiScore={opponentTeam?.score ?? 0}
-                        trumpSuit={connectionState.trumpSuit as any}
-                     />
-                   </div>
-                   
-                   <Progress value={((connectionState.currentRound ?? 0) / (connectionState.totalRounds ?? 18)) * 100} />
-                 </>
                )}
                 <div className="relative">
                   {!isReconnecting ? (
