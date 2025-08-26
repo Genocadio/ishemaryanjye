@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useLanguage } from "@/contexts/language-context"
-import { BookOpen, Heart, Info, User } from "lucide-react"
+import { BookOpen, Heart, Info, User, Loader2, ChevronDown, ChevronRight } from "lucide-react"
 import { LanguageSelector } from "@/components/language-selector"
 import Link from "next/link"
 import { CardViewer } from "@/components/card-viewer"
@@ -13,14 +13,117 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
 import { toast } from "sonner"
+import { useState, useEffect } from "react"
+
+interface Subtopic {
+  subtopic: string
+  info: string
+  is_primary: boolean
+}
+
+interface GameContentItem {
+  id: number
+  title: string | null
+  language: string
+  age_group: string
+  topic: string
+  subtopic: string
+  all_subtopics: Subtopic[]
+  subtopics_count: number
+  hierarchy: string
+  info: string
+  content_type: string
+  difficulty_level: string
+  status: string
+  tags: string[]
+  card_association: string | null
+  view_count: number
+  usage_count: number
+  created_at: string
+  updated_at: string
+}
 
 export default function GameInfo() {
   const { t, language } = useLanguage()
+  const [gameContent, setGameContent] = useState<GameContentItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
+  const [expandedSubtopics, setExpandedSubtopics] = useState<Set<string>>(new Set())
   
   console.log('Current language:', language);
   console.log('Download prompt translation:', t("game.health.downloadPrompt"));
   console.log('Cancel translation:', t("common.cancel"));
   console.log('Download translation:', t("common.download"));
+
+  const fetchGameContent = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/game-content')
+      const data = await response.json()
+      if (data.success) {
+        setGameContent(data.content)
+        // Don't auto-expand any topics - let them be collapsed initially
+      } else {
+        toast.error('Failed to fetch content')
+      }
+    } catch (error) {
+      console.error('Error fetching game content:', error)
+      toast.error('Error loading content')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleTopic = (topic: string) => {
+    // If clicking on already expanded topic, collapse it
+    // If clicking on different topic, expand it and collapse others
+    setExpandedTopic(expandedTopic === topic ? null : topic)
+    // Also collapse all subtopics when changing topics
+    setExpandedSubtopics(new Set())
+  }
+
+  const toggleSubtopic = (subtopicKey: string) => {
+    const newExpanded = new Set(expandedSubtopics)
+    if (newExpanded.has(subtopicKey)) {
+      newExpanded.delete(subtopicKey)
+    } else {
+      newExpanded.add(subtopicKey)
+    }
+    setExpandedSubtopics(newExpanded)
+  }
+
+  // Group content by topic, then by subtopic
+  const groupedContent = gameContent.reduce((acc, item) => {
+    if (!acc[item.topic]) {
+      acc[item.topic] = {}
+    }
+    
+    // Create separate sections for each subtopic
+    item.all_subtopics.forEach(subtopic => {
+      if (!acc[item.topic][subtopic.subtopic]) {
+        acc[item.topic][subtopic.subtopic] = {
+          items: [],
+          subtopicData: subtopic,
+          originalContent: item
+        }
+      }
+      
+      // Only add the item once per subtopic, using the current subtopic's data
+      if (!acc[item.topic][subtopic.subtopic].items.find(existingItem => existingItem.id === item.id)) {
+        acc[item.topic][subtopic.subtopic].items.push({
+          ...item,
+          currentSubtopic: subtopic
+        })
+      }
+    })
+    
+    return acc
+  }, {} as Record<string, Record<string, {
+    items: Array<GameContentItem & { currentSubtopic: Subtopic }>,
+    subtopicData: Subtopic,
+    originalContent: GameContentItem
+  }>>)
 
   const rules = {
     en: {
@@ -171,9 +274,9 @@ export default function GameInfo() {
                         {t("game.rules.button")}
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold mb-4 text-green-600">{t("game.rules.title")}</DialogTitle>
+                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">{t("game.rules.title")}</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-8">
                         {Object.entries(rules[language]).map(([section, items]) => (
@@ -203,64 +306,187 @@ export default function GameInfo() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 mb-6">{t("game.health.description")}</p>
-                  <Dialog>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                       <Button 
                         className="w-full bg-green-600 hover:bg-green-700"
                         onClick={() => {
                           console.log('Dialog opened with language:', language);
-                          console.log('Download prompt:', t("game.health.downloadPrompt"));
-                          console.log('Cancel text:', t("common.cancel"));
-                          console.log('Download text:', t("common.download"));
+                          fetchGameContent()
+                          setIsDialogOpen(true)
                         }}
                       >
-                        {t("game.health.button")}
+                        Read Information
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold mb-4 text-green-600">
-                          {t("game.health.title")}
+                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
+                          Game Information & Educational Content
                         </DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <p className="text-gray-600">
-                          {t("game.health.downloadPrompt")}
-                        </p>
-                        <div className="flex justify-end gap-2">
+                        {loading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                            <span className="ml-2 text-gray-600">Loading content...</span>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {Object.keys(groupedContent).length > 0 ? (
+                              Object.entries(groupedContent).map(([topic, subtopics]) => {
+                                const totalSubtopics = Object.keys(subtopics).length;
+                                return (
+                                  <div key={topic} className="border rounded-lg bg-white shadow-sm">
+                                    {/* Topic Header */}
+                                    <button
+                                      onClick={() => toggleTopic(topic)}
+                                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {expandedTopic === topic ? (
+                                          <ChevronDown className="h-5 w-5 text-green-600" />
+                                        ) : (
+                                          <ChevronRight className="h-5 w-5 text-green-600" />
+                                        )}
+                                        <h3 className="text-lg font-semibold text-gray-900">{topic}</h3>
+                                      </div>
+                                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                        {totalSubtopics} {totalSubtopics === 1 ? 'subtopic' : 'subtopics'}
+                                      </span>
+                                    </button>
+                                    
+                                    {/* Topic Content - Subtopics */}
+                                    {expandedTopic === topic && (
+                                      <div className="border-t bg-gray-50">
+                                        {Object.entries(subtopics).map(([subtopicName, subtopicGroup]) => {
+                                          const subtopicKey = `${topic}-${subtopicName}`;
+                                          const { items, subtopicData, originalContent } = subtopicGroup;
+                                          const firstItem = items[0]; // Get first item for metadata
+                                          return (
+                                            <div key={subtopicKey} className="border-b last:border-b-0">
+                                              {/* Subtopic Header */}
+                                              <button
+                                                onClick={() => toggleSubtopic(subtopicKey)}
+                                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
+                                              >
+                                                <div className="flex items-center gap-3">
+                                                  {expandedSubtopics.has(subtopicKey) ? (
+                                                    <ChevronDown className="h-4 w-4 text-blue-600" />
+                                                  ) : (
+                                                    <ChevronRight className="h-4 w-4 text-blue-600" />
+                                                  )}
+                                                  <div>
+                                                    <h4 className="font-medium text-gray-800">
+                                                      {subtopicName}
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2 mt-1">
+                                                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
+                                                        {originalContent.language}
+                                                      </span>
+                                                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+                                                        {originalContent.age_group}
+                                                      </span>
+                                                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">
+                                                        {originalContent.difficulty_level}
+                                                      </span>
+                                                      {subtopicData.is_primary && (
+                                                        <span className="bg-green-200 text-green-800 px-1.5 py-0.5 rounded text-xs">
+                                                          Primary
+                                                        </span>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </button>
+                                              
+                                              {/* Subtopic Content */}
+                                              {expandedSubtopics.has(subtopicKey) && (
+                                                <div className="px-4 pb-4 bg-white">
+                                                  <div className="pl-7 space-y-4">
+                                                    {/* Subtopic specific info */}
+                                                    <p className="text-gray-700 leading-relaxed">
+                                                      {subtopicData.info}
+                                                    </p>
+                                                    
+                                                    {/* Show additional content items only if they have different/additional information */}
+                                                    {items.filter(content => 
+                                                      content.info !== subtopicData.info || 
+                                                      content.title || 
+                                                      (content.tags && content.tags.length > 0)
+                                                    ).map((content, itemIndex) => (
+                                                      <div key={`${content.id}-${itemIndex}`} className="bg-gray-50 p-3 rounded border-l-4 border-green-400">
+                                                        {content.title && (
+                                                          <h5 className="font-medium text-gray-800 mb-2">{content.title}</h5>
+                                                        )}
+                                                        
+                                                        {/* Only show content info if it's different from subtopic info */}
+                                                        {content.info !== subtopicData.info && (
+                                                          <p className="text-sm text-gray-600 mb-2">{content.info}</p>
+                                                        )}
+                                                        
+                                                        {content.tags && content.tags.length > 0 && (
+                                                          <div className="mb-2">
+                                                            <h6 className="text-xs font-semibold text-gray-700 mb-1">Tags:</h6>
+                                                            <div className="flex flex-wrap gap-1">
+                                                              {content.tags.map((tag: string, tagIndex: number) => (
+                                                                <span key={tagIndex} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                                                                  #{tag}
+                                                                </span>
+                                                              ))}
+                                                            </div>
+                                                          </div>
+                                                        )}
+                                                        
+                                                        <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1 border-t">
+                                                          <span>Type: {content.content_type}</span>
+                                                          {content.card_association && (
+                                                            <span>Card: {content.card_association}</span>
+                                                          )}
+                                                          <span>Views: {content.view_count}</span>
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                    
+                                                    {/* Show metadata for the subtopic itself */}
+                                                    <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
+                                                      <h6 className="text-sm font-semibold text-green-800 mb-2">Subtopic Details</h6>
+                                                      <div className="flex flex-wrap gap-4 text-xs text-green-600">
+                                                        <span>Content Type: {originalContent.content_type}</span>
+                                                        <span>Difficulty: {originalContent.difficulty_level}</span>
+                                                        {originalContent.card_association && (
+                                                          <span>Card Association: {originalContent.card_association}</span>
+                                                        )}
+                                                        <span>Total Views: {items.reduce((sum, item) => sum + item.view_count, 0)}</span>
+                                                        <span>Items: {items.length}</span>
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              !loading && (
+                                <div className="text-center py-8">
+                                  <p className="text-gray-600">No content available at the moment.</p>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                        <div className="flex justify-end pt-4">
                           <Button
                             variant="outline"
-                            onClick={() => {
-                              const dialog = document.querySelector('[role="dialog"]');
-                              if (dialog) {
-                                (dialog as HTMLElement).style.display = 'none';
-                              }
-                            }}
+                            onClick={() => setIsDialogOpen(false)}
                           >
-                            {t("common.cancel")}
-                          </Button>
-                          <Button
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = '/pdf/ishema-ryanjye-book.pdf';
-                              link.download = 'ishema-ryanjye-book.pdf';
-                              document.body.appendChild(link);
-                              link.click();
-                              document.body.removeChild(link);
-                              
-                              const dialog = document.querySelector('[role="dialog"]');
-                              if (dialog) {
-                                (dialog as HTMLElement).style.display = 'none';
-                              }
-                              
-                              toast.success(t("game.health.downloadSuccess"), {
-                                duration: 3000,
-                                position: "top-center",
-                              });
-                            }}
-                          >
-                            {t("common.download")}
+                            Close
                           </Button>
                         </div>
                       </div>
@@ -284,9 +510,9 @@ export default function GameInfo() {
                         {t("game.cards.button")}
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-3xl">
+                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
                       <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold mb-4 text-green-600">
+                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
                           {t("game.cards.title")}
                         </DialogTitle>
                       </DialogHeader>
