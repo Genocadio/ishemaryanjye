@@ -43,6 +43,137 @@ interface GameContentItem {
   updated_at: string
 }
 
+// Text formatting function
+const formatText = (text: string) => {
+  if (!text) return text;
+  
+  // First, normalize line breaks and split by them
+  const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  
+  // Split by bullet points first, then handle line breaks within each section
+  const bulletSections = normalizedText.split(/(?=▪)/);
+  
+  return bulletSections.map((section, sectionIndex) => {
+    if (!section.trim()) return null;
+    
+    // Handle bullet points
+    if (section.trim().startsWith('▪')) {
+      const bulletText = section.replace(/^▪\s*/, '').trim();
+      const lines = bulletText.split('\n').filter(line => line.trim());
+      
+      return (
+        <div key={sectionIndex} className="flex items-start gap-2 mb-2">
+          <span className="text-blue-600 font-bold mt-0.5">•</span>
+          <div className="flex-1">
+            {lines.map((line, lineIndex) => (
+              <div key={lineIndex} className={lineIndex > 0 ? 'mt-1' : ''}>
+                {formatInlineTextToReact(line.trim(), `${sectionIndex}-${lineIndex}`)}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    
+    // Handle regular text with line breaks
+    const lines = section.split('\n').filter(line => line.trim());
+    return lines.map((line, lineIndex) => {
+      return (
+        <div key={`${sectionIndex}-${lineIndex}`} className="mb-2">
+          {formatInlineTextToReact(line.trim(), `${sectionIndex}-${lineIndex}`)}
+        </div>
+      );
+    });
+  }).flat().filter(Boolean);
+};
+
+// Format inline text to React components instead of HTML strings
+const formatInlineTextToReact = (text: string, keyPrefix: string) => {
+  if (!text) return text;
+  
+  // Split text by formatting patterns and create React elements
+  const parts: (string | React.ReactElement)[] = [];
+  let remainingText = text;
+  let partIndex = 0;
+  
+  // Process the text and replace patterns with React components
+  const processText = (input: string): (string | React.ReactElement)[] => {
+    const result: (string | React.ReactElement)[] = [];
+    let current = input;
+    
+    // Handle bold text **text**
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = boldRegex.exec(current)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        result.push(current.slice(lastIndex, match.index));
+      }
+      // Add bold element
+      result.push(
+        <strong key={`${keyPrefix}-bold-${partIndex++}`} className="font-semibold">
+          {match[1]}
+        </strong>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining text
+    if (lastIndex < current.length) {
+      result.push(current.slice(lastIndex));
+    }
+    
+    return result;
+  };
+  
+  // First pass: handle bold text
+  let processedParts = processText(remainingText);
+  
+  // Second pass: handle other formatting on string parts only
+  const finalParts = processedParts.map((part, index) => {
+    if (typeof part === 'string') {
+      // Handle italic text *text*
+      const italicRegex = /(?<!\*)\*([^*]+)\*(?!\*)/g;
+      let italicProcessed = part.replace(italicRegex, (match, p1) => {
+        return `<ITALIC_PLACEHOLDER_${index}>${p1}</ITALIC_PLACEHOLDER_${index}>`;
+      });
+      
+      // Handle references [1], [2] etc.
+      italicProcessed = italicProcessed.replace(/\[(\d+)\]/g, (match, p1) => {
+        return `<REF_PLACEHOLDER_${index}>${p1}</REF_PLACEHOLDER_${index}>`;
+      });
+      
+      // Handle quotes
+      italicProcessed = italicProcessed.replace(/"([^"]+)"/g, (match, p1) => {
+        return `<QUOTE_PLACEHOLDER_${index}>${p1}</QUOTE_PLACEHOLDER_${index}>`;
+      });
+      
+      // Split by placeholders and create React elements
+      const segments = italicProcessed.split(/(<[A-Z_]+>.*?<\/[A-Z_]+>)/);
+      
+      return segments.map((segment, segIndex) => {
+        if (segment.includes('ITALIC_PLACEHOLDER')) {
+          const content = segment.replace(/<ITALIC_PLACEHOLDER_\d+>(.*?)<\/ITALIC_PLACEHOLDER_\d+>/, '$1');
+          return <em key={`${keyPrefix}-italic-${index}-${segIndex}`} className="italic">{content}</em>;
+        } else if (segment.includes('REF_PLACEHOLDER')) {
+          const content = segment.replace(/<REF_PLACEHOLDER_\d+>(.*?)<\/REF_PLACEHOLDER_\d+>/, '$1');
+          return <sup key={`${keyPrefix}-ref-${index}-${segIndex}`} className="text-blue-600 font-medium">[{content}]</sup>;
+        } else if (segment.includes('QUOTE_PLACEHOLDER')) {
+          const content = segment.replace(/<QUOTE_PLACEHOLDER_\d+>(.*?)<\/QUOTE_PLACEHOLDER_\d+>/, '$1');
+          return <span key={`${keyPrefix}-quote-${index}-${segIndex}`} className="italic text-gray-600">"{content}"</span>;
+        } else {
+          return segment || null;
+        }
+      }).filter(Boolean);
+    }
+    return part;
+  }).flat();
+  
+  return finalParts;
+};
+
 export default function GameInfo() {
   const { t, language } = useLanguage()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
@@ -405,9 +536,9 @@ export default function GameInfo() {
                                                 <div className="px-4 pb-4 bg-white">
                                                   <div className="pl-7 space-y-4">
                                                     {/* Subtopic specific info */}
-                                                    <p className="text-gray-700 leading-relaxed">
-                                                      {subtopicData.info}
-                                                    </p>
+                                                    <div className="text-gray-700 leading-relaxed">
+                                                      {formatText(subtopicData.info)}
+                                                    </div>
                                                     
                                                     {/* Show additional content items only if they have different/additional information */}
                                                     {items.filter(content => 
@@ -422,7 +553,9 @@ export default function GameInfo() {
                                                         
                                                         {/* Only show content info if it's different from subtopic info */}
                                                         {content.info !== subtopicData.info && (
-                                                          <p className="text-sm text-gray-600 mb-2">{content.info}</p>
+                                                          <div className="text-sm text-gray-600 mb-2">
+                                                            {formatText(content.info)}
+                                                          </div>
                                                         )}
                                                         
                                                         {content.tags && content.tags.length > 0 && (
