@@ -14,6 +14,7 @@ import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
 import { toast } from "sonner"
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
 interface Subtopic {
   subtopic: string
@@ -176,6 +177,7 @@ const formatInlineTextToReact = (text: string, keyPrefix: string) => {
 
 export default function GameInfo() {
   const { t, language } = useLanguage()
+  const searchParams = useSearchParams()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
   const [loading, setLoading] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -186,6 +188,15 @@ export default function GameInfo() {
   console.log('Download prompt translation:', t("game.health.downloadPrompt"));
   console.log('Cancel translation:', t("common.cancel"));
   console.log('Download translation:', t("common.download"));
+
+  // Check if dialog should be opened automatically from query parameter
+  useEffect(() => {
+    const shouldOpenDialog = searchParams.get('openDialog')
+    if (shouldOpenDialog === 'true') {
+      fetchGameContent()
+      setIsDialogOpen(true)
+    }
+  }, [searchParams])
 
   const fetchGameContent = async () => {
     try {

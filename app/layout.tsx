@@ -1,11 +1,8 @@
 import { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-
-const inter = Inter({ subsets: ["latin"] })
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -42,6 +39,9 @@ export default async function RootLayout({
         {/* <meta name="apple-mobile-web-app-title" content="Ishema" /> */}
         
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -60,7 +60,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className="font-sans">
         <Providers session={session}>
           {children}
           {/* <Toaster richColors position="top-center" /> */}

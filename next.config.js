@@ -11,11 +11,12 @@ const withPWA = require('next-pwa')({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  turbopack: {
-    rules: {
-      // Optionally configure Turbopack rules here
-    },
-  },
+  // Disable Turbopack to avoid font loading issues
+  // turbopack: {
+  //   rules: {
+  //     // Optionally configure Turbopack rules here
+  //   },
+  // },
   // Add any other Next.js config options here
 }
 

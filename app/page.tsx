@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronRight, BookOpen, Target, Brain, Users } from "lucide-react"
+import { ChevronRight, BookOpen, Target, Brain, Users, Heart } from "lucide-react"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
@@ -80,6 +80,12 @@ export default function Home() {
                     className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
                   >
                     {t("hero.learnMore")} <BookOpen className="ml-3 h-6 w-6" />
+                  </Button></Link>
+                  <Link href="/info?openDialog=true"><Button
+                    variant="outline"
+                    className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
+                  >
+                    {t("hero.readHealthInfo")} <Heart className="ml-3 h-6 w-6" />
                   </Button></Link>
 
                 </div>

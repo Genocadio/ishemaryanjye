@@ -20,6 +20,7 @@ type TranslationKeys = {
   "hero.description": string;
   "hero.playNow": string;
   "hero.learnMore": string;
+  "hero.readHealthInfo": string;
 
   // Cards
   "card.knowledge": string;
@@ -209,6 +210,7 @@ const translations: Record<Language, TranslationKeys> = {
       "A fun, interactive card game that empowers young people with life-changing knowledge about reproductive health and gender equality.",
     "hero.playNow": "👉 Play Now",
     "hero.learnMore": "🎓 Learn More",
+    "hero.readHealthInfo": "🏥 Read Health Info",
 
     // Cards
     "card.knowledge": "KNOWLEDGE",
@@ -393,6 +395,7 @@ const translations: Record<Language, TranslationKeys> = {
       "Un jeu de cartes amusant et interactif qui donne aux jeunes des connaissances qui changent leur vie sur la santé reproductive et l'égalité des sexes.",
     "hero.playNow": "👉 Jouer maintenant",
     "hero.learnMore": "🎓 En savoir plus",
+    "hero.readHealthInfo": "🏥 Lire les infos santé",
 
     // Cards
     "card.knowledge": "CONNAISSANCE",
@@ -576,6 +579,7 @@ const translations: Record<Language, TranslationKeys> = {
       "Umukino w'amakarita ushimishije kandi ufite ubushobozi bwo guha urubyiruko ubumenyi bugira ingaruka ku buzima bw'imyororokere n'uburinganire.",
     "hero.playNow": "👉 Kina Nonaha",
     "hero.learnMore": "🎓 Menya Byinshi",
+    "hero.readHealthInfo": "🏥 Soma Amakuru y'Ubuzima",
 
     // Cards
     "card.knowledge": "UBUMENYI",
