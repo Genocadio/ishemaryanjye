@@ -4,8 +4,25 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/user';
 
-export async function GET() {
+// Get user profile (existing functionality)
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('id');
+    const getAllUsers = searchParams.get('all') === 'true';
+    
+    // If requesting all users or specific user by ID, check if admin
+    if (getAllUsers || userId) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        console.log('Unauthorized access attempt');
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      
+      // TODO: Add admin role check here if needed
+      // For now, allowing any authenticated user to access
+    }
+    
     console.log('Starting profile fetch...');
     
     const session = await getServerSession(authOptions);
@@ -26,6 +43,33 @@ export async function GET() {
       );
     }
 
+    // Handle different GET requests
+    if (getAllUsers) {
+      console.log('Fetching all users...');
+      const users = await User.find({})
+        .select('name email username phone profilePicture createdAt')
+        .lean();
+      
+      console.log(`Found ${users.length} users`);
+      return NextResponse.json({ users, count: users.length });
+    }
+    
+    if (userId) {
+      console.log('Fetching user by ID:', userId);
+      const user = await User.findById(userId)
+        .select('name email username phone profilePicture createdAt')
+        .lean();
+      
+      if (!user) {
+        console.log('User not found with ID:', userId);
+        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      }
+      
+      console.log('User fetched successfully:', userId);
+      return NextResponse.json(user);
+    }
+
+    // Default: get current user's profile
     console.log('Fetching user profile for ID:', session.user.id);
     const user = await User.findById(session.user.id)
       .select('name email username phone profilePicture createdAt')

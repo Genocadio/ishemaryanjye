@@ -21,6 +21,8 @@ export const useGameState = () => {
   const [playground, setPlayground] = useState<PlaygroundEntry[]>([]);
   const [allPlayers, setAllPlayers] = useState<Player[]>([]);
   const [teamSize, setTeamSize] = useState<number>(1);
+  const [playOrder, setPlayOrder] = useState<string[]>([]);
+  const [firstPlayerIndex, setFirstPlayerIndex] = useState<number>(0);
 
   const updateStateFromGameState = useCallback((gameState: GameState) => {
     if (!gameState) return;
@@ -72,9 +74,18 @@ export const useGameState = () => {
         matchStatus: gameState.match.status,
         trumpSuit: gameState.match.trumpSuit,
         currentRound: gameState.match.currentRound,
+        totalRounds: gameState.match.totalRounds,
         currentPlayerId: currentPlayerId,
         currentPlayerName: currentPlayer?.name,
       }));
+      
+      // 5. Update play order and first player index for proper game layout
+      if (gameState.match.playOrder && gameState.match.playOrder.length > 0) {
+        setPlayOrder(gameState.match.playOrder);
+      }
+      if (typeof gameState.match.firstPlayerIndex === 'number') {
+        setFirstPlayerIndex(gameState.match.firstPlayerIndex);
+      }
     }
   }, []);
 
@@ -90,6 +101,10 @@ export const useGameState = () => {
     allPlayers,
     teamSize,
     setTeamSize,
+    playOrder,
+    setPlayOrder,
+    firstPlayerIndex,
+    setFirstPlayerIndex,
     updateStateFromGameState,
   };
 }; 

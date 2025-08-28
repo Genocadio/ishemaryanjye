@@ -40,8 +40,6 @@ function MultiplayerLobby() {
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(true)
-  const [playOrder, setPlayOrder] = useState<string[]>([])
-  const [firstPlayerIndex, setFirstPlayerIndex] = useState<number>(0)
   const initialPlayOrderRef = useRef<string[]>([])
 
   const {
@@ -56,6 +54,10 @@ function MultiplayerLobby() {
     allPlayers,
     teamSize,
     setTeamSize,
+    playOrder,
+    setPlayOrder,
+    firstPlayerIndex,
+    setFirstPlayerIndex,
     updateStateFromGameState,
   } = useGameState()
   
@@ -174,7 +176,18 @@ function MultiplayerLobby() {
     if (storedOrder) initialPlayOrderRef.current = JSON.parse(storedOrder);
     if (storedFirstIdx) setFirstPlayerIndex(parseInt(storedFirstIdx, 10));
     if (storedOrder) setPlayOrder(JSON.parse(storedOrder));
-  }, []);
+  }, [setPlayOrder, setFirstPlayerIndex]);
+
+  // Fallback: restore playOrder from localStorage if it's missing after reconnection
+  useEffect(() => {
+    if (teams && connectionState.matchStatus === "active" && playOrder.length === 0) {
+      const storedOrder = localStorage.getItem('initialPlayOrder');
+      if (storedOrder) {
+        console.log('Restoring playOrder from localStorage after reconnection');
+        setPlayOrder(JSON.parse(storedOrder));
+      }
+    }
+  }, [teams, connectionState.matchStatus, playOrder.length, setPlayOrder]);
 
   // Auto-hide indicator after 2 seconds if autoShowIndicator is true
   useEffect(() => {
@@ -1129,25 +1142,53 @@ function MultiplayerLobby() {
                  </div>
                )}
                               {/* New Game Layout Component - Only show when match is fully ready with complete player data */}
-               {!isReconnecting && 
-                teams && 
-                connectionState.matchStatus === "active" && 
-                teams.team1.players.length >= (teams.team1.totalSlots || 1) &&
-                teams.team2.players.length >= (teams.team2.totalSlots || 1) &&
-                playOrder.length > 0 &&
-                connectionState.trumpSuit && (
+               {(() => {
+                 // More lenient validation for reconnection scenarios
+                 const hasAllPlayers = teams && 
+                   (teams?.team1?.players?.length || 0) >= (teams?.team1?.totalSlots || 1) &&
+                   (teams?.team2?.players?.length || 0) >= (teams?.team2?.totalSlots || 1);
+                 
+                 const hasGameData = playOrder.length > 0 && connectionState.trumpSuit;
+                 
+                 // Show GameLayout if we have all players and either game data OR we're in an active match
+                 const shouldShow = !isReconnecting && 
+                   teams && 
+                   connectionState.matchStatus === "active" && 
+                   hasAllPlayers &&
+                   (hasGameData || connectionState.matchStatus === "active");
+                 
+                                    // Debug logging for GameLayout visibility
+                   if (teams && connectionState.matchStatus === "active") {
+                     console.log('GameLayout Debug:', {
+                       isReconnecting,
+                       hasTeams: !!teams,
+                       matchStatus: connectionState.matchStatus,
+                       team1Players: teams?.team1?.players?.length || 0,
+                       team1TotalSlots: teams?.team1?.totalSlots || 1,
+                       team2Players: teams?.team2?.players?.length || 0,
+                       team2TotalSlots: teams?.team2?.totalSlots || 1,
+                       playOrderLength: playOrder.length,
+                       hasTrumpSuit: !!connectionState.trumpSuit,
+                       hasAllPlayers,
+                       hasGameData,
+                       shouldShow
+                     });
+                   }
+                 
+                 return shouldShow;
+               })() && (
                  <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
                    <GameLayout
-                     key={`game-layout-${connectionState.matchId}-${teams.team1.players.length}-${teams.team2.players.length}-${playOrder.length}-${connectionState.trumpSuit}`}
+                     key={`game-layout-${connectionState.matchId}-${teams?.team1?.players?.length || 0}-${teams?.team2?.players?.length || 0}-${playOrder.length}-${connectionState.trumpSuit}`}
                      players={[
-                       ...teams.team1.players.map((player: Player) => ({
+                       ...(teams?.team1?.players || []).map((player: Player) => ({
                          id: player.id,
-                         name: getDisplayName(player.name, teams.team1.players, teams.team1.players.findIndex(p => p.id === player.id)),
+                         name: getDisplayName(player.name, teams?.team1?.players || [], (teams?.team1?.players || []).findIndex(p => p.id === player.id)),
                          team: 'A' as const
                        })),
-                       ...teams.team2.players.map((player: Player) => ({
+                       ...(teams?.team2?.players || []).map((player: Player) => ({
                          id: player.id,
-                         name: getDisplayName(player.name, teams.team2.players, teams.team2.players.findIndex(p => p.id === player.id)),
+                         name: getDisplayName(player.name, teams?.team2?.players || [], (teams?.team2?.players || []).findIndex(p => p.id === player.id)),
                          team: 'B' as const
                        }))
                      ]}
@@ -1157,8 +1198,8 @@ function MultiplayerLobby() {
                      trumpSuit={connectionState.trumpSuit as any}
                      currentRound={connectionState.currentRound ?? 0}
                      totalRounds={connectionState.totalRounds ?? 18}
-                     team1Score={teams.team1.score ?? 0}
-                     team2Score={teams.team2.score ?? 0}
+                     team1Score={teams?.team1?.score ?? 0}
+                     team2Score={teams?.team2?.score ?? 0}
                      currentPlayerId={playerId}
                    />
                  </div>
@@ -1166,8 +1207,8 @@ function MultiplayerLobby() {
 
                {/* Show loading state when GameLayout is not ready */}
                {!isReconnecting && teams && connectionState.matchStatus === "active" && 
-                (teams.team1.players.length < (teams.team1.totalSlots || 1) || 
-                 teams.team2.players.length < (teams.team2.totalSlots || 1) || 
+                ((teams?.team1?.players?.length || 0) < (teams?.team1?.totalSlots || 1) || 
+                 (teams?.team2?.players?.length || 0) < (teams?.team2?.totalSlots || 1) || 
                  playOrder.length === 0 ||
                  !connectionState.trumpSuit) && (
                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
@@ -1179,8 +1220,8 @@ function MultiplayerLobby() {
                      Waiting for all players to join and game to initialize...
                    </p>
                    <div className="mt-4 text-xs text-blue-600">
-                     <p>• Team A: {teams.team1.players.length}/{teams.team1.totalSlots || 1} players</p>
-                     <p>• Team B: {teams.team2.players.length}/{teams.team2.totalSlots || 1} players</p>
+                     <p>• Team A: {teams?.team1?.players?.length || 0}/{teams?.team1?.totalSlots || 1} players</p>
+                     <p>• Team B: {teams?.team2?.players?.length || 0}/{teams?.team2?.totalSlots || 1} players</p>
                      <p>• Game order: {playOrder.length > 0 ? 'Ready' : 'Initializing...'}</p>
                      <p>• Trump suit: {connectionState.trumpSuit ? 'Set' : 'Initializing...'}</p>
                    </div>

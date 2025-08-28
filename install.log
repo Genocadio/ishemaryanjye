@@ -1,0 +1,9 @@
+[09:04:50 2025-08-22] FETCHING Version 2.41.0
+[09:04:50 2025-08-22] CREATING /Users/nex/.spicetify
+[09:04:50 2025-08-22] DOWNLOADING https://github.com/spicetify/cli/releases/download/v2.41.0/spicetify-2.41.0-darwin-amd64.tar.gz
+[09:04:53 2025-08-22] EXTRACTING /Users/nex/.spicetify/spicetify.tar.gz
+[09:04:53 2025-08-22] SETTING EXECUTABLE PERMISSIONS TO /Users/nex/.spicetify/spicetify
+[09:04:53 2025-08-22] REMOVING /Users/nex/.spicetify/spicetify.tar.gz
+[09:04:53 2025-08-22] APPENDING /Users/nex/.spicetify to PATH in /Users/nex/.zshrc
+[09:04:53 2025-08-22] spicetify v2.41.0 was installed successfully to /Users/nex/.spicetify
+[09:04:53 2025-08-22] Run 'spicetify --help' to get started
