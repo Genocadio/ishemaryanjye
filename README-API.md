@@ -8,6 +8,16 @@ All endpoints are prefixed with `/api/users`
 ## Authentication
 All endpoints require authentication. Include your session cookie or authentication token in the request.
 
+## CORS Support
+All endpoints support Cross-Origin Resource Sharing (CORS) with the following configuration:
+
+- **Access-Control-Allow-Origin**: `*` (allows requests from any origin)
+- **Access-Control-Allow-Methods**: `GET, POST, PUT, DELETE, OPTIONS`
+- **Access-Control-Allow-Headers**: `Content-Type, Authorization`
+- **Access-Control-Max-Age**: `86400` (24 hours)
+
+The endpoint automatically handles preflight OPTIONS requests and adds CORS headers to all responses.
+
 ## Endpoints
 
 ### 1. Get All Users

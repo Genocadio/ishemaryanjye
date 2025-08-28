@@ -4,6 +4,27 @@ import { authOptions } from '@/lib/auth';
 import connectDB from '@/lib/mongodb';
 import User from '@/lib/models/user';
 
+// Handle CORS preflight requests
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
+// Helper function to add CORS headers
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
 // Get all users or get user by ID
 export async function GET(request: Request) {
   try {
@@ -14,7 +35,8 @@ export async function GET(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       console.log('Unauthorized access attempt to users endpoint');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('Attempting to connect to MongoDB...');
@@ -23,10 +45,11 @@ export async function GET(request: Request) {
       console.log('Successfully connected to MongoDB');
     } catch (dbError) {
       console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Database connection failed. Please try again later.' },
         { status: 503 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // If userId is provided, get specific user
@@ -36,10 +59,11 @@ export async function GET(request: Request) {
       // Validate MongoDB ObjectId format
       if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
         console.log('Invalid user ID format:', userId);
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
           { error: 'Invalid user ID format' },
           { status: 400 }
         );
+        return addCorsHeaders(errorResponse);
       }
       
       const user = await User.findById(userId)
@@ -48,14 +72,16 @@ export async function GET(request: Request) {
       
       if (!user) {
         console.log('User not found with ID:', userId);
-        return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        const errorResponse = NextResponse.json({ error: 'User not found' }, { status: 404 });
+        return addCorsHeaders(errorResponse);
       }
       
       console.log('User fetched successfully:', userId);
-      return NextResponse.json({
+      const successResponse = NextResponse.json({
         success: true,
         user
       });
+      return addCorsHeaders(successResponse);
     }
 
     // If no userId, get all users
@@ -66,24 +92,27 @@ export async function GET(request: Request) {
       .lean();
     
     console.log(`Found ${users.length} users`);
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       success: true,
       users,
       count: users.length
     });
+    return addCorsHeaders(successResponse);
     
   } catch (error) {
     console.error('Error in users endpoint:', error);
     if (error instanceof Error) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
+      return addCorsHeaders(errorResponse);
     }
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to fetch users' },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }
 
@@ -94,7 +123,8 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       console.log('Unauthorized access attempt to create user');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(errorResponse);
     }
     
     // TODO: Add admin role check here
@@ -106,10 +136,11 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!name || !email || !password || !username || !phone) {
       console.log('Missing required fields for user creation');
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'All fields (name, email, password, username, phone) are required' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     console.log('Attempting to connect to MongoDB...');
@@ -118,10 +149,11 @@ export async function POST(request: Request) {
       console.log('Successfully connected to MongoDB');
     } catch (dbError) {
       console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Database connection failed. Please try again later.' },
         { status: 503 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Check if user already exists
@@ -129,10 +161,11 @@ export async function POST(request: Request) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log('User already exists with email:', email);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'User already exists with this email' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Check if username is already taken
@@ -140,10 +173,11 @@ export async function POST(request: Request) {
     const existingUsername = await User.findOne({ username });
     if (existingUsername) {
       console.log('Username already taken:', username);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Username already taken' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Create new user
@@ -162,24 +196,27 @@ export async function POST(request: Request) {
     // Return user data (excluding password)
     const { password: _, ...userWithoutPassword } = user.toObject();
     
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       success: true,
       message: 'User created successfully',
       user: userWithoutPassword
     }, { status: 201 });
+    return addCorsHeaders(successResponse);
     
   } catch (error) {
     console.error('Error creating user:', error);
     if (error instanceof Error) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
+      return addCorsHeaders(errorResponse);
     }
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to create user' },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }
 
@@ -190,17 +227,19 @@ export async function PUT(request: Request) {
     const userId = searchParams.get('id');
     
     if (!userId) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       console.log('Unauthorized access attempt to update user');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(errorResponse);
     }
     
     // TODO: Add admin role check here
@@ -210,10 +249,11 @@ export async function PUT(request: Request) {
     const { name, username, phone, profilePicture } = body;
     
     if (!name && !username && !phone && !profilePicture) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'At least one field to update is required' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('Attempting to connect to MongoDB...');
@@ -222,19 +262,21 @@ export async function PUT(request: Request) {
       console.log('Successfully connected to MongoDB');
     } catch (dbError) {
       console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Database connection failed. Please try again later.' },
         { status: 503 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Validate MongoDB ObjectId format
     if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
       console.log('Invalid user ID format:', userId);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Invalid user ID format' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     // Check if username is already taken by another user
@@ -246,10 +288,11 @@ export async function PUT(request: Request) {
       });
       if (existingUser) {
         console.log('Username already taken:', username);
-        return NextResponse.json(
+        const errorResponse = NextResponse.json(
           { error: 'Username already taken' },
           { status: 400 }
         );
+        return addCorsHeaders(errorResponse);
       }
     }
     
@@ -272,28 +315,32 @@ export async function PUT(request: Request) {
     
     if (!updatedUser) {
       console.log('User not found during update:', userId);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      const errorResponse = NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('User updated successfully:', userId);
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       success: true,
       message: 'User updated successfully',
       user: updatedUser
     });
+    return addCorsHeaders(successResponse);
     
   } catch (error) {
     console.error('Error updating user:', error);
     if (error instanceof Error) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
+      return addCorsHeaders(errorResponse);
     }
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to update user' },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }
 
@@ -304,17 +351,19 @@ export async function DELETE(request: Request) {
     const userId = searchParams.get('id');
     
     if (!userId) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       console.log('Unauthorized access attempt to delete user');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      const errorResponse = NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return addCorsHeaders(errorResponse);
     }
     
     // TODO: Add admin role check here
@@ -322,10 +371,11 @@ export async function DELETE(request: Request) {
     
     // Prevent self-deletion
     if (session.user.id === userId) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Cannot delete your own account' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('Attempting to connect to MongoDB...');
@@ -334,19 +384,21 @@ export async function DELETE(request: Request) {
       console.log('Successfully connected to MongoDB');
     } catch (dbError) {
       console.error('MongoDB connection error:', dbError);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Database connection failed. Please try again later.' },
         { status: 503 }
       );
+      return addCorsHeaders(errorResponse);
     }
 
     // Validate MongoDB ObjectId format
     if (!userId.match(/^[0-9a-fA-F]{24}$/)) {
       console.log('Invalid user ID format:', userId);
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: 'Invalid user ID format' },
         { status: 400 }
       );
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('Attempting to delete user:', userId);
@@ -355,26 +407,30 @@ export async function DELETE(request: Request) {
     
     if (!deletedUser) {
       console.log('User not found for deletion:', userId);
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      const errorResponse = NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return addCorsHeaders(errorResponse);
     }
     
     console.log('User deleted successfully:', userId);
-    return NextResponse.json({
+    const successResponse = NextResponse.json({
       success: true,
       message: 'User deleted successfully'
     });
+    return addCorsHeaders(successResponse);
     
   } catch (error) {
     console.error('Error deleting user:', error);
     if (error instanceof Error) {
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { error: error.message },
         { status: 500 }
       );
+      return addCorsHeaders(errorResponse);
     }
-    return NextResponse.json(
+    const errorResponse = NextResponse.json(
       { error: 'Failed to delete user' },
       { status: 500 }
     );
+    return addCorsHeaders(errorResponse);
   }
 }
