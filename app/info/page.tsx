@@ -13,7 +13,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
 import { toast } from "sonner"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
 interface Subtopic {
@@ -175,7 +175,7 @@ const formatInlineTextToReact = (text: string, keyPrefix: string) => {
   return finalParts;
 };
 
-export default function GameInfo() {
+function GameInfoContent() {
   const { t, language } = useLanguage()
   const searchParams = useSearchParams()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
@@ -672,5 +672,32 @@ export default function GameInfo() {
       <Footer />
       <SupportChat />
     </div>
+  )
+}
+
+export default function GameInfo() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col overflow-x-hidden">
+        <Header />
+        <main className="flex-1 w-full">
+          <div className="relative w-full">
+            <div className="absolute inset-0 bg-gradient-to-b from-green-50 to-white -z-10" />
+            <div className="w-full max-w-5xl mx-auto px-4 md:px-8 py-12">
+              <div className="flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+        <SupportChat />
+      </div>
+    }>
+      <GameInfoContent />
+    </Suspense>
   )
 } 
