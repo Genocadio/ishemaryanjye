@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { Settings, X } from "lucide-react"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { useRouter } from "next/navigation"
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ interface GameControlsProps {
 
 export function GameControls({ onExitGame }: GameControlsProps) {
   const { t } = useLanguage()
-  const { data: session } = useSession()
+  const { isAuthenticated } = useHPOAuth()
   const router = useRouter()
   const [isExpanded, setIsExpanded] = useState(false)
 

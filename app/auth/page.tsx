@@ -14,11 +14,11 @@ import { LanguageSelector } from "@/components/language-selector"
 import { ArrowLeft, Mail, Lock, User, Shield, AtSign, Phone } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { toast } from 'sonner'
-import { signIn, useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 
 function AuthContent() {
   const { t } = useLanguage()
-  const { data: session, status } = useSession()
+  const { player, isAuthenticated, isLoading: authLoading, login, register } = useHPOAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") || "/game-selection"
@@ -31,89 +31,92 @@ function AuthContent() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [username, setUsername] = useState("")
   const [phone, setPhone] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [ageGroup, setAgeGroup] = useState("")
+  const [gender, setGender] = useState("")
+  const [province, setProvince] = useState("")
+  const [district, setDistrict] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [activeTab, setActiveTab] = useState(defaultTab as string)
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      localStorage.setItem('id', session.user.id)
-      localStorage.setItem('username', session.user.username || session.user.name)
+    if (authLoading) return // Don't redirect while checking auth status
+    
+    if (isAuthenticated && player) {
       if (players) {
         router.push(`/game?players=${players}`)
       } else {
         router.push(redirectTo)
       }
     }
-  }, [status, session, router, players, redirectTo])
+  }, [authLoading, isAuthenticated, player, router, players, redirectTo])
+
+  // Reset district when province changes
+  useEffect(() => {
+    setDistrict("")
+  }, [province])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSubmitting(true)
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
+      await login({
+        username: email, // Using email as username for compatibility
+        password
       })
-
-      if (result?.error) {
-        throw new Error(result.error)
-      }
       
       toast.success('Login successful!')
     } catch (error) {
       console.error('Login error:', error)
       toast.error(error instanceof Error ? error.message : 'Login failed')
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          username,
-          phone
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Registration failed')
-      }
-
-      // Auto-login after registration
-      const result = await signIn("credentials", {
-        email,
+      await register({
+        player_name: name,
+        username,
+        email: email || undefined, // Only send if provided
+        phone,
         password,
-        redirect: false,
+        password_confirm: confirmPassword,
+        age_group: ageGroup || undefined,
+        gender: gender || undefined,
+        province: province || undefined,
+        district: district || undefined
       })
-
-      if (result?.error) {
-        throw new Error(result.error)
-      }
 
       toast.success('Registration successful!')
     } catch (error) {
       console.error('Registration error:', error)
       toast.error(error instanceof Error ? error.message : 'Registration failed')
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
+  }
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header variant="home" />
+        <main className="flex-1 container max-w-5xl mx-auto px-4 md:px-8 py-12">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Checking authentication...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
@@ -198,8 +201,8 @@ function AuthContent() {
                           />
                         </div>
                       </div>
-                      <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
-                        {isLoading ? "Loading..." : t("auth.signInButton")}
+                      <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+                        {isSubmitting ? "Loading..." : t("auth.signInButton")}
                       </Button>
 
                       <div className="text-center text-sm">
@@ -219,8 +222,11 @@ function AuthContent() {
                   </TabsContent>
                   <TabsContent value="register">
                     <form onSubmit={handleRegister} className="space-y-4">
+                      <div className="text-sm text-gray-600 mb-4">
+                        <span className="text-red-500">*</span> Required fields
+                      </div>
                       <div className="space-y-2">
-                        <Label htmlFor="name">{t("auth.name")}</Label>
+                        <Label htmlFor="name">{t("auth.name")} <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
@@ -235,7 +241,7 @@ function AuthContent() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="username">{t("auth.username")}</Label>
+                        <Label htmlFor="username">{t("auth.username")} <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
@@ -250,7 +256,7 @@ function AuthContent() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone">{t("auth.phone")}</Label>
+                        <Label htmlFor="phone">{t("auth.phone")} <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
@@ -260,9 +266,124 @@ function AuthContent() {
                             className="pl-10"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
+                            required
                           />
                         </div>
                       </div>
+                      
+                      {/* Optional Fields */}
+                      <div className="space-y-2">
+                        <Label htmlFor="age-group">Age Group (Optional)</Label>
+                        <select
+                          id="age-group"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          value={ageGroup}
+                          onChange={(e) => setAgeGroup(e.target.value)}
+                        >
+                          <option value="">Select Age Group</option>
+                          <option value="10-14">10-14</option>
+                          <option value="15-19">15-19</option>
+                          <option value="20-24">20-24</option>
+                          <option value="25+">25+</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="gender">Gender (Optional)</Label>
+                        <select
+                          id="gender"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value)}
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                          <option value="prefer_not_to_say">Prefer not to say</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="province">Province (Optional)</Label>
+                        <select
+                          id="province"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          value={province}
+                          onChange={(e) => setProvince(e.target.value)}
+                        >
+                          <option value="">Select Province</option>
+                          <option value="Kigali City">Kigali City</option>
+                          <option value="Northern Province">Northern Province</option>
+                          <option value="Southern Province">Southern Province</option>
+                          <option value="Eastern Province">Eastern Province</option>
+                          <option value="Western Province">Western Province</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="district">District (Optional)</Label>
+                        <select
+                          id="district"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                          value={district}
+                          onChange={(e) => setDistrict(e.target.value)}
+                          disabled={!province}
+                        >
+                          <option value="">Select District</option>
+                          {province === "Kigali City" && (
+                            <>
+                              <option value="Gasabo">Gasabo</option>
+                              <option value="Kicukiro">Kicukiro</option>
+                              <option value="Nyarugenge">Nyarugenge</option>
+                            </>
+                          )}
+                          {province === "Northern Province" && (
+                            <>
+                              <option value="Burera">Burera</option>
+                              <option value="Gakenke">Gakenke</option>
+                              <option value="Gicumbi">Gicumbi</option>
+                              <option value="Musanze">Musanze</option>
+                              <option value="Rulindo">Rulindo</option>
+                            </>
+                          )}
+                          {province === "Southern Province" && (
+                            <>
+                              <option value="Gisagara">Gisagara</option>
+                              <option value="Huye">Huye</option>
+                              <option value="Kamonyi">Kamonyi</option>
+                              <option value="Muhanga">Muhanga</option>
+                              <option value="Nyamagabe">Nyamagabe</option>
+                              <option value="Nyanza">Nyanza</option>
+                              <option value="Nyaruguru">Nyaruguru</option>
+                              <option value="Ruhango">Ruhango</option>
+                            </>
+                          )}
+                          {province === "Eastern Province" && (
+                            <>
+                              <option value="Bugesera">Bugesera</option>
+                              <option value="Gatsibo">Gatsibo</option>
+                              <option value="Kayonza">Kayonza</option>
+                              <option value="Kirehe">Kirehe</option>
+                              <option value="Ngoma">Ngoma</option>
+                              <option value="Nyagatare">Nyagatare</option>
+                              <option value="Rwamagana">Rwamagana</option>
+                            </>
+                          )}
+                          {province === "Western Province" && (
+                            <>
+                              <option value="Karongi">Karongi</option>
+                              <option value="Ngororero">Ngororero</option>
+                              <option value="Nyabihu">Nyabihu</option>
+                              <option value="Nyamasheke">Nyamasheke</option>
+                              <option value="Rubavu">Rubavu</option>
+                              <option value="Rusizi">Rusizi</option>
+                              <option value="Rutsiro">Rutsiro</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="register-email">{t("auth.email")}</Label>
                         <div className="relative">
@@ -274,12 +395,11 @@ function AuthContent() {
                             className="pl-10"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            required
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="register-password">{t("auth.password")}</Label>
+                        <Label htmlFor="register-password">{t("auth.password")} <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
@@ -294,7 +414,7 @@ function AuthContent() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="confirm-password">{t("auth.confirmPassword")}</Label>
+                        <Label htmlFor="confirm-password">{t("auth.confirmPassword")} <span className="text-red-500">*</span></Label>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
@@ -311,9 +431,9 @@ function AuthContent() {
                       <Button
                         type="submit"
                         className="w-full bg-green-600 hover:bg-green-700"
-                        disabled={isLoading || password !== confirmPassword}
+                        disabled={isSubmitting || password !== confirmPassword}
                       >
-                        {isLoading ? "Loading..." : t("auth.registerButton")}
+                        {isSubmitting ? "Loading..." : t("auth.registerButton")}
                       </Button>
 
                       <div className="text-center text-sm">

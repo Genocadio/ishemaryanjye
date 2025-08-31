@@ -10,7 +10,7 @@ import { Copy, User, Loader2, Trophy } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useGameState } from "./useGameState"
 import { Player, CardType, PlaygroundEntry, RoundResult, ConnectionState, Teams, Team } from "./types"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { toast } from 'sonner'
 import { CompactCard } from "@/components/layout/GameCard";
 import CardHand from "@/components/layout/CardHand";
@@ -25,7 +25,7 @@ import GameLayout from "@/components/layout/GameLayout";
 function MultiplayerLobby() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { data: session, status } = useSession()
+  const { player, isAuthenticated, isLoading } = useHPOAuth()
 
   const matchIdFromUrl = searchParams.get("matchId")
   const team1InviteCode = searchParams.get("team1InviteCode")
@@ -111,16 +111,16 @@ function MultiplayerLobby() {
 
   // --- EFFECTS ---
   useEffect(() => {
-    if (session?.user) {
-      setPlayerName(session.user.username || session.user.name || "")
-      setPlayerId(session.user.id || "")
+    if (isAuthenticated && player) {
+      setPlayerName(player.username || player.player_name || "")
+      setPlayerId(player.id.toString() || "")
       setIsConnecting(false)
-    } else if (status === "loading") {
+    } else if (isLoading) {
       setIsConnecting(true)
     } else {
       setIsConnecting(false)
     }
-  }, [session, status])
+  }, [isAuthenticated, player, isLoading])
 
   useEffect(() => {
     if (playerName && playerId && !socket) {
@@ -1643,7 +1643,6 @@ function MultiplayerLobby() {
 
   // Fallback view for users not in a game yet
   const hasInvite = Boolean(inviteCode || team1InviteCode)
-  const isAuthenticated = status === "authenticated"
   const title = isAuthenticated && hasEntered ? "Waiting for Other Players" : "Join Multiplayer Game"
   const description = isAuthenticated
     ? (hasEntered

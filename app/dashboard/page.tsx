@@ -9,7 +9,7 @@ import { useLanguage } from "@/contexts/language-context"
 import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { SupportChat } from "@/components/support-chat"
 interface GameStats {
   totalGames: number
@@ -25,7 +25,7 @@ interface GameStats {
 
 export default function DashboardPage() {
   const { t } = useLanguage()
-  const { data: session } = useSession()
+  const { player, isAuthenticated } = useHPOAuth()
   const [gameStats, setGameStats] = useState<GameStats>({
     totalGames: 0,
     wins: 0,
@@ -82,10 +82,10 @@ export default function DashboardPage() {
       }
     }
 
-    if (session?.user) {
+    if (isAuthenticated && player) {
       fetchGameStats()
     }
-  }, [session])
+  }, [isAuthenticated, player])
 
   return (
     <div className="flex min-h-screen flex-col">

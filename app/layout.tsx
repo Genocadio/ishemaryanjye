@@ -1,8 +1,7 @@
 import { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -24,12 +23,11 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
   return (
     <html lang="en">
       <head>
@@ -61,7 +59,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-sans">
-        <Providers session={session}>
+        <Providers>
           {children}
           {/* <Toaster richColors position="top-center" /> */}
         </Providers>

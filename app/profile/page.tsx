@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +14,7 @@ import { toast } from "sonner"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 export default function ProfilePage() {
-  const { data: session, status } = useSession()
+  const { player, isAuthenticated, isLoading: authLoading } = useHPOAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -27,28 +27,25 @@ export default function ProfilePage() {
   })
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!authLoading && !isAuthenticated) {
       router.push("/auth")
-    } else if (status === "authenticated") {
+    } else if (isAuthenticated && player) {
       fetchProfileData()
     }
-  }, [status, router])
+  }, [authLoading, isAuthenticated, player, router])
 
   const fetchProfileData = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("/api/profile")
-      if (!response.ok) {
-        throw new Error("Failed to fetch profile data")
+      if (player) {
+        setProfileData({
+          name: player.player_name || "",
+          email: player.email || "",
+          username: player.username || "",
+          phone: player.phone || "",
+          profilePicture: "", // HPO API doesn't provide profile pictures yet
+        })
       }
-      const data = await response.json()
-      setProfileData({
-        name: data.name || "",
-        email: data.email || "",
-        username: data.username || "",
-        phone: data.phone || "",
-        profilePicture: data.profilePicture || "",
-      })
     } catch (error) {
       console.error("Error fetching profile:", error)
       toast.error("Failed to load profile data")
@@ -129,7 +126,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (status === "loading" || isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>

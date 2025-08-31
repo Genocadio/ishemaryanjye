@@ -5,15 +5,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Users, Bot } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { SupportChat } from "@/components/support-chat"
 
 export default function GameSelection() {
   const router = useRouter()
-  const { data: session } = useSession()
+  const { isAuthenticated } = useHPOAuth()
 
   const handleMultiplayerSelection = (players: number) => {
-    if (session) {
+    if (isAuthenticated) {
       router.push(`/connect?players=${players}`)
     } else {
       router.push(`/multiplayer?players=${players}`)
@@ -88,7 +88,7 @@ export default function GameSelection() {
                     </div>
                   </CardContent>
                   <CardFooter className="text-sm text-center text-gray-500 flex justify-center">
-                    {session ? "Play with friends" : "Requires sign in"}
+                    {isAuthenticated ? "Play with friends" : "Requires sign in"}
                   </CardFooter>
                 </Card>
               ))}

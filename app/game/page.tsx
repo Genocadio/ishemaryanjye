@@ -19,7 +19,7 @@ import PlaygroundArea from '@/components/layout/PlaygroundArea'
 import { CompactCard } from "@/components/layout/GameCard"
 import { GameStatus } from "@/components/layout/GameStatus"
 import { Progress } from "@/components/ui/progress"
-import { useSession } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import CardChoice from "@/components/layout/CardChoice"
@@ -69,7 +69,7 @@ export default function DuoPlayerGame() {
     const { t } = useLanguage()
     const router = useRouter()
     const pathname = usePathname()
-    const { data: session, status } = useSession()
+    const { player, isAuthenticated, isLoading } = useHPOAuth()
     const [username, setUsername] = useState('Guest')
 
     const [gameState, setGameState] = useState<GameState | null>(null)
@@ -245,14 +245,14 @@ export default function DuoPlayerGame() {
     }, [gameState?.currentPlayer]);
 
     useEffect(() => {
-        // Get username from session or localStorage
+        // Get username from player data or localStorage
         const storedUsername = localStorage.getItem('username')
-        if (session?.user?.name) {
-            setUsername(session.user.name)
+        if (player?.player_name) {
+            setUsername(player.player_name)
         } else if (storedUsername) {
             setUsername(storedUsername)
         }
-    }, [session])
+    }, [player])
 
     useEffect(() => {
         // Function to handle beforeunload event
@@ -453,7 +453,7 @@ export default function DuoPlayerGame() {
                     });
 
                     // Save game results if user is logged in
-                    if (session?.user) {
+                    if (isAuthenticated && player) {
                         try {
                             const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
                                 ? (updatedGameState.players[1].score < 15 ? 2 : 1)
@@ -667,7 +667,7 @@ export default function DuoPlayerGame() {
                                     setDidYouKnowTip(Tip);
                                     setShowDidYouKnowDialog(true);
                                     
-                                    if(session?.user){
+                                    if(isAuthenticated && player){
                                         setGameStatsId(data.gameStats._id);
                                         toast.success('Game statistics saved successfully!');
                                     } else {

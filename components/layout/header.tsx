@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { User, LogOut, LayoutDashboard } from "lucide-react"
-import { useSession, signOut } from "next-auth/react"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,12 +21,12 @@ interface HeaderProps {
 
 export function Header({ variant = "default" }: HeaderProps) {
   const { t } = useLanguage()
-  const { data: session, status } = useSession()
+  const { player, isAuthenticated, logout } = useHPOAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center px-4 md:px-8">
-        <Link href={status === "authenticated" ? "/dashboard" : "/"}>
+        <Link href={isAuthenticated ? "/dashboard" : "/"}>
           <img src="/HPO.svg" alt="Ishema Ryanjye" className="mr-4 h-8 w-auto" />
         </Link>
         {variant === "home" && (
@@ -45,7 +45,7 @@ export function Header({ variant = "default" }: HeaderProps) {
           )}
           {variant === "default" && (
             <>
-              {status === "authenticated" ? (
+              {isAuthenticated ? (
                 <>
                   <Link href="/dashboard">
                     <Button variant="outline" size="sm" className="h-8 gap-1">
@@ -57,7 +57,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="sm" className="h-8 gap-1">
                         <User className="h-4 w-4" />
-                        <span className="hidden sm:inline">{session.user?.name}</span>
+                        <span className="hidden sm:inline">{player?.player_name}</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -72,7 +72,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-red-600 focus:text-red-600"
-                        onClick={() => signOut()}
+                        onClick={() => logout()}
                       >
                         <LogOut className="mr-2 h-4 w-4" />
                         Logout

@@ -1,16 +1,11 @@
-import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export default withAuth(
-  function middleware(req) {
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-  }
-)
+export default function middleware(req: NextRequest) {
+  // For now, we'll let the client-side handle authentication
+  // The HPO authentication context will handle redirects
+  return NextResponse.next()
+}
 
 export const config = {
   matcher: [ // This will protect all game routes
