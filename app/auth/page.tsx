@@ -62,7 +62,7 @@ function AuthContent() {
 
     try {
       await login({
-        username: email, // Using email as username for compatibility
+        username,
         password
       })
       
@@ -167,16 +167,16 @@ function AuthContent() {
                   <TabsContent value="signin">
                     <form onSubmit={handleSignIn} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="email">{t("auth.email")}</Label>
+                        <Label htmlFor="username">{t("auth.username")}</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <AtSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                           <Input
-                            id="email"
-                            type="email"
-                            placeholder={t("auth.emailPlaceholder")}
+                            id="username"
+                            type="text"
+                            placeholder="Enter your username"
                             className="pl-10"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                           />
                         </div>
