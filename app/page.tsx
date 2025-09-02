@@ -62,32 +62,33 @@ export default function Home() {
                   </h2>
                   <p className="max-w-[600px] text-gray-500 md:text-xl mx-auto">{t("hero.description")}</p>
                 </div>
-                <div className="flex flex-row gap-2">
-                <motion.div
-                  animate={{ scale: [1, 1, 1.06, 1] }}
-                  transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 2.5 }}
-                  whileHover={{ scale: 1.06 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Link href="/game-selection">
-                    <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-12 text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50">
-                      {t("hero.playNow")} <ChevronRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-1" />
-                    </Button>
-                  </Link>
-                </motion.div>
-                  <Link href="/info"><Button
-                    variant="outline"
-                    className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
-                  >
-                    {t("hero.learnMore")} <BookOpen className="ml-3 h-6 w-6" />
-                  </Button></Link>
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-row gap-2">
+                    <motion.div
+                      animate={{ scale: [1, 1, 1.06, 1] }}
+                      transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 2.5 }}
+                      whileHover={{ scale: 1.06 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Link href="/game-selection">
+                        <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-12 text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50">
+                          {t("hero.playNow")} <ChevronRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-1" />
+                        </Button>
+                      </Link>
+                    </motion.div>
+                    <Link href="/info"><Button
+                      variant="outline"
+                      className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
+                    >
+                      {t("hero.learnMore")} <BookOpen className="ml-3 h-6 w-6" />
+                    </Button></Link>
+                  </div>
                   <Link href="/info?openDialog=true"><Button
                     variant="outline"
                     className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
                   >
                     {t("hero.readHealthInfo")} <Heart className="ml-3 h-6 w-6" />
                   </Button></Link>
-
                 </div>
               </div>
               <div className="flex items-center justify-center">

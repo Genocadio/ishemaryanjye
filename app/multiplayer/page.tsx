@@ -77,6 +77,7 @@ function MultiplayerLobby() {
   const [isReconnecting, setIsReconnecting] = useState(false);
   const [reconnectionTimeout, setReconnectionTimeout] = useState<NodeJS.Timeout | null>(null);
   const [forceUpdate, setForceUpdate] = useState(0);
+  const [userExitedGame, setUserExitedGame] = useState(false);
 
   const { play: playNotificationSound } = useNotificationSound();
 
@@ -256,15 +257,39 @@ function MultiplayerLobby() {
   }
 
   const handleExitGame = () => {
+    // Set flag to prevent automatic reconnection
+    setUserExitedGame(true);
+    
+    // Notify server that user is intentionally leaving the game
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const exitMessage = {
+        type: 'exit_game_request',
+        payload: {
+          reason: 'user_requested',
+          message: 'Player wants to leave the game'
+        }
+      };
+      console.log("Player exiting game - sending exit message:", exitMessage);
+      socket.send(JSON.stringify(exitMessage));
+      console.log("Exit message sent successfully");
+    } else {
+      console.log("Cannot send exit message - WebSocket not open. State:", socket?.readyState);
+    }
+    
     // Close WebSocket connection
     if (socket) {
       socket.close();
       setSocket(null);
     }
     
-    // Clear localStorage
+    // Clear ALL localStorage items related to game state and reconnection
     localStorage.removeItem('incompleteMatchId');
     localStorage.removeItem('incompleteInviteCode');
+    localStorage.removeItem('initialPlayOrder');
+    localStorage.removeItem('initialFirstPlayerIndex');
+    
+    // Clear sessionStorage items used for reconnection
+    sessionStorage.removeItem('reconnection_data');
     
     // Clear any pending timeouts
     if (reconnectionTimeout) {
@@ -292,11 +317,34 @@ function MultiplayerLobby() {
     setFinalGameState(null);
     setHasEntered(false);
     setIsReconnecting(false);
+    
+    // Clear additional state that might cause reconnection issues
+    setNotification(null);
+    setRoundResult(null);
+    setShowTurnIndicator(false);
+    setAutoShowIndicator(false);
+    setQuestionAnswered(false);
+    setShowQuestionDialog(false);
+    setShowDidYouKnowDialog(false);
+    setQuestion(null);
+    setDidYouKnowTip(null);
+    setSelectedOptions([]);
+    setGameStatsId(null);
+    setLastPlayground([]);
+    
+    // Clear the initial play order ref
+    initialPlayOrderRef.current = [];
   };
 
   const handleReconnectionAttempt = (code: string) => {
     if (isReconnecting) {
       // Already reconnecting, don't start another attempt
+      return;
+    }
+
+    // Don't attempt reconnection if user explicitly exited the game
+    if (userExitedGame) {
+      console.log("Skipping reconnection attempt - user exited the game");
       return;
     }
 
@@ -394,6 +442,12 @@ function MultiplayerLobby() {
     ws.onclose = () => {
       console.log("WebSocket disconnected")
       
+      // Don't attempt reconnection if user explicitly exited the game
+      if (userExitedGame) {
+        console.log("User exited game - not attempting reconnection");
+        return;
+      }
+      
       // If this is the first disconnection and we were in a game, attempt reconnection
       if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed" as any) {
         console.log("Current player disconnected, attempting reconnection...")
@@ -416,6 +470,12 @@ function MultiplayerLobby() {
 
     ws.onerror = (err) => {
       console.error("WebSocket error", err)
+      
+      // Don't attempt reconnection if user explicitly exited the game
+      if (userExitedGame) {
+        console.log("User exited game - not attempting reconnection after error");
+        return;
+      }
       
       // If this is the first error and we were in a game, attempt reconnection
       if (hasEntered && !isReconnecting && connectionState.matchStatus !== "completed" as any) {
@@ -440,6 +500,12 @@ function MultiplayerLobby() {
         const message = JSON.parse(event.data)
         console.log("Received:", message)
         const { type, payload } = message
+
+        // Ignore WebSocket messages if user explicitly exited the game
+        if (userExitedGame) {
+          console.log("Ignoring message type:", type, "- user exited the game");
+          return;
+        }
 
         // Ignore WebSocket messages if match is completed (prevents interference during question phase)
         if (connectionState.matchStatus === "completed" as any) {
@@ -955,6 +1021,125 @@ function MultiplayerLobby() {
               console.log("Not updating game state from payload - match is already completed");
             }
           }
+        } else if (type === "player_exited") {
+          // Don't process player exited if match is completed
+          if (connectionState.matchStatus === "completed" as any) {
+            console.log("Ignoring player_exited message - match is already completed");
+            return;
+          }
+          
+          console.log("Received player_exited message:", payload);
+          console.log("Player exited - Name:", payload.player?.name, "ID:", payload.player?.id, "Reason:", payload.reason);
+          
+          // Update teams state to reflect the player's exit
+          if (payload.player && connectionState.matchStatus !== "completed" as any) {
+            setTeams((prevTeams: Teams | null) => {
+              if (!prevTeams) return null;
+              const newTeams = JSON.parse(JSON.stringify(prevTeams));
+              const updatePlayer = (p: Player) => {
+                if (p.id === payload.player.id) {
+                  return { ...p, connected: false };
+                }
+                return p;
+              };
+              newTeams.team1.players = newTeams.team1.players.map(updatePlayer);
+              newTeams.team2.players = newTeams.team2.players.map(updatePlayer);
+              
+              console.log("Updated teams state after player exit:", newTeams);
+              return newTeams;
+            });
+            
+            // Update connection state with match info
+            if (payload.match && connectionState.matchStatus !== "completed" as any) {
+              setConnectionState((prev: ConnectionState) => ({
+                ...prev,
+                matchId: payload.match.id,
+                matchStatus: payload.match.status,
+                maxPlayers: payload.match.maxPlayers,
+                playersCount: payload.match.playersCount,
+              }));
+            }
+          }
+          
+          // Show notification to other players
+          const notificationText = payload.reason === "intentional_exit" 
+            ? `${payload.player.name} has left the game.`
+            : `${payload.player.name} has disconnected.`;
+          
+          setNotification({ 
+            text: notificationText, 
+            type: "warning" 
+          });
+          setTimeout(() => setNotification(null), 5000);
+          
+          // Play disconnect sound
+          playNotificationSound("disconnect");
+          
+        } else if (type === "match_cancelled") {
+          console.log("Received match_cancelled message:", payload);
+          console.log("Match cancelled by - Name:", payload.cancelledBy?.name, "ID:", payload.cancelledBy?.id, "Reason:", payload.reason);
+          
+          // Show match cancelled notification
+          const cancelledByName = payload.cancelledBy?.name || "A player";
+          setNotification({ 
+            text: `Match cancelled by ${cancelledByName}. Returning to lobby...`, 
+            type: "warning" 
+          });
+          
+          // Clear all game state since match is cancelled
+          setConnectionState({
+            matchId: undefined,
+            matchStatus: "waiting",
+            currentPlayerId: undefined,
+            currentPlayerName: undefined,
+            maxPlayers: 0,
+            playersCount: 0,
+            firstPlayerName: undefined,
+            currentRound: undefined,
+            totalRounds: undefined,
+            trumpSuit: undefined,
+            cardHolder: undefined,
+          });
+          setTeams(null);
+          setHand([]);
+          setPlayground([]);
+          setFinalGameState(null);
+          setHasEntered(false);
+          setIsReconnecting(false);
+          
+          // Clear localStorage
+          localStorage.removeItem('incompleteMatchId');
+          localStorage.removeItem('incompleteInviteCode');
+          localStorage.removeItem('initialPlayOrder');
+          localStorage.removeItem('initialFirstPlayerIndex');
+          sessionStorage.removeItem('reconnection_data');
+          
+          // Clear additional state
+          setNotification(null);
+          setRoundResult(null);
+          setShowTurnIndicator(false);
+          setAutoShowIndicator(false);
+          setQuestionAnswered(false);
+          setShowQuestionDialog(false);
+          setShowDidYouKnowDialog(false);
+          setQuestion(null);
+          setDidYouKnowTip(null);
+          setSelectedOptions([]);
+          setGameStatsId(null);
+          setLastPlayground([]);
+          initialPlayOrderRef.current = [];
+          
+          // Close WebSocket connection
+          if (socket) {
+            socket.close();
+            setSocket(null);
+          }
+          
+          // Redirect to connect page after a short delay
+          setTimeout(() => {
+            router.push('/connect');
+          }, 3000);
+          
         } else if (message.error) {
           setError(message.error)
         } else {
@@ -1148,7 +1333,7 @@ function MultiplayerLobby() {
                    (teams?.team1?.players?.length || 0) >= (teams?.team1?.totalSlots || 1) &&
                    (teams?.team2?.players?.length || 0) >= (teams?.team2?.totalSlots || 1);
                  
-                 const hasGameData = playOrder.length > 0 && connectionState.trumpSuit;
+                 const hasGameData = initialPlayOrderRef.current.length > 0 && connectionState.trumpSuit;
                  
                  // Show GameLayout if we have all players and either game data OR we're in an active match
                  const shouldShow = !isReconnecting && 
@@ -1167,7 +1352,7 @@ function MultiplayerLobby() {
                        team1TotalSlots: teams?.team1?.totalSlots || 1,
                        team2Players: teams?.team2?.players?.length || 0,
                        team2TotalSlots: teams?.team2?.totalSlots || 1,
-                       playOrderLength: playOrder.length,
+                       playOrderLength: initialPlayOrderRef.current.length,
                        hasTrumpSuit: !!connectionState.trumpSuit,
                        hasAllPlayers,
                        hasGameData,
@@ -1179,7 +1364,7 @@ function MultiplayerLobby() {
                })() && (
                  <div onClick={() => setShowTurnIndicator(true)} className="cursor-pointer">
                    <GameLayout
-                     key={`game-layout-${connectionState.matchId}-${teams?.team1?.players?.length || 0}-${teams?.team2?.players?.length || 0}-${playOrder.length}-${connectionState.trumpSuit}`}
+                     key={`game-layout-${connectionState.matchId}-${teams?.team1?.players?.length || 0}-${teams?.team2?.players?.length || 0}-${initialPlayOrderRef.current.length}-${connectionState.trumpSuit}`}
                      players={[
                        ...(teams?.team1?.players || []).map((player: Player) => ({
                          id: player.id,
@@ -1194,7 +1379,7 @@ function MultiplayerLobby() {
                      ]}
                      currentTurnIndex={currentTurnIndex}
                      roundFirstPlayerIndex={firstPlayerIndex}
-                     playOrder={playOrder}
+                     playOrder={initialPlayOrderRef.current}
                      trumpSuit={connectionState.trumpSuit as any}
                      currentRound={connectionState.currentRound ?? 0}
                      totalRounds={connectionState.totalRounds ?? 18}
@@ -1209,7 +1394,7 @@ function MultiplayerLobby() {
                {!isReconnecting && teams && connectionState.matchStatus === "active" && 
                 ((teams?.team1?.players?.length || 0) < (teams?.team1?.totalSlots || 1) || 
                  (teams?.team2?.players?.length || 0) < (teams?.team2?.totalSlots || 1) || 
-                 playOrder.length === 0 ||
+                 initialPlayOrderRef.current.length === 0 ||
                  !connectionState.trumpSuit) && (
                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
                    <div className="flex items-center justify-center gap-3 mb-4">
@@ -1222,7 +1407,7 @@ function MultiplayerLobby() {
                    <div className="mt-4 text-xs text-blue-600">
                      <p>• Team A: {teams?.team1?.players?.length || 0}/{teams?.team1?.totalSlots || 1} players</p>
                      <p>• Team B: {teams?.team2?.players?.length || 0}/{teams?.team2?.totalSlots || 1} players</p>
-                     <p>• Game order: {playOrder.length > 0 ? 'Ready' : 'Initializing...'}</p>
+                     <p>• Game order: {initialPlayOrderRef.current.length > 0 ? 'Ready' : 'Initializing...'}</p>
                      <p>• Trump suit: {connectionState.trumpSuit ? 'Set' : 'Initializing...'}</p>
                    </div>
                  </div>
