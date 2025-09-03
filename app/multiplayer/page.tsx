@@ -1661,57 +1661,60 @@ function MultiplayerLobby() {
     const playerWon = playerTeamData.score > opponentTeamData.score;
     const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ");
     
-    // Submit game result to API
+    // Submit game result to API - only for winners
     useEffect(() => {
       const submitGameResult = async () => {
         if (!finalGameState?.match?.id) return;
         
-        try {
-          const requestBody = {
-            match_id: finalGameState.match.id,
-            player_id: parseInt(playerId),
-            username: playerName,
-            team: playerTeamId === 'team1' ? 1 : 2,
-            is_winner: playerWon,
-            lost_card: playerWon ? null : null // Will be set when player selects a card
-          };
+        // Only submit for winners, losers will submit after card selection
+        if (playerWon) {
+          try {
+            const requestBody = {
+              match_id: finalGameState.match.id,
+              player_id: parseInt(playerId),
+              username: playerName,
+              team: playerTeamId === 'team1' ? 1 : 2,
+              is_winner: true,
+              lost_card: null
+            };
 
-          console.log('Submitting game result:', requestBody);
-          
-          const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Game result submitted successfully:', data);
+            console.log('Submitting game result for winner:', requestBody);
             
-            if (data.response && playerWon) {
-              if (data.response.type === 'explanation') {
-                // Winner gets explanation/fun fact
-                setDidYouKnowTip(data.response.explanation);
-                setShowDidYouKnowDialog(true);
-                setQuestionAnswered(true);
-                
-                // Delete match ID from localStorage for winners immediately
-                localStorage.removeItem('incompleteMatchId');
-                localStorage.removeItem('incompleteInviteCode');
-                localStorage.removeItem('matchCreatorData');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Game result submitted successfully:', data);
+              
+              if (data.response) {
+                if (data.response.type === 'explanation') {
+                  // Winner gets explanation/fun fact
+                  setDidYouKnowTip(data.response.explanation);
+                  setShowDidYouKnowDialog(true);
+                  setQuestionAnswered(true);
+                  
+                  // Delete match ID from localStorage for winners immediately
+                  localStorage.removeItem('incompleteMatchId');
+                  localStorage.removeItem('incompleteInviteCode');
+                  localStorage.removeItem('matchCreatorData');
+                }
               }
+            } else {
+              console.error('Failed to submit game result:', response.statusText);
+              toast.error('Failed to submit game result');
             }
-            // For losers, we don't process the response here - they need to select a card first
-          } else {
-            console.error('Failed to submit game result:', response.statusText);
+          } catch (error) {
+            console.error('Error submitting game result:', error);
             toast.error('Failed to submit game result');
           }
-        } catch (error) {
-          console.error('Error submitting game result:', error);
-          toast.error('Failed to submit game result');
         }
+        // For losers, submission will happen after card selection
       };
 
       submitGameResult();

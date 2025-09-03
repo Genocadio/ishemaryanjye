@@ -515,9 +515,10 @@ export default function DuoPlayerGame() {
                         }))
                     });
 
-                    // Submit game result to new API
-                    try {
-                        const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                    // Submit game result to new API - only for winners
+                    const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                    if (playerWon) {
+                        try {
                         const lastRound = updatedGameState.roundHistory[updatedGameState.roundHistory.length - 1];
                         const matchId = gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                         console.log('Using match_id:', matchId, 'gameMatchId:', gameMatchId, 'isAuthenticated:', isAuthenticated);
@@ -527,11 +528,11 @@ export default function DuoPlayerGame() {
                             player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
                             username: isAuthenticated && player ? (player.username || player.player_name) : username,
                             team: 1,
-                            is_winner: playerWon,
-                            lost_card: playerWon ? null : null // Will be set when player selects a card
+                            is_winner: true,
+                            lost_card: null
                         };
 
-                        console.log('Submitting single-player game result:', requestBody);
+                            console.log('Submitting single-player game result for winner:', requestBody);
                         
                         const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
                             method: 'POST',
@@ -545,22 +546,23 @@ export default function DuoPlayerGame() {
                             const data = await response.json();
                             console.log('Single-player game result submitted successfully:', data);
                             
-                            if (data.response && playerWon) {
-                                if (data.response.type === 'explanation') {
-                                    // Winner gets explanation/fun fact
-                                    setDidYouKnowTip(data.response.explanation);
-                                    setShowDidYouKnowDialog(true);
+                                if (data.response) {
+                                    if (data.response.type === 'explanation') {
+                                        // Winner gets explanation/fun fact
+                                        setDidYouKnowTip(data.response.explanation);
+                                        setShowDidYouKnowDialog(true);
+                                    }
                                 }
-                            }
-                            // For losers, we don't process the response here - they need to select a card first
                         } else {
                             console.error('Failed to submit single-player game result:', response.statusText);
                             toast.error('Failed to submit game result');
                         }
-                    } catch (error) {
-                        console.error('Error submitting single-player game result:', error);
-                        toast.error('Failed to submit game result');
+                        } catch (error) {
+                            console.error('Error submitting single-player game result:', error);
+                            toast.error('Failed to submit game result');
+                        }
                     }
+                    // For losers, submission will happen after card selection
 
                     // Set game status to game-over
                     setGameStatus("game-over");
@@ -698,9 +700,10 @@ export default function DuoPlayerGame() {
                         }))
                     });
 
-                    // Submit game result to new API
-                    try {
-                        const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                    // Submit game result to new API - only for winners
+                    const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                    if (playerWon) {
+                        try {
                         const lastRound = updatedGameState.roundHistory[updatedGameState.roundHistory.length - 1];
                         const matchId = gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
                         console.log('Using match_id:', matchId, 'gameMatchId:', gameMatchId, 'isAuthenticated:', isAuthenticated);
@@ -710,11 +713,11 @@ export default function DuoPlayerGame() {
                             player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
                             username: isAuthenticated && player ? (player.username || player.player_name) : username,
                             team: 1,
-                            is_winner: playerWon,
-                            lost_card: playerWon ? null : null // Will be set when player selects a card
+                            is_winner: true,
+                            lost_card: null
                         };
 
-                        console.log('Submitting single-player game result:', requestBody);
+                            console.log('Submitting single-player game result for winner:', requestBody);
                         
                         const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
                             method: 'POST',
@@ -728,22 +731,23 @@ export default function DuoPlayerGame() {
                             const data = await response.json();
                             console.log('Single-player game result submitted successfully:', data);
                             
-                            if (data.response && playerWon) {
-                                if (data.response.type === 'explanation') {
-                                    // Winner gets explanation/fun fact
-                                    setDidYouKnowTip(data.response.explanation);
-                                    setShowDidYouKnowDialog(true);
+                                if (data.response) {
+                                    if (data.response.type === 'explanation') {
+                                        // Winner gets explanation/fun fact
+                                        setDidYouKnowTip(data.response.explanation);
+                                        setShowDidYouKnowDialog(true);
+                                    }
                                 }
-                            }
-                            // For losers, we don't process the response here - they need to select a card first
                         } else {
                             console.error('Failed to submit single-player game result:', response.statusText);
                             toast.error('Failed to submit game result');
                         }
-                    } catch (error) {
-                        console.error('Error submitting single-player game result:', error);
-                        toast.error('Failed to submit game result');
+                        } catch (error) {
+                            console.error('Error submitting single-player game result:', error);
+                            toast.error('Failed to submit game result');
+                        }
                     }
+                    // For losers, submission will happen after card selection
 
                     // Set game status to game-over
                     setGameStatus("game-over");
