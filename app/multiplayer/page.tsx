@@ -33,6 +33,14 @@ function MultiplayerLobby() {
   const inviteCode = searchParams.get("inviteCode")
   const urlTeamSize = Number(searchParams.get("teamSize") || 1)
 
+  // State for restored match creator data
+  const [restoredMatchCreator, setRestoredMatchCreator] = useState<{
+    matchId: string;
+    team1InviteCode: string;
+    team2InviteCode: string;
+    teamSize: number;
+  } | null>(null)
+
   // --- STATE ---
   const [playerName, setPlayerName] = useState<string>("")
   const [playerId, setPlayerId] = useState<string>("")
@@ -103,14 +111,29 @@ function MultiplayerLobby() {
   // --- DERIVED STATE ---
   const playerTeamId = teams?.team1.players.some(p => p.id === playerId) ? 'team1' : 'team2';
   
-  // Determine if this is the match creator (has matchId) or a joiner (has inviteCode)
-  const isMatchCreator = !!matchIdFromUrl;
+  // Determine if this is the match creator (has matchId from URL or restored from localStorage)
+  const isMatchCreator = !!(matchIdFromUrl || restoredMatchCreator?.matchId);
   
   // Use URL parameter for creators (to show correct number of invite codes in lobby),
   // WebSocket data for joiners (for correct card distribution and game logic)
-  const effectiveTeamSize = isMatchCreator ? urlTeamSize : (teamSize || 1);
+  const effectiveTeamSize = isMatchCreator ? (urlTeamSize || restoredMatchCreator?.teamSize || 1) : (teamSize || 1);
 
   // --- EFFECTS ---
+  // Restore match creator data from localStorage on mount
+  useEffect(() => {
+    const storedMatchCreator = localStorage.getItem('matchCreatorData');
+    if (storedMatchCreator && !matchIdFromUrl) {
+      try {
+        const parsed = JSON.parse(storedMatchCreator);
+        setRestoredMatchCreator(parsed);
+        console.log("Restored match creator data:", parsed);
+      } catch (error) {
+        console.error("Error parsing stored match creator data:", error);
+        localStorage.removeItem('matchCreatorData');
+      }
+    }
+  }, [matchIdFromUrl]);
+
   useEffect(() => {
     if (isAuthenticated && player) {
       setPlayerName(player.username || player.player_name || "")
@@ -125,50 +148,24 @@ function MultiplayerLobby() {
 
   useEffect(() => {
     if (playerName && playerId && !socket) {
+      // Store match creator data if we have URL parameters
+      if (matchIdFromUrl && team1InviteCode) {
+        const matchCreatorData = {
+          matchId: matchIdFromUrl,
+          team1InviteCode: team1InviteCode,
+          team2InviteCode: team2InviteCode || '',
+          teamSize: urlTeamSize
+        };
+        localStorage.setItem('matchCreatorData', JSON.stringify(matchCreatorData));
+        console.log("Stored match creator data:", matchCreatorData);
+      }
+      
       handleConnect()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playerName, playerId])
 
-  useEffect(() => {
-    if (connectionState.matchStatus === "completed" && finalGameState) {
-      const playerTeamData = finalGameState.teams[playerTeamId]
-      const opponentTeamId = playerTeamId === "team1" ? "team2" : "team1"
-      const opponentTeamData = finalGameState.teams[opponentTeamId]
-      const playerWon = playerTeamData.score > opponentTeamData.score
-      const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ")
 
-      if (playerWon) {
-        const fetchDidYouKnow = async () => {
-          try {
-            const response = await fetch("/api/game-stats", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                opponentName: opponentName,
-                gameLevel: "Multiplayer",
-                userScore: playerTeamData.score,
-                opponentScore: opponentTeamData.score,
-                wonByQuestion: false,
-                isMultiplayer: true,
-                matchId: finalGameState.match.id,
-              }),
-            })
-            if (response.ok) {
-              const data = await response.json()
-              if (data.didYouKnow) {
-                setDidYouKnowTip(data.didYouKnow)
-                setShowDidYouKnowDialog(true)
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching did you know tip:", error)
-          }
-        }
-        fetchDidYouKnow()
-      }
-    }
-  }, [finalGameState, connectionState.matchStatus, playerTeamId])
 
   useEffect(() => {
     // On mount, restore initial play order and first player index from localStorage if present
@@ -257,47 +254,58 @@ function MultiplayerLobby() {
   }
 
   const handleExitGame = () => {
-    // Set flag to prevent automatic reconnection
+    console.log("=== STARTING CONTROLLED EXIT PROCESS ===");
+    
+    // STEP 1: Set flag to prevent automatic reconnection IMMEDIATELY
     setUserExitedGame(true);
+    console.log("Step 1: Set userExitedGame flag to prevent reconnection");
     
-    // Notify server that user is intentionally leaving the game
-    if (socket && socket.readyState === WebSocket.OPEN) {
-      const exitMessage = {
-        type: 'exit_game_request',
-        payload: {
-          reason: 'user_requested',
-          message: 'Player wants to leave the game'
-        }
-      };
-      console.log("Player exiting game - sending exit message:", exitMessage);
-      socket.send(JSON.stringify(exitMessage));
-      console.log("Exit message sent successfully");
-    } else {
-      console.log("Cannot send exit message - WebSocket not open. State:", socket?.readyState);
+    // STEP 2: Clear any pending reconnection timeouts IMMEDIATELY
+    if (reconnectionTimeout) {
+      clearTimeout(reconnectionTimeout);
+      setReconnectionTimeout(null);
+      console.log("Step 2: Cleared pending reconnection timeout");
     }
     
-    // Close WebSocket connection
-    if (socket) {
-      socket.close();
-      setSocket(null);
+    // STEP 3: Clear localStorage FIRST (before any other operations)
+    console.log("Step 3: Clearing localStorage...");
+    try {
+      localStorage.removeItem('incompleteMatchId');
+      localStorage.removeItem('incompleteInviteCode');
+      localStorage.removeItem('initialPlayOrder');
+      localStorage.removeItem('initialFirstPlayerIndex');
+      localStorage.removeItem('matchCreatorData');
+      
+      // Also try setting to null as backup
+      localStorage.setItem('incompleteMatchId', '');
+      localStorage.setItem('incompleteInviteCode', '');
+      localStorage.setItem('initialPlayOrder', '');
+      localStorage.setItem('initialFirstPlayerIndex', '');
+      localStorage.setItem('matchCreatorData', '');
+      
+      // Then remove again
+      localStorage.removeItem('incompleteMatchId');
+      localStorage.removeItem('incompleteInviteCode');
+      localStorage.removeItem('initialPlayOrder');
+      localStorage.removeItem('initialFirstPlayerIndex');
+      localStorage.removeItem('matchCreatorData');
+    } catch (error) {
+      console.error("Error clearing localStorage:", error);
     }
-    
-    // Clear ALL localStorage items related to game state and reconnection
-    localStorage.removeItem('incompleteMatchId');
-    localStorage.removeItem('incompleteInviteCode');
-    localStorage.removeItem('initialPlayOrder');
-    localStorage.removeItem('initialFirstPlayerIndex');
     
     // Clear sessionStorage items used for reconnection
     sessionStorage.removeItem('reconnection_data');
     
-    // Clear any pending timeouts
-    if (reconnectionTimeout) {
-      clearTimeout(reconnectionTimeout);
-      setReconnectionTimeout(null);
-    }
+    // Verify localStorage is cleared
+    const remainingData = {
+      incompleteMatchId: localStorage.getItem('incompleteMatchId'),
+      incompleteInviteCode: localStorage.getItem('incompleteInviteCode'),
+      matchCreatorData: localStorage.getItem('matchCreatorData')
+    };
+    console.log("Step 3: Remaining localStorage after clear:", remainingData);
     
-    // Reset game state
+    // STEP 4: Reset ALL game state to prevent any reconnection logic
+    console.log("Step 4: Resetting all game state...");
     setConnectionState({
       matchId: undefined,
       matchStatus: "waiting",
@@ -318,7 +326,7 @@ function MultiplayerLobby() {
     setHasEntered(false);
     setIsReconnecting(false);
     
-    // Clear additional state that might cause reconnection issues
+    // Clear ALL additional state
     setNotification(null);
     setRoundResult(null);
     setShowTurnIndicator(false);
@@ -331,9 +339,83 @@ function MultiplayerLobby() {
     setSelectedOptions([]);
     setGameStatsId(null);
     setLastPlayground([]);
+    setError(null);
+    setForceUpdate(0);
     
     // Clear the initial play order ref
     initialPlayOrderRef.current = [];
+    
+    // Clear restored match creator data
+    setRestoredMatchCreator(null);
+    
+    console.log("Step 4: All game state reset");
+    
+    // STEP 5: Wait 1 second to ensure all state changes are processed
+    setTimeout(() => {
+      console.log("Step 5: Waiting 1 second for state changes to process...");
+      
+      // STEP 6: Notify server and close connection (after state is reset)
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        const exitMessage = {
+          type: 'exit_game_request',
+          payload: {
+            reason: 'user_requested',
+            message: 'Player wants to leave the game'
+          }
+        };
+        console.log("Step 6: Sending exit message to server:", exitMessage);
+        socket.send(JSON.stringify(exitMessage));
+        console.log("Step 6: Exit message sent successfully");
+      } else {
+        console.log("Step 6: Cannot send exit message - WebSocket not open. State:", socket?.readyState);
+      }
+      
+      // Close WebSocket connection
+      if (socket) {
+        socket.close();
+        setSocket(null);
+        console.log("Step 6: WebSocket connection closed");
+      }
+      
+      // STEP 7: Wait another 1 second to ensure connection is fully closed
+      setTimeout(() => {
+        console.log("Step 7: Final cleanup and redirect...");
+        
+        // Final check and force clear any remaining localStorage
+        const finalCheck = {
+          incompleteMatchId: localStorage.getItem('incompleteMatchId'),
+          incompleteInviteCode: localStorage.getItem('incompleteInviteCode'),
+          matchCreatorData: localStorage.getItem('matchCreatorData')
+        };
+        console.log("Step 7: Final localStorage check:", finalCheck);
+        
+        // Force clear any remaining data
+        if (finalCheck.incompleteMatchId || finalCheck.incompleteInviteCode || finalCheck.matchCreatorData) {
+          console.log("Step 7: Force clearing remaining localStorage data");
+          try {
+            localStorage.removeItem('incompleteMatchId');
+            localStorage.removeItem('incompleteInviteCode');
+            localStorage.removeItem('matchCreatorData');
+            localStorage.setItem('incompleteMatchId', '');
+            localStorage.setItem('incompleteInviteCode', '');
+            localStorage.setItem('matchCreatorData', '');
+            localStorage.removeItem('incompleteMatchId');
+            localStorage.removeItem('incompleteInviteCode');
+            localStorage.removeItem('matchCreatorData');
+          } catch (error) {
+            console.error("Error in force clearing localStorage:", error);
+          }
+        }
+        
+        // Reset the exit flag
+        setUserExitedGame(false);
+        
+        console.log("Step 7: All cleanup complete, redirecting to connect page");
+        router.push('/connect');
+        console.log("=== EXIT PROCESS COMPLETED ===");
+      }, 1000); // Wait 1 second after closing connection
+      
+    }, 1000); // Wait 1 second after resetting state
   };
 
   const handleReconnectionAttempt = (code: string) => {
@@ -413,7 +495,8 @@ function MultiplayerLobby() {
     }
     setError(null)
 
-    const code = inviteCode || team1InviteCode
+    // Use invite code from URL, restored data, or localStorage
+    const code = inviteCode || team1InviteCode || restoredMatchCreator?.team1InviteCode
     if (!code) {
       setError("No invite code found.")
       return
@@ -439,12 +522,39 @@ function MultiplayerLobby() {
       }
     }
 
-    ws.onclose = () => {
-      console.log("WebSocket disconnected")
+    ws.onclose = (event) => {
+      console.log("WebSocket disconnected", { code: event.code, reason: event.reason })
       
       // Don't attempt reconnection if user explicitly exited the game
       if (userExitedGame) {
         console.log("User exited game - not attempting reconnection");
+        return;
+      }
+      
+      // Handle invalid/expired invite codes (close code 1008)
+      if (event.code === 1008) {
+        console.log("Invalid or expired invite code detected, clearing localStorage");
+        
+        // Clear all game-related localStorage
+        localStorage.removeItem('incompleteMatchId');
+        localStorage.removeItem('incompleteInviteCode');
+        localStorage.removeItem('initialPlayOrder');
+        localStorage.removeItem('initialFirstPlayerIndex');
+        localStorage.removeItem('matchCreatorData');
+        sessionStorage.removeItem('reconnection_data');
+        
+        // Show appropriate error message
+        setError("Invalid or expired invite code. The match may have ended or the code is no longer valid.")
+        setHasEntered(false)
+        setSocket(null)
+        
+        // Show toast with appropriate message
+        toast.error("Invalid or expired invite code. Please get a new invite code from the match creator.")
+        
+        // Redirect to connect page after a delay
+        setTimeout(() => {
+          router.push('/connect');
+        }, 2000);
         return;
       }
       
@@ -474,6 +584,28 @@ function MultiplayerLobby() {
       // Don't attempt reconnection if user explicitly exited the game
       if (userExitedGame) {
         console.log("User exited game - not attempting reconnection after error");
+        return;
+      }
+      
+      // Check if this might be an invalid invite code error
+      // Sometimes invalid codes come through as errors before the close event
+      if (!hasEntered) {
+        console.log("Connection error on initial connect - might be invalid invite code");
+        
+        // Clear localStorage in case this is an invalid code
+        localStorage.removeItem('incompleteMatchId');
+        localStorage.removeItem('incompleteInviteCode');
+        localStorage.removeItem('initialPlayOrder');
+        localStorage.removeItem('initialFirstPlayerIndex');
+        localStorage.removeItem('matchCreatorData');
+        sessionStorage.removeItem('reconnection_data');
+        
+        setError("Invalid or expired invite code. Please check the code and try again.")
+        toast.error("Invalid or expired invite code. Please get a new invite code from the match creator.")
+        
+        setTimeout(() => {
+          router.push('/connect');
+        }, 2000);
         return;
       }
       
@@ -962,6 +1094,7 @@ function MultiplayerLobby() {
           
           localStorage.removeItem('incompleteMatchId');
           localStorage.removeItem('incompleteInviteCode');
+          localStorage.removeItem('matchCreatorData');
           if (payload.gameState) {
             // Always update game state for match_ended (this is the final state)
             updateStateFromGameState(payload.gameState)
@@ -1112,6 +1245,7 @@ function MultiplayerLobby() {
           localStorage.removeItem('incompleteInviteCode');
           localStorage.removeItem('initialPlayOrder');
           localStorage.removeItem('initialFirstPlayerIndex');
+          localStorage.removeItem('matchCreatorData');
           sessionStorage.removeItem('reconnection_data');
           
           // Clear additional state
@@ -1141,6 +1275,37 @@ function MultiplayerLobby() {
           }, 3000);
           
         } else if (message.error) {
+          // Check if this is an invalid invite code error
+          if (message.error.toLowerCase().includes('invalid') || 
+              message.error.toLowerCase().includes('expired') ||
+              message.error.toLowerCase().includes('not found') ||
+              message.error.toLowerCase().includes('policy violation')) {
+            console.log("Invalid/expired invite code error received:", message.error);
+            
+            // Clear all game-related localStorage
+            localStorage.removeItem('incompleteMatchId');
+            localStorage.removeItem('incompleteInviteCode');
+            localStorage.removeItem('initialPlayOrder');
+            localStorage.removeItem('initialFirstPlayerIndex');
+            localStorage.removeItem('matchCreatorData');
+            sessionStorage.removeItem('reconnection_data');
+            
+            setError("Invalid or expired invite code. The match may have ended or the code is no longer valid.")
+            toast.error("Invalid or expired invite code. Please get a new invite code from the match creator.")
+            
+            // Close the WebSocket connection
+            if (socket) {
+              socket.close();
+              setSocket(null);
+            }
+            
+            // Redirect to connect page
+            setTimeout(() => {
+              router.push('/connect');
+            }, 2000);
+            return;
+          }
+          
           setError(message.error)
         } else {
           // Log unhandled message types for debugging
@@ -1161,7 +1326,8 @@ function MultiplayerLobby() {
         <GameControls 
           onExitGame={handleExitGame}
         />
-        <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+          <div className="container mx-auto px-4 py-12 flex items-center justify-center">
           <Card className="w-full max-w-md text-center">
             <CardHeader>
               <CardTitle>Connecting...</CardTitle>
@@ -1171,6 +1337,7 @@ function MultiplayerLobby() {
               {error ? (<p className="text-sm text-red-500">{error}</p>) : (<div className="flex flex-col items-center gap-4"><Loader2 className="h-8 w-8 animate-spin text-green-600" /><p>Please wait.</p></div>)}
             </CardContent>
           </Card>
+          </div>
         </main>
       </div>
     )
@@ -1221,7 +1388,8 @@ function MultiplayerLobby() {
           <GameControls 
             onExitGame={handleExitGame}
           />
-          <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
+          <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+            <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
              <div className="space-y-4">
                {/* Persistent paused match notice */}
                {connectionState.matchStatus === "paused" && !isReconnecting && (
@@ -1461,6 +1629,7 @@ function MultiplayerLobby() {
                 </div> */}
 
              </div>
+            </div>
           </main>
         </div>
         {/* {roundResult && (
@@ -1492,12 +1661,61 @@ function MultiplayerLobby() {
     const playerWon = playerTeamData.score > opponentTeamData.score;
     const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ");
     
-    // Delete match ID from localStorage for winners immediately
-    // For losers, it will be deleted after answering the question
-    if (playerWon) {
-      localStorage.removeItem('incompleteMatchId');
-      localStorage.removeItem('incompleteInviteCode');
-    }
+    // Submit game result to API
+    useEffect(() => {
+      const submitGameResult = async () => {
+        if (!finalGameState?.match?.id) return;
+        
+        try {
+          const requestBody = {
+            match_id: finalGameState.match.id,
+            player_id: parseInt(playerId),
+            username: playerName,
+            team: playerTeamId === 'team1' ? 1 : 2,
+            is_winner: playerWon,
+            lost_card: playerWon ? null : null // Will be set when player selects a card
+          };
+
+          console.log('Submitting game result:', requestBody);
+          
+          const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Game result submitted successfully:', data);
+            
+            if (data.response && playerWon) {
+              if (data.response.type === 'explanation') {
+                // Winner gets explanation/fun fact
+                setDidYouKnowTip(data.response.explanation);
+                setShowDidYouKnowDialog(true);
+                setQuestionAnswered(true);
+                
+                // Delete match ID from localStorage for winners immediately
+                localStorage.removeItem('incompleteMatchId');
+                localStorage.removeItem('incompleteInviteCode');
+                localStorage.removeItem('matchCreatorData');
+              }
+            }
+            // For losers, we don't process the response here - they need to select a card first
+          } else {
+            console.error('Failed to submit game result:', response.statusText);
+            toast.error('Failed to submit game result');
+          }
+        } catch (error) {
+          console.error('Error submitting game result:', error);
+          toast.error('Failed to submit game result');
+        }
+      };
+
+      submitGameResult();
+    }, [finalGameState, playerId, playerName, playerTeamId, playerWon, lastPlayground]);
     
     const lastPlayerCard = lastPlayground.find(p => {
       const player = finalGameState.players.all.find((pl: Player) => pl.id === p.playerId);
@@ -1514,7 +1732,8 @@ function MultiplayerLobby() {
           <GameControls 
             onExitGame={handleExitGame}
           />
-          <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+          <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+            <div className="container mx-auto px-4 py-12 flex items-center justify-center">
             <Card className="w-full max-w-2xl text-center">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
@@ -1548,44 +1767,45 @@ function MultiplayerLobby() {
                           }}
                           onSelect={async (selectedCard) => {
                               try {
-                                  const response = await fetch('/api/game-stats', {
+                                  const requestBody = {
+                                      match_id: finalGameState.match.id,
+                                      player_id: parseInt(playerId),
+                                      username: playerName,
+                                      team: playerTeamId === 'team1' ? 1 : 2,
+                                      is_winner: false,
+                                      lost_card: `${selectedCard.suit.charAt(0)}${selectedCard.value}`
+                                  };
+
+                                  console.log('Submitting game result with selected card:', requestBody);
+                                  
+                                  const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
                                       method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({
-                                          opponentName: opponentName,
-                                          gameLevel: 'Multiplayer',
-                                          userScore: playerTeamData.score,
-                                          opponentScore: opponentTeamData.score,
-                                          wonByQuestion: false,
-                                          selectedCard: selectedCard,
-                                          isMultiplayer: true,
-                                          matchId: finalGameState.match.id,
-                                      }),
+                                      headers: {
+                                          'Content-Type': 'application/json',
+                                      },
+                                      body: JSON.stringify(requestBody),
                                   });
 
                                   if (response.ok) {
                                       const data = await response.json();
-                                      if (data.question) {
-                                          setQuestion(data.question);
-                                          setShowQuestionDialog(true);
-                                          if (data.gameStats) {
-                                              setGameStatsId(data.gameStats._id);
+                                      console.log('Game result submitted successfully with selected card:', data);
+                                      
+                                      if (data.response) {
+                                          if (data.response.type === 'question') {
+                                              setQuestion(data.response.question);
+                                              setShowQuestionDialog(true);
+                                              if (data.gameStats) {
+                                                  setGameStatsId(data.gameStats._id);
+                                              }
                                           }
-                                      } else if (data.didYouKnow) {
-                                          setDidYouKnowTip(data.didYouKnow);
-                                          setShowDidYouKnowDialog(true);
-                                          setQuestionAnswered(true); // Show Play Again button after tip
-                                          
-                                          // Delete match ID from localStorage after getting tip
-                                          localStorage.removeItem('incompleteMatchId');
-                                          localStorage.removeItem('incompleteInviteCode');
                                       }
                                   } else {
-                                      toast.error('Failed to get question');
+                                      console.error('Failed to submit game result:', response.statusText);
+                                      toast.error('Failed to submit game result');
                                   }
                               } catch (error) {
-                                  console.error('Error getting question:', error);
-                                  toast.error('Failed to get question');
+                                  console.error('Error submitting game result:', error);
+                                  toast.error('Failed to submit game result');
                               }
                           }}
                       />
@@ -1609,6 +1829,7 @@ function MultiplayerLobby() {
                 )}
               </CardContent>
             </Card>
+            </div>
           </main>
         </div>
         <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
@@ -1617,34 +1838,34 @@ function MultiplayerLobby() {
               <DialogTitle>Answer the Question</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <p className="text-lg break-words whitespace-pre-wrap">{question?.question}</p>
+              <p className="text-lg break-words whitespace-pre-wrap">{question?.question_text}</p>
               <div className="space-y-2">
-                {question?.options.map((option: any) => (
+                {question?.options.map((option: string, index: number) => (
                   <Button
-                    key={option.id}
-                    variant={selectedOptions.includes(option.id) ? "default" : "outline"}
+                    key={index}
+                    variant={selectedOptions.includes(option) ? "default" : "outline"}
                     onClick={() => {
-                      if (Array.isArray(question.correctAnswer)) {
+                      if (Array.isArray(question.correct_answer)) {
                         setSelectedOptions(prev => {
-                          if (prev.includes(option.id)) {
-                            return prev.filter(id => id !== option.id);
+                          if (prev.includes(option)) {
+                            return prev.filter(opt => opt !== option);
                           } else {
-                            return [...prev, option.id];
+                            return [...prev, option];
                           }
                         });
                       } else {
-                        setSelectedOptions([option.id]);
+                        setSelectedOptions([option]);
                       }
                     }}
                     className="w-full text-left justify-start py-2 px-4 h-auto min-h-[44px] break-words whitespace-pre-wrap"
                   >
-                    {option.text}
+                    {option}
                   </Button>
                 ))}
               </div>
-              {Array.isArray(question?.correctAnswer) && (
+              {Array.isArray(question?.correct_answer) && (
                 <p className="text-sm text-gray-500">
-                  Select {question.correctAnswer.length} correct answer{question.correctAnswer.length > 1 ? 's' : ''}
+                  Select {question.correct_answer.length} correct answer{question.correct_answer.length > 1 ? 's' : ''}
                 </p>
               )}
               <div className="flex justify-end gap-2">
@@ -1659,34 +1880,51 @@ function MultiplayerLobby() {
                 </Button>
                 <Button
                   onClick={async () => {
-                    if (!question) return;
+                    if (!question || !finalGameState?.match?.id) return;
+                    
+                    // Verify answer locally first
+                    const isCorrect = Array.isArray(question.correct_answer) 
+                      ? selectedOptions.length === question.correct_answer.length && 
+                        selectedOptions.every(opt => question.correct_answer.includes(opt))
+                      : selectedOptions.includes(question.correct_answer);
+                    
+                    console.log('Answer verification:', {
+                      selectedOptions,
+                      correctAnswer: question.correct_answer,
+                      isCorrect,
+                      matchId: finalGameState.match.id,
+                      questionId: question.id
+                    });
+                    
                     try {
-                      const response = await fetch('/api/game-stats', {
-                        method: 'PUT',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                          questionId: question.id,
-                          selectedOption: selectedOptions,
-                          gameId: gameStatsId
-                        }),
-                      });
-
-                      if (response.ok) {
-                        const data = await response.json();
-                        if (data.correct) {
-                          toast.success(data.message);
-                        } else {
-                          toast.error(data.message);
-                        }
+                      if (isCorrect) {
+                        // Console log correct answer submission (omitting POST request)
+                        console.log('Correct answer submitted:', {
+                          match_id: finalGameState.match.id,
+                          username: playerName,
+                          question_id: question.id,
+                          answer: selectedOptions.join(', '),
+                          points: question.points || 1,
+                          correct_answer: question.correct_answer
+                        });
+                        toast.success(`Correct! You earned ${question.points || 1} mark(s).`);
                       } else {
-                        toast.error('Failed to verify answer');
+                        // Console log wrong answer submission (omitting POST request)
+                        console.log('Wrong answer submitted:', {
+                          match_id: finalGameState.match.id,
+                          player_id: parseInt(playerId),
+                          username: playerName,
+                          question_id: question.id,
+                          answer: selectedOptions.join(', '),
+                          correct_answer: question.correct_answer
+                        });
+                        toast.error(`Incorrect. The correct answer was: ${Array.isArray(question.correct_answer) ? question.correct_answer.join(', ') : question.correct_answer}`);
                       }
                     } catch (error) {
-                      console.error('Error verifying answer:', error);
-                      toast.error('Failed to verify answer');
+                      console.error('Error processing answer:', error);
+                      toast.error('Failed to process answer');
                     }
+                    
                     setShowQuestionDialog(false);
                     setSelectedOptions([]);
                     setQuestionAnswered(true);
@@ -1694,9 +1932,10 @@ function MultiplayerLobby() {
                     // Delete match ID from localStorage after answering question
                     localStorage.removeItem('incompleteMatchId');
                     localStorage.removeItem('incompleteInviteCode');
+                    localStorage.removeItem('matchCreatorData');
                   }}
-                  disabled={Array.isArray(question?.correctAnswer) 
-                    ? selectedOptions.length !== question.correctAnswer.length
+                  disabled={Array.isArray(question?.correct_answer) 
+                    ? selectedOptions.length !== question.correct_answer.length
                     : selectedOptions.length === 0}
                 >
                   Submit Answer
@@ -1722,6 +1961,7 @@ function MultiplayerLobby() {
                     // Delete match ID from localStorage after closing tip
                     localStorage.removeItem('incompleteMatchId');
                     localStorage.removeItem('incompleteInviteCode');
+                    localStorage.removeItem('matchCreatorData');
                   }}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
@@ -1748,7 +1988,12 @@ function MultiplayerLobby() {
   const anyDisconnected = [...team1Players, ...team2Players].some(p => !p.connected);
   const disconnectedNames = [...team1Players, ...team2Players].filter(p => !p.connected).map(p => p.name);
 
-  if (matchIdFromUrl) {
+  // Get the current match ID and invite codes (from URL or restored data)
+  const currentMatchId = matchIdFromUrl || restoredMatchCreator?.matchId;
+  const currentTeam1InviteCode = team1InviteCode || restoredMatchCreator?.team1InviteCode;
+  const currentTeam2InviteCode = team2InviteCode || restoredMatchCreator?.team2InviteCode;
+
+  if (isMatchCreator) {
     let remainingText = "";
     if (allPlayersJoined && !anyDisconnected) {
       remainingText = "All players have joined! Starting game...";
@@ -1763,11 +2008,12 @@ function MultiplayerLobby() {
         <GameControls 
           onExitGame={handleExitGame}
         />
-        <main className="flex-1 container mx-auto px-4 py-12">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+          <div className="container mx-auto px-4 py-12">
           <Card>
             <CardHeader>
               <CardTitle>Multiplayer Lobby</CardTitle>
-              <CardDescription>Match ID: {matchIdFromUrl}<br />{remainingText}{allPlayersJoined && (<div className="mt-2 flex items-center gap-2 text-green-600"><Loader2 className="h-4 w-4 animate-spin" /><span>Starting game...</span></div>)}</CardDescription>
+              <CardDescription>Match ID: {currentMatchId}<br />{remainingText}{allPlayersJoined && (<div className="mt-2 flex items-center gap-2 text-green-600"><Loader2 className="h-4 w-4 animate-spin" /><span>Starting game...</span></div>)}</CardDescription>
             </CardHeader>
             <CardContent>
               {!allPlayersJoined && (
@@ -1777,26 +2023,26 @@ function MultiplayerLobby() {
                   <div className="max-w-xs mx-auto space-y-2">
                     {effectiveTeamSize > 1 ? (
                       <>
-                        {team1InviteCode && (
+                        {currentTeam1InviteCode && (
                           <div className="flex items-center gap-2">
-                            <Input value={team1InviteCode || ""} readOnly />
-                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(team1InviteCode)}><Copy className="h-4 w-4" /></Button>
+                            <Input value={currentTeam1InviteCode || ""} readOnly />
+                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentTeam1InviteCode)}><Copy className="h-4 w-4" /></Button>
                             <span className="text-xs text-gray-500 ml-2">Team 1</span>
                           </div>
                         )}
-                        {team2InviteCode && (
+                        {currentTeam2InviteCode && (
                           <div className="flex items-center gap-2">
-                            <Input value={team2InviteCode || ""} readOnly />
-                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(team2InviteCode)}><Copy className="h-4 w-4" /></Button>
+                            <Input value={currentTeam2InviteCode || ""} readOnly />
+                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentTeam2InviteCode)}><Copy className="h-4 w-4" /></Button>
                             <span className="text-xs text-gray-500 ml-2">Team 2</span>
                           </div>
                         )}
                       </>
                     ) : (
-                      team1InviteCode && (
+                      currentTeam2InviteCode && (
                         <div className="flex items-center gap-2">
-                          <Input value={team2InviteCode || ""} readOnly />
-                          <Button variant="outline" size="icon" onClick={() => copyToClipboard(team2InviteCode)}><Copy className="h-4 w-4" /></Button>
+                          <Input value={currentTeam2InviteCode || ""} readOnly />
+                          <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentTeam2InviteCode)}><Copy className="h-4 w-4" /></Button>
                         </div>
                       )
                     )}
@@ -1821,13 +2067,14 @@ function MultiplayerLobby() {
               </div>
             </CardContent>
           </Card>
+          </div>
         </main>
       </div>
     )
   }
 
   // Fallback view for users not in a game yet
-  const hasInvite = Boolean(inviteCode || team1InviteCode)
+  const hasInvite = Boolean(inviteCode || team1InviteCode || restoredMatchCreator?.team1InviteCode)
   const title = isAuthenticated && hasEntered ? "Waiting for Other Players" : "Join Multiplayer Game"
   const description = isAuthenticated
     ? (hasEntered
@@ -1840,7 +2087,8 @@ function MultiplayerLobby() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>{title}</CardTitle>
@@ -1853,6 +2101,7 @@ function MultiplayerLobby() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </main>
     </div>
   )
@@ -1865,3 +2114,6 @@ export default function MultiplayerPage() {
         </Suspense>
     )
 }
+
+
+

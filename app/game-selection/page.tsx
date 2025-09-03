@@ -10,7 +10,7 @@ import { SupportChat } from "@/components/support-chat"
 
 export default function GameSelection() {
   const router = useRouter()
-  const { isAuthenticated } = useHPOAuth()
+  const { isAuthenticated, isLoading } = useHPOAuth()
 
   const handleMultiplayerSelection = (players: number) => {
     if (isAuthenticated) {
@@ -23,7 +23,8 @@ export default function GameSelection() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container max-w-5xl mx-auto px-4 md:px-8 py-12">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
         <div className="space-y-12">
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
@@ -88,12 +89,13 @@ export default function GameSelection() {
                     </div>
                   </CardContent>
                   <CardFooter className="text-sm text-center text-gray-500 flex justify-center">
-                    {isAuthenticated ? "Play with friends" : "Requires sign in"}
+                    {isLoading ? "Loading..." : isAuthenticated ? "Play with friends" : "Requires sign in"}
                   </CardFooter>
                 </Card>
               ))}
             </div>
           </div>
+        </div>
         </div>
       </main>
       <Footer />

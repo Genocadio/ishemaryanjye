@@ -21,7 +21,7 @@ interface HeaderProps {
 
 export function Header({ variant = "default" }: HeaderProps) {
   const { t } = useLanguage()
-  const { player, isAuthenticated, logout } = useHPOAuth()
+  const { player, isAuthenticated, isLoading, logout } = useHPOAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -45,7 +45,10 @@ export function Header({ variant = "default" }: HeaderProps) {
           )}
           {variant === "default" && (
             <>
-              {isAuthenticated ? (
+              {isLoading ? (
+                // Show loading state to prevent flash
+                <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
+              ) : isAuthenticated ? (
                 <>
                   <Link href="/dashboard">
                     <Button variant="outline" size="sm" className="h-8 gap-1">

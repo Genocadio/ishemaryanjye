@@ -384,11 +384,8 @@ function GameInfoContent() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden">
       <Header />
-      <main className="flex-1 w-full">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
         <div className="relative w-full">
-          {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-b from-green-50 to-white -z-10" />
-          
           {/* Decorative cards */}
           <DecorativeCards />
           
@@ -680,9 +677,8 @@ export default function GameInfo() {
     <Suspense fallback={
       <div className="flex min-h-screen flex-col overflow-x-hidden">
         <Header />
-        <main className="flex-1 w-full">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
           <div className="relative w-full">
-            <div className="absolute inset-0 bg-gradient-to-b from-green-50 to-white -z-10" />
             <div className="w-full max-w-5xl mx-auto px-4 md:px-8 py-12">
               <div className="flex items-center justify-center">
                 <div className="text-center">

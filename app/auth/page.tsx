@@ -107,12 +107,14 @@ function AuthContent() {
     return (
       <div className="flex min-h-screen flex-col">
         <Header variant="home" />
-        <main className="flex-1 container max-w-5xl mx-auto px-4 md:px-8 py-12">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+          <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
           <div className="flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
               <p className="text-gray-600">Checking authentication...</p>
             </div>
+          </div>
           </div>
         </main>
       </div>
@@ -122,7 +124,8 @@ function AuthContent() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header variant="home" />
-      <main className="flex-1 container max-w-5xl mx-auto px-4 md:px-8 py-12">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <div>
@@ -458,6 +461,7 @@ function AuthContent() {
               </CardFooter>
             </Card>
           </div>
+        </div>
         </div>
       </main>
       <footer className="py-6 border-t">

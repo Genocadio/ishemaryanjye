@@ -20,13 +20,73 @@ function ConnectContent() {
   const [error, setError] = useState<string | null>(null)
   const [resumeInviteCode, setResumeInviteCode] = useState<string | null>(null)
 
-  useEffect(() => {
+  // Function to check for resume data
+  const checkForResumeData = () => {
     if (typeof window !== 'undefined') {
+      // Check for regular player resume data
       const code = localStorage.getItem('incompleteInviteCode')
       const matchId = localStorage.getItem('incompleteMatchId')
       if (code && matchId) {
         setResumeInviteCode(code)
+        return
       }
+      
+      // Check for match creator resume data
+      const matchCreatorData = localStorage.getItem('matchCreatorData')
+      if (matchCreatorData) {
+        try {
+          const parsed = JSON.parse(matchCreatorData)
+          // For single player games (teamSize = 1), use team2InviteCode, otherwise use team1InviteCode
+          const inviteCode = parsed.teamSize === 1 ? parsed.team2InviteCode : parsed.team1InviteCode
+          if (inviteCode && parsed.matchId) {
+            setResumeInviteCode(inviteCode)
+          }
+        } catch (error) {
+          console.error("Error parsing match creator data:", error)
+          localStorage.removeItem('matchCreatorData')
+        }
+      } else {
+        // No match creator data found, clear resume code
+        setResumeInviteCode(null)
+      }
+    }
+  }
+
+  useEffect(() => {
+    checkForResumeData()
+  }, [])
+
+  // Listen for storage changes and page visibility to detect when localStorage is cleared
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'matchCreatorData' || e.key === 'incompleteInviteCode' || e.key === 'incompleteMatchId') {
+        console.log('Storage changed, rechecking resume data:', e.key, e.newValue)
+        checkForResumeData()
+      }
+    }
+
+    // Check when page becomes visible (user navigates back to this tab)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('Page became visible, rechecking resume data')
+        checkForResumeData()
+      }
+    }
+
+    // Check on focus (when user comes back to tab)
+    const handleFocus = () => {
+      console.log('Window focused, rechecking resume data')
+      checkForResumeData()
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleFocus)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleFocus)
     }
   }, [])
 
@@ -75,7 +135,8 @@ function ConnectContent() {
     return (
       <div className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+          <div className="container mx-auto px-4 py-12 flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>{t("connect.joinMatch")}</CardTitle>
@@ -95,6 +156,7 @@ function ConnectContent() {
               </Button>
             </CardContent>
           </Card>
+          </div>
         </main>
       </div>
     )
@@ -103,7 +165,8 @@ function ConnectContent() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 container mx-auto px-4 py-12 flex items-center justify-center">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="container mx-auto px-4 py-12 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>{t("connect.title")}</CardTitle>
@@ -115,6 +178,29 @@ function ConnectContent() {
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={() => {
                     setError(null)
+                    
+                    // Check if this is a match creator resume
+                    const matchCreatorData = localStorage.getItem('matchCreatorData')
+                    if (matchCreatorData) {
+                      try {
+                        const parsed = JSON.parse(matchCreatorData)
+                        if (parsed.matchId && parsed.team1InviteCode && parsed.team2InviteCode) {
+                          // This is a match creator - redirect with full parameters
+                          const params = new URLSearchParams({
+                            matchId: parsed.matchId,
+                            team1InviteCode: parsed.team1InviteCode,
+                            team2InviteCode: parsed.team2InviteCode,
+                            teamSize: parsed.teamSize.toString(),
+                          })
+                          router.push(`/multiplayer?${params.toString()}`)
+                          return
+                        }
+                      } catch (error) {
+                        console.error("Error parsing match creator data for resume:", error)
+                      }
+                    }
+                    
+                    // Regular player resume
                     router.push(`/multiplayer?inviteCode=${resumeInviteCode}`)
                   }}
                 >
@@ -133,6 +219,7 @@ function ConnectContent() {
             </Button>
           </CardContent>
         </Card>
+        </div>
       </main>
       <SupportChat />
     </div>

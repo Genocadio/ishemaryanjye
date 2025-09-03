@@ -91,7 +91,8 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <Header variant="default" />
 
-      <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
+      <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           {/* <Link href="/game-selection" className="flex items-center text-sm text-gray-500 hover:text-gray-900">
             <ArrowRight className="mr-2 h-4 w-4" />
@@ -420,6 +421,7 @@ export default function DashboardPage() {
           </Card> */}
 
           
+        </div>
         </div>
       </main>
 

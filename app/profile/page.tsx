@@ -137,8 +137,8 @@ export default function ProfilePage() {
   return (
     <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 w-full">
-    <div className="max-w-3xl mx-auto">
+        <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+        <div className="max-w-3xl mx-auto px-4 md:px-8 py-12">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold">User Profile</h1>
         <p className="text-gray-500">View and edit your personal information</p>
@@ -267,7 +267,7 @@ export default function ProfilePage() {
           </CardFooter>
         </Card>
       </div>
-    </div>
+        </div>
     </main>
     <Footer />
     </div>

@@ -7,14 +7,25 @@ import { ChevronRight, BookOpen, Target, Brain, Users, Heart } from "lucide-reac
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SupportChat } from "@/components/support-chat"
 import { motion, AnimatePresence } from "framer-motion"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 
 export default function Home() {
   const { t } = useLanguage()
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useHPOAuth()
   const [shuffledCards, setShuffledCards] = useState<string[]>([])
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const generateShuffledCards = (count = 4) => {
     const suits = ["clubs", "spades", "diamonds", "hearts"]
@@ -29,16 +40,46 @@ export default function Home() {
   }
 
   useEffect(() => {
-    // initial draw
-    setShuffledCards(generateShuffledCards())
-
-    // periodic reshuffle after page load
-    const intervalId = setInterval(() => {
+    // Only set up card animations if not authenticated (to avoid flash during redirect)
+    if (!isAuthenticated) {
+      // initial draw
       setShuffledCards(generateShuffledCards())
-    }, 8000)
 
-    return () => clearInterval(intervalId)
-  }, [])
+      // periodic reshuffle after page load
+      const intervalId = setInterval(() => {
+        setShuffledCards(generateShuffledCards())
+      }, 8000)
+
+      return () => clearInterval(intervalId)
+    }
+  }, [isAuthenticated])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header variant="home" />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the home page content if user is authenticated (they'll be redirected)
+  if (isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header variant="home" />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to dashboard...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

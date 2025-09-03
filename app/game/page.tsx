@@ -30,16 +30,23 @@ type Character = "Shema" | "Teta"
 type GameStatus = "character-selection" | "playing" | "game-over" | "cancelled"
 type TurnType = "player" | "character"
 
-type QuestionOption = {
-    id: string;
-    text: string;
-};
-
 type Question = {
-    id: string;
-    question: string;
-    options: QuestionOption[];
-    correctAnswer: string | string[];
+    id: number;
+    question_text: string;
+    question_type: string;
+    options: string[];
+    correct_answer: string | string[];
+    explanation: string;
+    points: number;
+    difficulty: string;
+    card: string;
+    card_info: {
+        suit: string;
+        value: string;
+        pointValue: number;
+        symbol: string;
+        id: string;
+    };
 };
 
 const getAIDelay = (): number => {
@@ -94,8 +101,48 @@ export default function DuoPlayerGame() {
     const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
     const [showDidYouKnowDialog, setShowDidYouKnowDialog] = useState(false);
     const [didYouKnowTip, setDidYouKnowTip] = useState<string | null>(null);
+    const [gameMatchId, setGameMatchId] = useState<string | null>(null);
 
-    const initializeGame = () => {
+    const createGameSession = async () => {
+        console.log('createGameSession called - isAuthenticated:', isAuthenticated, 'player:', player);
+        
+        if (!isAuthenticated || !player) {
+            console.log('User not authenticated, using fallback match_id generation');
+            return null; // For non-logged-in users, return null to use current implementation
+        }
+
+        try {
+            console.log('Creating game session for authenticated user...');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/create/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    participant_count: 1 // Single player vs AI
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Game session created successfully:', data);
+                return data.game.match_id;
+            } else {
+                console.error('Failed to create game session:', response.statusText);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error creating game session:', error);
+            return null;
+        }
+    };
+
+    const initializeGame = async () => {
+        // Create game session for logged-in users
+        const matchId = await createGameSession();
+        console.log('initializeGame - received matchId:', matchId);
+        setGameMatchId(matchId);
+
         // Create and shuffle deck
         const deck = createDeck();
 
@@ -197,7 +244,7 @@ export default function DuoPlayerGame() {
         // Redirect if not authenticated
         
         // ... rest of useEffect ...
-    }, [selectedDifficulty, status, router]);
+    }, [selectedDifficulty, router]);
 
     useEffect(() => {
         if (gameState && gameState.currentPlayer === 1 && aiPlayer && roundEvaluator) {
@@ -253,6 +300,16 @@ export default function DuoPlayerGame() {
             setUsername(storedUsername)
         }
     }, [player])
+
+    // Debug authentication state changes
+    useEffect(() => {
+        console.log('Authentication state changed - isAuthenticated:', isAuthenticated, 'player:', player, 'isLoading:', isLoading);
+    }, [isAuthenticated, player, isLoading])
+
+    // Debug gameMatchId changes
+    useEffect(() => {
+        console.log('gameMatchId changed:', gameMatchId);
+    }, [gameMatchId])
 
     useEffect(() => {
         // Function to handle beforeunload event
@@ -452,45 +509,51 @@ export default function DuoPlayerGame() {
                         }))
                     });
 
-                    // Save game results if user is logged in
-                    if (isAuthenticated && player) {
-                        try {
-                            const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
-                                ? (updatedGameState.players[1].score < 15 ? 2 : 1)
-                                : 0;
+                    // Submit game result to new API
+                    try {
+                        const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                        const lastRound = updatedGameState.roundHistory[updatedGameState.roundHistory.length - 1];
+                        const matchId = gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                        console.log('Using match_id:', matchId, 'gameMatchId:', gameMatchId, 'isAuthenticated:', isAuthenticated);
+                        
+                        const requestBody = {
+                            match_id: matchId,
+                            player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
+                            username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                            team: 1,
+                            is_winner: playerWon,
+                            lost_card: playerWon ? null : null // Will be set when player selects a card
+                        };
 
-                            const response = await fetch('/api/game-stats', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    opponentName: selectedCharacter,
-                                    gameLevel: selectedDifficulty,
-                                    userScore: updatedGameState.players[0].score,
-                                    opponentScore: updatedGameState.players[1].score,
-                                    wonByQuestion: updatedGameState.players[1].score < 15,
-                                    selectedCard: selectedCard,
-                                    questionData: {
-                                        id: question?.id,
-                                        question: question?.question,
-                                        options: question?.options,
-                                        correctAnswer: question?.correctAnswer
-                                    }
-                                }),
-                            });
+                        console.log('Submitting single-player game result:', requestBody);
+                        
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody),
+                        });
 
-                            if (response.ok) {
-                                const data = await response.json();
-                                setGameStatsId(data.gameStats._id);
-                                toast.success('Game statistics saved successfully!');
-                            } else {
-                                toast.error('Failed to save game statistics');
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('Single-player game result submitted successfully:', data);
+                            
+                            if (data.response && playerWon) {
+                                if (data.response.type === 'explanation') {
+                                    // Winner gets explanation/fun fact
+                                    setDidYouKnowTip(data.response.explanation);
+                                    setShowDidYouKnowDialog(true);
+                                }
                             }
-                        } catch (error) {
-                            console.error('Error saving game statistics:', error);
-                            toast.error('Failed to save game statistics');
+                            // For losers, we don't process the response here - they need to select a card first
+                        } else {
+                            console.error('Failed to submit single-player game result:', response.statusText);
+                            toast.error('Failed to submit game result');
                         }
+                    } catch (error) {
+                        console.error('Error submitting single-player game result:', error);
+                        toast.error('Failed to submit game result');
                     }
 
                     // Set game status to game-over
@@ -629,60 +692,51 @@ export default function DuoPlayerGame() {
                         }))
                     });
 
-                    // Save game results if user is logged in
-                    if (true) {
-                        try {
-                            const overallGameScore = updatedGameState.players[0].score > updatedGameState.players[1].score 
-                                ? (updatedGameState.players[1].score < 15 ? 2 : 1)
-                                : 0;
+                    // Submit game result to new API
+                    try {
+                        const playerWon = updatedGameState.players[0].score > updatedGameState.players[1].score;
+                        const lastRound = updatedGameState.roundHistory[updatedGameState.roundHistory.length - 1];
+                        const matchId = gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                        console.log('Using match_id:', matchId, 'gameMatchId:', gameMatchId, 'isAuthenticated:', isAuthenticated);
+                        
+                        const requestBody = {
+                            match_id: matchId,
+                            player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
+                            username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                            team: 1,
+                            is_winner: playerWon,
+                            lost_card: playerWon ? null : null // Will be set when player selects a card
+                        };
 
+                        console.log('Submitting single-player game result:', requestBody);
+                        
+                        const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody),
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            console.log('Single-player game result submitted successfully:', data);
                             
-                            if (overallGameScore > 0) {
-
-                                const response = await fetch('/api/game-stats', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: JSON.stringify({
-                                        opponentName: selectedCharacter,
-                                        gameLevel: selectedDifficulty,
-                                        userScore: updatedGameState.players[0].score,
-                                        opponentScore: updatedGameState.players[1].score,
-                                        wonByQuestion: updatedGameState.players[1].score < 15,
-                                        selectedCard: selectedCard,
-                                        questionData: {
-                                            id: question?.id,
-                                            question: question?.question,
-                                            options: question?.options,
-                                            correctAnswer: question?.correctAnswer
-                                        }
-                                    }),
-                                });
-    
-                                if (response.ok) {
-                                    const data = await response.json();
-                                    const Tip = data.didYouKnow;
-                                
-                                    setDidYouKnowTip(Tip);
+                            if (data.response && playerWon) {
+                                if (data.response.type === 'explanation') {
+                                    // Winner gets explanation/fun fact
+                                    setDidYouKnowTip(data.response.explanation);
                                     setShowDidYouKnowDialog(true);
-                                    
-                                    if(isAuthenticated && player){
-                                        setGameStatsId(data.gameStats._id);
-                                        toast.success('Game statistics saved successfully!');
-                                    } else {
-                                        toast.success('login to save your game stats!');
-                                    }
-                                } else {
-                                    toast.error('Failed to save game statistics');
                                 }
                             }
-
-                            
-                        } catch (error) {
-                            console.error('Error saving game statistics:', error);
-                            toast.error('Failed to save game statistics');
+                            // For losers, we don't process the response here - they need to select a card first
+                        } else {
+                            console.error('Failed to submit single-player game result:', response.statusText);
+                            toast.error('Failed to submit game result');
                         }
+                    } catch (error) {
+                        console.error('Error submitting single-player game result:', error);
+                        toast.error('Failed to submit game result');
                     }
 
                     // Set game status to game-over
@@ -714,7 +768,8 @@ export default function DuoPlayerGame() {
     return (
         <div className="flex min-h-screen flex-col ">
             <Header />
-            <main className="flex-1 container max-w-5xl mx-auto px-4 bg-gradient-to-b from-green-50 to-white md:px-8 py-12">
+            <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+                <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12">
 
 
                 {gameStatus === "character-selection" && (
@@ -922,40 +977,45 @@ export default function DuoPlayerGame() {
                                         }}
                                         onSelect={async (selectedCard) => {
                                             try {
-                                                const response = await fetch('/api/game-stats', {
+                                                const requestBody = {
+                                                    match_id: gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                                    player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
+                                                    username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                                                    team: 1,
+                                                    is_winner: false,
+                                                    lost_card: `${selectedCard.suit.charAt(0)}${selectedCard.value}`
+                                                };
+
+                                                console.log('Submitting single-player game result with selected card:', requestBody);
+                                                
+                                                const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
                                                     method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
                                                     },
-                                                    body: JSON.stringify({
-                                                        opponentName: selectedCharacter,
-                                                        gameLevel: selectedDifficulty,
-                                                        userScore: gameState.players[0].score,
-                                                        opponentScore: gameState.players[1].score,
-                                                        wonByQuestion: false,
-                                                        selectedCard: selectedCard
-                                                    }),
+                                                    body: JSON.stringify(requestBody),
                                                 });
 
                                                 if (response.ok) {
                                                     const data = await response.json();
-                                                    if (data.question) {
-                                                        setQuestion(data.question);
-                                                        setShowQuestionDialog(true);
-                                                        // Only set gameStatsId for logged-in users
-                                                        if (data.gameStats) {
-                                                            setGameStatsId(data.gameStats._id);
+                                                    console.log('Single-player game result submitted successfully with selected card:', data);
+                                                    
+                                                    if (data.response) {
+                                                        if (data.response.type === 'question') {
+                                                            setQuestion(data.response.question);
+                                                            setShowQuestionDialog(true);
+                                                            if (data.gameStats) {
+                                                                setGameStatsId(data.gameStats._id);
+                                                            }
                                                         }
-                                                    } else if (data.didYouKnow) {
-                                                        setDidYouKnowTip(data.didYouKnow);
-                                                        setShowDidYouKnowDialog(true);
                                                     }
                                                 } else {
-                                                    toast.error('Failed to get question');
+                                                    console.error('Failed to submit single-player game result:', response.statusText);
+                                                    toast.error('Failed to submit game result');
                                                 }
                                             } catch (error) {
-                                                console.error('Error getting question:', error);
-                                                toast.error('Failed to get question');
+                                                console.error('Error submitting single-player game result:', error);
+                                                toast.error('Failed to submit game result');
                                             }
                                         }}
                                     />
@@ -990,38 +1050,10 @@ export default function DuoPlayerGame() {
                                         setShowQuestionDialog(false);
                                         setShowDidYouKnowDialog(false);
                                         setSelectedOptions([]);
+                                        setGameMatchId(null);
                                         
                                         // Reinitialize the game
-                                        const newDeck = createDeck();
-                                        const newHands = dealCards(newDeck, 2, 3);
-                                        const newCardHolder = [...newDeck];
-                                        const newStartingPlayer = Math.floor(Math.random() * 2) as 0 | 1;
-                                        
-                                        const initialGameState: GameState = {
-                                            trumpSuit: getRandomTrumpSuit(),
-                                            players: [
-                                                { hand: newHands[0], collectedCards: [], score: 0 },
-                                                { hand: newHands[1], collectedCards: [], score: 0 }
-                                            ],
-                                            currentPlayer: newStartingPlayer,
-                                            cardsOnTable: [],
-                                            roundStake: 0,
-                                            roundHistory: [],
-                                            currentRound: 0,
-                                            totalRounds: 18,
-                                            cardHolder: newCardHolder
-                                        };
-                                        
-                                        const ai = new CardGameAI('Analytical', selectedDifficulty);
-                                        ai.initialize(initialGameState, 1);
-                                        
-                                        const evaluator = new RoundEvaluator(initialGameState.trumpSuit);
-                                        
-                                        setGameState(initialGameState);
-                                        setAiPlayer(ai);
-                                        setRoundEvaluator(evaluator);
-                                        setCurrentTurn(newStartingPlayer === 0 ? "player" : "character");
-                                        setGameMessage(newStartingPlayer === 0 ? 'You start the game!' : 'AI starts the game!');
+                                        initializeGame();
                                     }}
                                     className="bg-green-600 hover:bg-green-700 text-white px-8"
                                 >
@@ -1031,6 +1063,7 @@ export default function DuoPlayerGame() {
                         )}
                     </div>
                 )}
+                </div>
             </main>
             <Footer />
             
@@ -1042,36 +1075,34 @@ export default function DuoPlayerGame() {
                         <DialogTitle>Answer the Question</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                        <p className="text-lg break-words whitespace-pre-wrap">{question?.question}</p>
+                        <p className="text-lg break-words whitespace-pre-wrap">{question?.question_text}</p>
                         <div className="space-y-2">
-                            {question?.options.map((option) => (
+                            {question?.options.map((option: string, index: number) => (
                                 <Button
-                                    key={option.id}
-                                    variant={selectedOptions.includes(option.id) ? "default" : "outline"}
+                                    key={index}
+                                    variant={selectedOptions.includes(option) ? "default" : "outline"}
                                     onClick={() => {
-                                        if (Array.isArray(question.correctAnswer)) {
-                                            // For multiple choice questions
+                                        if (Array.isArray(question.correct_answer)) {
                                             setSelectedOptions(prev => {
-                                                if (prev.includes(option.id)) {
-                                                    return prev.filter(id => id !== option.id);
+                                                if (prev.includes(option)) {
+                                                    return prev.filter(opt => opt !== option);
                                                 } else {
-                                                    return [...prev, option.id];
+                                                    return [...prev, option];
                                                 }
                                             });
                                         } else {
-                                            // For single choice questions
-                                            setSelectedOptions([option.id]);
+                                            setSelectedOptions([option]);
                                         }
                                     }}
                                     className="w-full text-left justify-start py-2 px-4 h-auto min-h-[44px] break-words whitespace-pre-wrap"
                                 >
-                                    {option.text}
+                                    {option}
                                 </Button>
                             ))}
                         </div>
-                        {Array.isArray(question?.correctAnswer) && (
+                        {Array.isArray(question?.correct_answer) && (
                             <p className="text-sm text-gray-500">
-                                Select {question.correctAnswer.length} correct answer{question.correctAnswer.length > 1 ? 's' : ''}
+                                Select {question.correct_answer.length} correct answer{question.correct_answer.length > 1 ? 's' : ''}
                             </p>
                         )}
                         <div className="flex justify-end gap-2">
@@ -1087,49 +1118,54 @@ export default function DuoPlayerGame() {
                             <Button
                                 onClick={async () => {
                                     if (!question) return;
+                                    
+                                    // Verify answer locally first
+                                    const isCorrect = Array.isArray(question.correct_answer) 
+                                      ? selectedOptions.length === question.correct_answer.length && 
+                                        selectedOptions.every(opt => question.correct_answer.includes(opt))
+                                      : selectedOptions.includes(question.correct_answer);
+                                    
+                                    console.log('Answer verification:', {
+                                      selectedOptions,
+                                      correctAnswer: question.correct_answer,
+                                      isCorrect,
+                                      questionId: question.id
+                                    });
+                                    
                                     try {
-                                        const response = await fetch('/api/game-stats', {
-                                            method: 'PUT',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                            },
-                                            body: JSON.stringify({
-                                                questionId: question.id,
-                                                selectedOption: selectedOptions,
-                                                gameId: gameStatsId
-                                            }),
-                                        });
-
-                                        if (response.ok) {
-                                            const data = await response.json();
-                                            if (data.correct) {
-                                                toast.success(data.message);
-                                                // Update the game state to reflect the win
-                                                setGameState(prevState => {
-                                                    if (!prevState) return prevState;
-                                                    return {
-                                                        ...prevState,
-                                                        players: [
-                                                            { ...prevState.players[0], score: prevState.players[0].score + 1 },
-                                                            prevState.players[1]
-                                                        ]
-                                                    };
-                                                });
-                                            } else {
-                                                toast.error(data.message);
-                                            }
+                                        if (isCorrect) {
+                                            // Console log correct answer submission (omitting POST request)
+                                            console.log('Correct answer submitted:', {
+                                                match_id: gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                                username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                                                question_id: question.id,
+                                                answer: selectedOptions.join(', '),
+                                                points: question.points || 1,
+                                                correct_answer: question.correct_answer
+                                            });
+                                            toast.success(`Correct! You earned ${question.points || 1} mark(s).`);
                                         } else {
-                                            toast.error('Failed to verify answer');
+                                            // Console log wrong answer submission (omitting POST request)
+                                            console.log('Wrong answer submitted:', {
+                                                match_id: gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                                                player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
+                                                username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                                                question_id: question.id,
+                                                answer: selectedOptions.join(', '),
+                                                correct_answer: question.correct_answer
+                                            });
+                                            toast.error(`Incorrect. The correct answer was: ${Array.isArray(question.correct_answer) ? question.correct_answer.join(', ') : question.correct_answer}`);
                                         }
                                     } catch (error) {
-                                        console.error('Error verifying answer:', error);
-                                        toast.error('Failed to verify answer');
+                                        console.error('Error processing answer:', error);
+                                        toast.error('Failed to process answer');
                                     }
+                                    
                                     setShowQuestionDialog(false);
                                     setSelectedOptions([]);
                                 }}
-                                disabled={Array.isArray(question?.correctAnswer) 
-                                    ? selectedOptions.length !== question.correctAnswer.length
+                                disabled={Array.isArray(question?.correct_answer) 
+                                    ? selectedOptions.length !== question.correct_answer.length
                                     : selectedOptions.length === 0}
                             >
                                 Submit Answer
