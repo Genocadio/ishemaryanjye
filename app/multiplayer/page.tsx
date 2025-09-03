@@ -1818,7 +1818,33 @@ function MultiplayerLobby() {
                       {playerWon ? "Ready for another match?" : "Question completed! Ready for another match?"}
                     </p>
                     <Button 
-                      onClick={() => {
+                      onClick={async () => {
+                        // For logged-in users, create a new match session before redirecting
+                        if (isAuthenticated && player) {
+                          try {
+                            console.log('Creating new multiplayer match session for Play Again...');
+                            const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/create/`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                              },
+                              body: JSON.stringify({
+                                participant_count: effectiveTeamSize * 2 // Total players for both teams
+                              }),
+                            });
+
+                            if (response.ok) {
+                              const data = await response.json();
+                              console.log('New multiplayer match session created successfully:', data);
+                              // The new match ID will be handled by the connect page
+                            } else {
+                              console.error('Failed to create new multiplayer match session:', response.statusText);
+                            }
+                          } catch (error) {
+                            console.error('Error creating new multiplayer match session:', error);
+                          }
+                        }
+                        
                         const playerCount = effectiveTeamSize * 2; // 2 teams * team size
                         router.push(`/connect?players=${playerCount}`);
                       }} 

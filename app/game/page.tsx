@@ -112,7 +112,7 @@ export default function DuoPlayerGame() {
         }
 
         try {
-            console.log('Creating game session for authenticated user...');
+            console.log('Creating new game session for authenticated user...');
             const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/create/`, {
                 method: 'POST',
                 headers: {
@@ -125,7 +125,7 @@ export default function DuoPlayerGame() {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Game session created successfully:', data);
+                console.log('New game session created successfully:', data);
                 return data.game.match_id;
             } else {
                 console.error('Failed to create game session:', response.statusText);
@@ -1029,7 +1029,7 @@ export default function DuoPlayerGame() {
                            (question || didYouKnowTip))) && (
                             <div className="mt-8">
                                 <Button
-                                    onClick={() => {
+                                    onClick={async () => {
                                         // Reset game state
                                         setGameState(null);
                                         setAiPlayer(null);
@@ -1051,6 +1051,13 @@ export default function DuoPlayerGame() {
                                         setShowDidYouKnowDialog(false);
                                         setSelectedOptions([]);
                                         setGameMatchId(null);
+                                        
+                                        // Create new game session for logged-in users
+                                        if (isAuthenticated && player) {
+                                            const newMatchId = await createGameSession();
+                                            console.log('Play Again - created new matchId:', newMatchId);
+                                            setGameMatchId(newMatchId);
+                                        }
                                         
                                         // Reinitialize the game
                                         initializeGame();
