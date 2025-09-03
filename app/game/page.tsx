@@ -1167,32 +1167,42 @@ export default function DuoPlayerGame() {
                                     });
                                     
                                     try {
-                                        if (isCorrect) {
-                                            // Console log correct answer submission (omitting POST request)
-                                            console.log('Correct answer submitted:', {
-                                                match_id: gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                                username: isAuthenticated && player ? (player.username || player.player_name) : username,
-                                                question_id: question.id,
-                                                answer: selectedOptions.join(', '),
-                                                points: question.points || 1,
-                                                correct_answer: question.correct_answer
-                                            });
-                                            toast.success(`Correct! You earned ${question.points || 1} mark(s).`);
+                                        const matchId = gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+                                        const requestBody = {
+                                            match_id: matchId,
+                                            player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
+                                            username: isAuthenticated && player ? (player.username || player.player_name) : username,
+                                            answer: selectedOptions.join(', ')
+                                        };
+
+                                        console.log('Submitting question answer:', requestBody);
+                                        
+                                        const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-answer/`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                            },
+                                            body: JSON.stringify(requestBody),
+                                        });
+
+                                        if (response.ok) {
+                                            const data = await response.json();
+                                            console.log('Question answer submitted successfully:', data);
+                                            
+                                            if (data.success && data.result) {
+                                                if (data.result.is_correct) {
+                                                    toast.success(`Correct! You earned ${data.result.points_earned || 1} mark(s).`);
+                                                } else {
+                                                    toast.error(`Incorrect. The correct answer was: ${data.result.correct_answer}`);
+                                                }
+                                            }
                                         } else {
-                                            // Console log wrong answer submission (omitting POST request)
-                                            console.log('Wrong answer submitted:', {
-                                                match_id: gameMatchId || `single-player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                                                player_id: isAuthenticated && player ? parseInt(player.id.toString()) : 1,
-                                                username: isAuthenticated && player ? (player.username || player.player_name) : username,
-                                                question_id: question.id,
-                                                answer: selectedOptions.join(', '),
-                                                correct_answer: question.correct_answer
-                                            });
-                                            toast.error(`Incorrect. The correct answer was: ${Array.isArray(question.correct_answer) ? question.correct_answer.join(', ') : question.correct_answer}`);
+                                            console.error('Failed to submit question answer:', response.statusText);
+                                            toast.error('Failed to submit answer');
                                         }
                                     } catch (error) {
-                                        console.error('Error processing answer:', error);
-                                        toast.error('Failed to process answer');
+                                        console.error('Error submitting question answer:', error);
+                                        toast.error('Failed to submit answer');
                                     }
                                     
                                     setShowQuestionDialog(false);

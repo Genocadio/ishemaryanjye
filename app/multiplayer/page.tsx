@@ -207,6 +207,72 @@ function MultiplayerLobby() {
     };
   }, [reconnectionTimeout]);
 
+  // Submit game result to API - only for winners (moved from conditional render to fix hooks order)
+  useEffect(() => {
+    // Only run this effect when match is completed and we have final game state
+    if (connectionState.matchStatus === "completed" && finalGameState) {
+      const submitGameResult = async () => {
+        if (!finalGameState?.match?.id) return;
+        
+        const playerTeamData = finalGameState.teams[playerTeamId];
+        const opponentTeamId = playerTeamId === 'team1' ? 'team2' : 'team1';
+        const playerWon = playerTeamData.score > finalGameState.teams[opponentTeamId].score;
+        
+        // Only submit for winners, losers will submit after card selection
+        if (playerWon) {
+          try {
+            const requestBody = {
+              match_id: finalGameState.match.id,
+              player_id: parseInt(playerId),
+              username: playerName,
+              team: playerTeamId === 'team1' ? 1 : 2,
+              is_winner: true,
+              lost_card: null
+            };
+
+            console.log('Submitting game result for winner:', requestBody);
+            
+            const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(requestBody),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Game result submitted successfully:', data);
+              
+              if (data.response) {
+                if (data.response.type === 'explanation') {
+                  // Winner gets explanation/fun fact
+                  setDidYouKnowTip(data.response.explanation);
+                  setShowDidYouKnowDialog(true);
+                  setQuestionAnswered(true);
+                  
+                  // Delete match ID from localStorage for winners immediately
+                  localStorage.removeItem('incompleteMatchId');
+                  localStorage.removeItem('incompleteInviteCode');
+                  localStorage.removeItem('matchCreatorData');
+                }
+              }
+            } else {
+              console.error('Failed to submit game result:', response.statusText);
+              toast.error('Failed to submit game result');
+            }
+          } catch (error) {
+            console.error('Error submitting game result:', error);
+            toast.error('Failed to submit game result');
+          }
+        }
+        // For losers, submission will happen after card selection
+      };
+
+      submitGameResult();
+    }
+  }, [connectionState.matchStatus, finalGameState, playerId, playerName, playerTeamId, lastPlayground]);
+
 
 
   // --- HANDLERS ---
@@ -242,7 +308,21 @@ function MultiplayerLobby() {
       return;
     }
 
-    socket.send(JSON.stringify({ type: "play_card_request", payload: { cardId } }))
+    const playCardMessage = { type: "play_card_request", payload: { cardId } }
+    const timestamp = new Date().toISOString()
+    
+    console.log("🔌 WebSocket Message Sent:", {
+      timestamp,
+      messageType: "play_card_request",
+      payload: { cardId },
+      fullMessage: playCardMessage,
+      userState: {
+        playerId,
+        playerName
+      }
+    })
+    
+    socket.send(JSON.stringify(playCardMessage))
   }
   
   const copyToClipboard = (text: string | null) => {
@@ -363,9 +443,19 @@ function MultiplayerLobby() {
             message: 'Player wants to leave the game'
           }
         };
-        console.log("Step 6: Sending exit message to server:", exitMessage);
+        const timestamp = new Date().toISOString()
+        console.log("🔌 WebSocket Message Sent:", {
+          timestamp,
+          messageType: "exit_game_request",
+          payload: exitMessage.payload,
+          fullMessage: exitMessage,
+          userState: {
+            playerId,
+            playerName
+          }
+        });
         socket.send(JSON.stringify(exitMessage));
-        console.log("Step 6: Exit message sent successfully");
+        console.log("✅ Exit message sent successfully");
       } else {
         console.log("Step 6: Cannot send exit message - WebSocket not open. State:", socket?.readyState);
       }
@@ -507,7 +597,19 @@ function MultiplayerLobby() {
     setSocket(ws)
 
     ws.onopen = () => {
-      console.log("WebSocket connected")
+      const timestamp = new Date().toISOString()
+      console.log("🔌 WebSocket Connection Opened:", {
+        timestamp,
+        url: wsUrl,
+        readyState: ws.readyState,
+        isReconnecting,
+        userState: {
+          playerId,
+          playerName,
+          userExitedGame
+        }
+      })
+      
       setHasEntered(true)
       setIsReconnecting(false)
       if (reconnectionTimeout) {
@@ -518,12 +620,29 @@ function MultiplayerLobby() {
       // If this was a reconnection, show success message
       if (isReconnecting) {
         toast.success("Reconnected successfully!");
-        console.log("Reconnection completed successfully");
+        console.log("✅ Reconnection completed successfully");
       }
     }
 
     ws.onclose = (event) => {
-      console.log("WebSocket disconnected", { code: event.code, reason: event.reason })
+      const timestamp = new Date().toISOString()
+      console.log("🔌 WebSocket Connection Closed:", {
+        timestamp,
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+        readyState: ws.readyState,
+        userState: {
+          playerId,
+          playerName,
+          userExitedGame,
+          isReconnecting
+        },
+        connectionState: {
+          matchStatus: connectionState.matchStatus,
+          matchId: connectionState.matchId
+        }
+      })
       
       // Don't attempt reconnection if user explicitly exited the game
       if (userExitedGame) {
@@ -579,7 +698,23 @@ function MultiplayerLobby() {
     }
 
     ws.onerror = (err) => {
-      console.error("WebSocket error", err)
+      const timestamp = new Date().toISOString()
+      console.error("🔌 WebSocket Connection Error:", {
+        timestamp,
+        error: err,
+        readyState: ws.readyState,
+        url: wsUrl,
+        userState: {
+          playerId,
+          playerName,
+          userExitedGame,
+          isReconnecting
+        },
+        connectionState: {
+          matchStatus: connectionState.matchStatus,
+          matchId: connectionState.matchId
+        }
+      })
       
       // Don't attempt reconnection if user explicitly exited the game
       if (userExitedGame) {
@@ -630,8 +765,40 @@ function MultiplayerLobby() {
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data)
-        console.log("Received:", message)
+        const timestamp = new Date().toISOString()
         const { type, payload } = message
+        
+        // Comprehensive WebSocket message logging
+        console.log("🔌 WebSocket Message Received:", {
+          timestamp,
+          messageType: type,
+          payload: payload,
+          fullMessage: message,
+          eventData: event.data,
+          connectionState: {
+            matchStatus: connectionState.matchStatus,
+            matchId: connectionState.matchId,
+            currentPlayerId: connectionState.currentPlayerId
+          },
+          userState: {
+            playerId,
+            playerName,
+            userExitedGame,
+            isReconnecting
+          }
+        })
+        
+        // Additional detailed logging for specific message types
+        if (type) {
+          console.log(`📨 [${type}] Message Details:`, {
+            timestamp,
+            type,
+            payload,
+            messageSize: JSON.stringify(message).length,
+            hasPayload: !!payload,
+            payloadKeys: payload ? Object.keys(payload) : []
+          })
+        }
 
         // Ignore WebSocket messages if user explicitly exited the game
         if (userExitedGame) {
@@ -1661,64 +1828,7 @@ function MultiplayerLobby() {
     const playerWon = playerTeamData.score > opponentTeamData.score;
     const opponentName = opponentTeamData.players.map((p: Player) => p.name).join(", ");
     
-    // Submit game result to API - only for winners
-    useEffect(() => {
-      const submitGameResult = async () => {
-        if (!finalGameState?.match?.id) return;
-        
-        // Only submit for winners, losers will submit after card selection
-        if (playerWon) {
-          try {
-            const requestBody = {
-              match_id: finalGameState.match.id,
-              player_id: parseInt(playerId),
-              username: playerName,
-              team: playerTeamId === 'team1' ? 1 : 2,
-              is_winner: true,
-              lost_card: null
-            };
 
-            console.log('Submitting game result for winner:', requestBody);
-            
-            const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-completed/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(requestBody),
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log('Game result submitted successfully:', data);
-              
-              if (data.response) {
-                if (data.response.type === 'explanation') {
-                  // Winner gets explanation/fun fact
-                  setDidYouKnowTip(data.response.explanation);
-                  setShowDidYouKnowDialog(true);
-                  setQuestionAnswered(true);
-                  
-                  // Delete match ID from localStorage for winners immediately
-                  localStorage.removeItem('incompleteMatchId');
-                  localStorage.removeItem('incompleteInviteCode');
-                  localStorage.removeItem('matchCreatorData');
-                }
-              }
-            } else {
-              console.error('Failed to submit game result:', response.statusText);
-              toast.error('Failed to submit game result');
-            }
-          } catch (error) {
-            console.error('Error submitting game result:', error);
-            toast.error('Failed to submit game result');
-          }
-        }
-        // For losers, submission will happen after card selection
-      };
-
-      submitGameResult();
-    }, [finalGameState, playerId, playerName, playerTeamId, playerWon, lastPlayground]);
     
     const lastPlayerCard = lastPlayground.find(p => {
       const player = finalGameState.players.all.find((pl: Player) => pl.id === p.playerId);
@@ -1926,32 +2036,41 @@ function MultiplayerLobby() {
                     });
                     
                     try {
-                      if (isCorrect) {
-                        // Console log correct answer submission (omitting POST request)
-                        console.log('Correct answer submitted:', {
-                          match_id: finalGameState.match.id,
-                          username: playerName,
-                          question_id: question.id,
-                          answer: selectedOptions.join(', '),
-                          points: question.points || 1,
-                          correct_answer: question.correct_answer
-                        });
-                        toast.success(`Correct! You earned ${question.points || 1} mark(s).`);
+                      const requestBody = {
+                        match_id: finalGameState.match.id,
+                        player_id: parseInt(playerId),
+                        username: playerName,
+                        answer: selectedOptions.join(', ')
+                      };
+
+                      console.log('Submitting question answer:', requestBody);
+                      
+                      const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-answer/`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody),
+                      });
+
+                      if (response.ok) {
+                        const data = await response.json();
+                        console.log('Question answer submitted successfully:', data);
+                        
+                        if (data.success && data.result) {
+                          if (data.result.is_correct) {
+                            toast.success(`Correct! You earned ${data.result.points_earned || 1} mark(s).`);
+                          } else {
+                            toast.error(`Incorrect. The correct answer was: ${data.result.correct_answer}`);
+                          }
+                        }
                       } else {
-                        // Console log wrong answer submission (omitting POST request)
-                        console.log('Wrong answer submitted:', {
-                          match_id: finalGameState.match.id,
-                          player_id: parseInt(playerId),
-                          username: playerName,
-                          question_id: question.id,
-                          answer: selectedOptions.join(', '),
-                          correct_answer: question.correct_answer
-                        });
-                        toast.error(`Incorrect. The correct answer was: ${Array.isArray(question.correct_answer) ? question.correct_answer.join(', ') : question.correct_answer}`);
+                        console.error('Failed to submit question answer:', response.statusText);
+                        toast.error('Failed to submit answer');
                       }
                     } catch (error) {
-                      console.error('Error processing answer:', error);
-                      toast.error('Failed to process answer');
+                      console.error('Error submitting question answer:', error);
+                      toast.error('Failed to submit answer');
                     }
                     
                     setShowQuestionDialog(false);

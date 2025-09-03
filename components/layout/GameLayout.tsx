@@ -138,16 +138,24 @@ export default function GameLayout({
 
   // Special layout for 2 players: horizontal arrangement with responsive scaling
   if (playerCount === 2) {
+    // Determine which team is on which side based on player positions
+    const leftPlayer = orderedPlayers[0];
+    const rightPlayer = orderedPlayers[1];
+    
     return (
       <Card className={`min-w-[120px] min-h-[80px] w-full h-full max-w-[300px] max-h-[200px] flex flex-col items-center justify-center bg-white/95 backdrop-blur-sm border shadow-lg mx-auto ${className}`}>
-        {/* Team A Score - Top Left */}
-        <div className="absolute top-1 left-1">
-          <div className="text-sm font-bold text-blue-600">{team1Score}</div>
+        {/* Left Player's Team Score - positioned above left player */}
+        <div className="absolute top-1 left-1/4">
+          <div className={`text-sm font-bold ${leftPlayer.team === "A" ? "text-blue-600" : "text-red-600"}`}>
+            {leftPlayer.team === "A" ? team1Score : team2Score}
+          </div>
         </div>
 
-        {/* Team B Score - Top Right */}
-        <div className="absolute top-1 right-1">
-          <div className="text-sm font-bold text-red-600">{team2Score}</div>
+        {/* Right Player's Team Score - positioned above right player */}
+        <div className="absolute top-1 right-1/4">
+          <div className={`text-sm font-bold ${rightPlayer.team === "A" ? "text-blue-600" : "text-red-600"}`}>
+            {rightPlayer.team === "A" ? team1Score : team2Score}
+          </div>
         </div>
 
         {/* Center: Trump Suit and Round */}
