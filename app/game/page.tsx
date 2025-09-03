@@ -188,6 +188,12 @@ export default function DuoPlayerGame() {
     };
 
     useEffect(() => {
+        // Don't initialize game until authentication is complete
+        if (isLoading) {
+            console.log("Authentication still loading, waiting...");
+            return;
+        }
+
         const reconnectionData = sessionStorage.getItem("reconnection_data")
         if (reconnectionData) {
             try {
@@ -244,7 +250,7 @@ export default function DuoPlayerGame() {
         // Redirect if not authenticated
         
         // ... rest of useEffect ...
-    }, [selectedDifficulty, router]);
+    }, [selectedDifficulty, router, isLoading, isAuthenticated, player]);
 
     useEffect(() => {
         if (gameState && gameState.currentPlayer === 1 && aiPlayer && roundEvaluator) {
@@ -763,6 +769,23 @@ export default function DuoPlayerGame() {
 
     const startGame = () => {
         setGameStatus("playing")
+    }
+
+    // Show loading state while authentication is in progress
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
+                    <div className="container max-w-5xl mx-auto px-4 md:px-8 py-12 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+                            <p className="text-gray-600">Loading...</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
     }
 
     return (
