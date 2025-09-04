@@ -154,7 +154,7 @@ export default function PremiumPage() {
     
     let contactMethod = ''
     if (hasName && hasEmail) {
-      contactMethod = 'via email or phone'
+      contactMethod = 'via email'
     } else if (hasEmail) {
       contactMethod = 'via email'
     } else {
