@@ -2036,41 +2036,86 @@ function MultiplayerLobby() {
                     });
                     
                     try {
-                      const requestBody = {
-                        match_id: finalGameState.match.id,
-                        player_id: parseInt(playerId),
-                        username: playerName,
-                        answer: selectedOptions.join(', ')
-                      };
-
-                      console.log('Submitting question answer:', requestBody);
+                      const matchId = finalGameState.match.id;
+                      const username = playerName;
+                      const answer = selectedOptions.join(', ');
                       
-                      const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/submit-answer/`, {
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(requestBody),
+                      // Verify answer locally first
+                      const isCorrect = Array.isArray(question.correct_answer) 
+                        ? selectedOptions.length === question.correct_answer.length && 
+                          selectedOptions.every(opt => question.correct_answer.includes(opt))
+                        : selectedOptions.includes(question.correct_answer);
+                      
+                      console.log('Answer verification:', {
+                        selectedOptions,
+                        correctAnswer: question.correct_answer,
+                        isCorrect,
+                        matchId: finalGameState.match.id,
+                        questionId: question.id
                       });
+                      
+                      let response;
+                      let data;
+                      
+                      if (isCorrect) {
+                        // Award points for correct answer
+                        const requestBody = {
+                          match_id: matchId,
+                          username: username,
+                          question_id: question.id,
+                          answer: answer,
+                          points: question.points || 1
+                        };
+
+                        console.log('Awarding points for correct answer:', requestBody);
+                        
+                        response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/award-points/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(requestBody),
+                        });
+                      } else {
+                        // Record wrong answer
+                        const requestBody = {
+                          match_id: matchId,
+                          username: username,
+                          question_id: question.id,
+                          answer: answer
+                        };
+
+                        console.log('Recording wrong answer:', requestBody);
+                        
+                        response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/games/record-wrong-answer/`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify(requestBody),
+                        });
+                      }
 
                       if (response.ok) {
-                        const data = await response.json();
-                        console.log('Question answer submitted successfully:', data);
+                        data = await response.json();
+                        console.log('Answer processed successfully:', data);
                         
-                        if (data.success && data.result) {
-                          if (data.result.is_correct) {
-                            toast.success(`Correct! You earned ${data.result.points_earned || 1} mark(s).`);
-                          } else {
+                        if (isCorrect) {
+                          if (data.success && data.result) {
+                            toast.success(`Correct! You earned ${data.result.points_awarded || question.points || 1} mark(s).`);
+                          }
+                        } else {
+                          if (data.success && data.result) {
                             toast.error(`Incorrect. The correct answer was: ${data.result.correct_answer}`);
                           }
                         }
                       } else {
-                        console.error('Failed to submit question answer:', response.statusText);
-                        toast.error('Failed to submit answer');
+                        console.error('Failed to process answer:', response.statusText);
+                        toast.error('Failed to process answer');
                       }
                     } catch (error) {
-                      console.error('Error submitting question answer:', error);
-                      toast.error('Failed to submit answer');
+                      console.error('Error processing answer:', error);
+                      toast.error('Failed to process answer');
                     }
                     
                     setShowQuestionDialog(false);

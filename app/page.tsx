@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { ChevronRight, BookOpen, Target, Brain, Users, Heart } from "lucide-react"
+import { ChevronRight, BookOpen, Target, Brain, Users, Heart, Store } from "lucide-react"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
@@ -130,6 +130,21 @@ export default function Home() {
                   >
                     {t("hero.readHealthInfo")} <Heart className="ml-3 h-6 w-6" />
                   </Button></Link>
+                </div>
+                <div className="flex justify-center mt-4">
+                  <motion.div
+                    animate={{ scale: [1, 1.02, 1] }}
+                    transition={{ duration: 2, ease: "easeInOut", repeat: Infinity }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Link href="/premium">
+                      <Button className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
+                        <Store className="mr-2 h-5 w-5" />
+                        Get Premium Offer
+                      </Button>
+                    </Link>
+                  </motion.div>
                 </div>
               </div>
               <div className="flex items-center justify-center">
