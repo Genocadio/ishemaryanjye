@@ -12,79 +12,75 @@ import { useEffect, useState } from "react"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { SupportChat } from "@/components/support-chat"
 interface GameStats {
-  totalGames: number
+  total_games: number
   wins: number
   losses: number
-  winRate: number
-  byDifficulty: {
-    easy: { played: number; won: number }
-    medium: { played: number; won: number }
-    hard: { played: number; won: number }
+  win_rate: number
+  total_marks: number
+  average_marks_per_game: number
+  current_streak: number
+  longest_streak: number
+  answer_accuracy: number
+  last_played: string
+  last_result: string
+}
+
+interface RecentGame {
+  match_id: string
+  date: string
+  participants: number
+  team: number
+  won: boolean
+  marks_earned: number
+  card_assigned: string | null
+  question_answered: boolean
+  answer_correct: boolean
+  game_status: string
+}
+
+interface PlayerStats {
+  success: boolean
+  player: {
+    username: string
+    player_name: string
+    created_at: string
+    last_active: string
   }
+  statistics: GameStats
+  recent_games: RecentGame[]
 }
 
 export default function DashboardPage() {
   const { t } = useLanguage()
   const { player, isAuthenticated } = useHPOAuth()
-  const [gameStats, setGameStats] = useState<GameStats>({
-    totalGames: 0,
-    wins: 0,
-    losses: 0,
-    winRate: 0,
-    byDifficulty: {
-      easy: { played: 0, won: 0 },
-      medium: { played: 0, won: 0 },
-      hard: { played: 0, won: 0 }
-    }
-  })
+  const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchGameStats = async () => {
+    const fetchPlayerStats = async () => {
+      if (!isAuthenticated || !player?.username) {
+        setLoading(false)
+        return
+      }
+
       try {
-        const response = await fetch('/api/game-stats')
+        setLoading(true)
+        const response = await fetch(`${process.env.NEXT_PUBLIC_HPO_API_BASE_URL}/api/players/${player.username}/stats/`)
+        
         if (response.ok) {
           const data = await response.json()
-          
-          // Process the game stats data
-          const stats = data.gameStats || []
-          const totalGames = stats.length
-          const wins = stats.filter((game: any) => game.overallGameScore > 0).length
-          const losses = totalGames - wins
-          const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0
-
-          // Calculate stats by difficulty
-          const byDifficulty = {
-            easy: { played: 0, won: 0 },
-            medium: { played: 0, won: 0 },
-            hard: { played: 0, won: 0 }
-          }
-
-          stats.forEach((game: any) => {
-            const difficulty = game.gameLevel.toLowerCase()
-            if (difficulty in byDifficulty) {
-              byDifficulty[difficulty as keyof typeof byDifficulty].played++
-              if (game.overallGameScore > 0) {
-                byDifficulty[difficulty as keyof typeof byDifficulty].won++
-              }
-            }
-          })
-
-          setGameStats({
-            totalGames,
-            wins,
-            losses,
-            winRate,
-            byDifficulty
-          })
+          setPlayerStats(data)
+        } else {
+          console.error('Failed to fetch player stats:', response.statusText)
         }
       } catch (error) {
-        console.error('Error fetching game stats:', error)
+        console.error('Error fetching player stats:', error)
+      } finally {
+        setLoading(false)
       }
     }
 
-    if (isAuthenticated && player) {
-      fetchGameStats()
-    }
+    fetchPlayerStats()
   }, [isAuthenticated, player])
 
   return (
@@ -125,302 +121,195 @@ export default function DashboardPage() {
                   </Button></Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="bg-green-100 p-3 rounded-full mb-4">
-                  <BarChart2 className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">{t("dashboard.totalGames")}</h3>
-                <p className="text-3xl font-bold">{gameStats.totalGames}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="bg-green-100 p-3 rounded-full mb-4">
-                  <Trophy className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">{t("dashboard.wins")}</h3>
-                <p className="text-3xl font-bold">{gameStats.wins}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="bg-red-100 p-3 rounded-full mb-4">
-                  <Target className="h-6 w-6 text-red-500" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">{t("dashboard.losses")}</h3>
-                <p className="text-3xl font-bold">{gameStats.losses}</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <div className="bg-blue-100 p-3 rounded-full mb-4">
-                  <Award className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-medium mb-1">{t("dashboard.winRate")}</h3>
-                <p className="text-3xl font-bold">{gameStats.winRate}%</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("dashboard.byDifficulty")}</CardTitle>
-                <CardDescription>{t("dashboard.statistics")}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
-                      <span className="font-medium">{t("dashboard.easy")}</span>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-gray-500">Loading statistics...</div>
+            </div>
+          ) : playerStats ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-green-100 p-3 rounded-full mb-4">
+                      <BarChart2 className="h-6 w-6 text-green-600" />
                     </div>
-                    <Badge variant="outline" className="bg-green-50">
-                      {Math.round((gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100)}% of total won games
-                    </Badge>
-                  </div>
-                  <Progress
-                    value={(gameStats.byDifficulty.easy.played / gameStats.totalGames) * 100}
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
+                    <h3 className="text-lg font-medium mb-1">{t("dashboard.totalGames")}</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.total_games}</p>
+                  </CardContent>
+                </Card>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-yellow-400 mr-2"></div>
-                      <span className="font-medium">{t("dashboard.medium")}</span>
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-green-100 p-3 rounded-full mb-4">
+                      <Trophy className="h-6 w-6 text-green-600" />
                     </div>
-                    <Badge variant="outline" className="bg-yellow-50">
-                      {Math.round((gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100)}% of total won games
-                    </Badge>
-                  </div>
-                  <Progress
-                    value={(gameStats.byDifficulty.medium.played / gameStats.totalGames) * 100}
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
+                    <h3 className="text-lg font-medium mb-1">{t("dashboard.wins")}</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.wins}</p>
+                  </CardContent>
+                </Card>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 rounded-full bg-red-400 mr-2"></div>
-                      <span className="font-medium">{t("dashboard.hard")}</span>
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-red-100 p-3 rounded-full mb-4">
+                      <Target className="h-6 w-6 text-red-500" />
                     </div>
-                    <Badge variant="outline" className="bg-red-50">
-                      {Math.round((gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100)}% of total won games
-                    </Badge>
-                  </div>
-                  <Progress
-                    value={(gameStats.byDifficulty.hard.played / gameStats.totalGames) * 100}
-                    className="h-2 bg-gray-100"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                    <h3 className="text-lg font-medium mb-1">{t("dashboard.losses")}</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.losses}</p>
+                  </CardContent>
+                </Card>
 
-            {/* <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>{t("dashboard.recentGames")}</CardTitle>
-                  <CardDescription>{t("dashboard.statistics")}</CardDescription>
-                </div>
-                <Button variant="outline" size="sm" className="text-xs">
-                  {t("dashboard.viewAll")}
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {gameStats.recentGames.map((game) => (
-                    <div key={game.id} className="flex items-center p-3 border rounded-lg">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          game.result === "win" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
-                        }`}
-                      >
-                        {game.result === "win" ? <Trophy className="h-5 w-5" /> : <Target className="h-5 w-5" />}
-                      </div>
-                      <div className="ml-4 flex-1">
-                        <div className="flex justify-between">
-                          <span className="font-medium">
-                            {game.result === "win" ? t("dashboard.won") : t("dashboard.lost")}
-                          </span>
-                          <span className="text-sm text-gray-500 flex items-center">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {game.date}
-                          </span>
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-blue-100 p-3 rounded-full mb-4">
+                      <Award className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">{t("dashboard.winRate")}</h3>
+                    <p className="text-3xl font-bold">{Math.round(playerStats.statistics.win_rate)}%</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-purple-100 p-3 rounded-full mb-4">
+                      <Zap className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">Total Marks</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.total_marks}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-orange-100 p-3 rounded-full mb-4">
+                      <Brain className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">Accuracy</h3>
+                    <p className="text-3xl font-bold">{Math.round(playerStats.statistics.answer_accuracy)}%</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-yellow-100 p-3 rounded-full mb-4">
+                      <Clock className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">Current Streak</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.current_streak}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="bg-indigo-100 p-3 rounded-full mb-4">
+                      <Target className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <h3 className="text-lg font-medium mb-1">Best Streak</h3>
+                    <p className="text-3xl font-bold">{playerStats.statistics.longest_streak}</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          ) : (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-gray-500">No statistics available</div>
+            </div>
+          )}
+
+          {playerStats && playerStats.recent_games && playerStats.recent_games.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Games</CardTitle>
+                  <CardDescription>Your latest game activity</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {playerStats.recent_games.slice(0, 5).map((game) => (
+                      <div key={game.match_id} className="flex items-center p-3 border rounded-lg">
+                        <div
+                          className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            game.won ? "bg-green-100 text-green-600" : "bg-red-100 text-red-500"
+                          }`}
+                        >
+                          {game.won ? <Trophy className="h-5 w-5" /> : <Target className="h-5 w-5" />}
                         </div>
-                        <div className="flex justify-between mt-1">
-                          <div className="flex items-center space-x-2">
-                            <Badge
-                              variant="outline"
-                              className={
-                                game.difficulty === "easy"
-                                  ? "bg-green-50"
-                                  : game.difficulty === "medium"
-                                    ? "bg-yellow-50"
-                                    : "bg-red-50"
-                              }
-                            >
-                              {game.difficulty}
-                            </Badge>
+                        <div className="ml-4 flex-1">
+                          <div className="flex justify-between">
+                            <span className="font-medium">
+                              {game.won ? "Won" : "Lost"}
+                            </span>
                             <span className="text-sm text-gray-500 flex items-center">
-                              <Brain className="h-3 w-3 mr-1" />
-                              {t("dashboard.score")}: {game.score}
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {new Date(game.date).toLocaleDateString()}
                             </span>
                           </div>
-                          <span className="text-sm text-gray-500 flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {game.duration}
-                          </span>
+                          <div className="flex justify-between mt-1">
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="outline" className="bg-blue-50">
+                                Team {game.team}
+                              </Badge>
+                              <span className="text-sm text-gray-500 flex items-center">
+                                <Zap className="h-3 w-3 mr-1" />
+                                {game.marks_earned} marks
+                              </span>
+                            </div>
+                            <span className="text-sm text-gray-500 flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {game.participants} players
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card> */}
-          </div>
-
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>{t("dashboard.overview")}</CardTitle>
-              <CardDescription>{t("dashboard.statistics")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="knowledge">
-                <TabsList className="grid grid-cols-4 mb-6">
-                  <TabsTrigger value="knowledge" className="flex items-center justify-center">
-                    <Brain className="h-4 w-4 mr-2" />
-                    {t("card.knowledge")}
-                  </TabsTrigger>
-                  <TabsTrigger value="action" className="flex items-center justify-center">
-                    <Zap className="h-4 w-4 mr-2" />
-                    {t("card.action")}
-                  </TabsTrigger>
-                  <TabsTrigger value="equality" className="flex items-center justify-center">
-                    <Award className="h-4 w-4 mr-2" />
-                    {t("card.equality")}
-                  </TabsTrigger>
-                  <TabsTrigger value="health" className="flex items-center justify-center">
-                    <Target className="h-4 w-4 mr-2" />
-                    {t("card.health")}
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="knowledge">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">STI Prevention</span>
-                        <span className="text-sm text-gray-500">85%</span>
-                      </div>
-                      <Progress value={85} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Contraceptive Methods</span>
-                        <span className="text-sm text-gray-500">70%</span>
-                      </div>
-                      <Progress value={70} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Ishema Ryanjye Handbook</span>
-                        <span className="text-sm text-gray-500">60%</span>
-                      </div>
-                      <Progress value={60} className="h-2" />
-                    </div>
+                    ))}
                   </div>
-                </TabsContent>
+                </CardContent>
+              </Card>
 
-                <TabsContent value="action">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Consent Discussion</span>
-                        <span className="text-sm text-gray-500">75%</span>
-                      </div>
-                      <Progress value={75} className="h-2" />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Performance Overview</CardTitle>
+                  <CardDescription>Your gaming statistics</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Win Rate</span>
+                      <span className="text-sm text-gray-500">{Math.round(playerStats.statistics.win_rate)}%</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Condom Usage</span>
-                        <span className="text-sm text-gray-500">90%</span>
-                      </div>
-                      <Progress value={90} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Peer Pressure Resistance</span>
-                        <span className="text-sm text-gray-500">65%</span>
-                      </div>
-                      <Progress value={65} className="h-2" />
-                    </div>
+                    <Progress
+                      value={playerStats.statistics.win_rate}
+                      className="h-2 bg-gray-100"
+                    />
                   </div>
-                </TabsContent>
 
-                <TabsContent value="equality">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Gender Stereotypes</span>
-                        <span className="text-sm text-gray-500">80%</span>
-                      </div>
-                      <Progress value={80} className="h-2" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Answer Accuracy</span>
+                      <span className="text-sm text-gray-500">{Math.round(playerStats.statistics.answer_accuracy)}%</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Relationship Equality</span>
-                        <span className="text-sm text-gray-500">85%</span>
-                      </div>
-                      <Progress value={85} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Gender Rights</span>
-                        <span className="text-sm text-gray-500">75%</span>
-                      </div>
-                      <Progress value={75} className="h-2" />
-                    </div>
+                    <Progress
+                      value={playerStats.statistics.answer_accuracy}
+                      className="h-2 bg-gray-100"
+                    />
                   </div>
-                </TabsContent>
 
-                <TabsContent value="health">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Health Warning Signs</span>
-                        <span className="text-sm text-gray-500">70%</span>
-                      </div>
-                      <Progress value={70} className="h-2" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">Average Marks per Game</span>
+                      <span className="text-sm text-gray-500">{playerStats.statistics.average_marks_per_game.toFixed(2)}</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">Reproductive Health Maintenance</span>
-                        <span className="text-sm text-gray-500">65%</span>
-                      </div>
-                      <Progress value={65} className="h-2" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">STI Symptoms</span>
-                        <span className="text-sm text-gray-500">80%</span>
-                      </div>
-                      <Progress value={80} className="h-2" />
-                    </div>
+                    <Progress
+                      value={(playerStats.statistics.average_marks_per_game / 10) * 100}
+                      className="h-2 bg-gray-100"
+                    />
                   </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card> */}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-          
         </div>
         </div>
       </main>
