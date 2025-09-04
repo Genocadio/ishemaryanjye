@@ -107,7 +107,20 @@ export default function PremiumPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    toast.success("Thank you! HPO Rwanda will reach out to you soon via email or phone.")
+    // Determine contact method based on provided information
+    const hasName = personalForm.name.trim() !== ''
+    const hasEmail = personalForm.email.trim() !== ''
+    
+    let contactMethod = ''
+    if (hasName && hasEmail) {
+      contactMethod = 'via email or phone'
+    } else if (hasEmail) {
+      contactMethod = 'via email'
+    } else {
+      contactMethod = 'soon'
+    }
+    
+    toast.success(`Thank you! HPO Rwanda will reach out to you ${contactMethod}.`)
     setPersonalForm({ name: '', email: '' })
     setIsSubmitting(false)
   }
@@ -126,7 +139,20 @@ export default function PremiumPage() {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    toast.success("Thank you! HPO Rwanda will reach out to your organization soon via email or phone.")
+    // Determine contact method based on provided information
+    const hasName = orgForm.name.trim() !== ''
+    const hasEmail = orgForm.email.trim() !== ''
+    
+    let contactMethod = ''
+    if (hasName && hasEmail) {
+      contactMethod = 'via email or phone'
+    } else if (hasEmail) {
+      contactMethod = 'via email'
+    } else {
+      contactMethod = 'soon'
+    }
+    
+    toast.success(`Thank you! HPO Rwanda will reach out to your organization ${contactMethod}.`)
     setOrgForm({ name: '', email: '' })
     setIsSubmitting(false)
   }
