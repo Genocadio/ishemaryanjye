@@ -11,6 +11,7 @@ import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { SupportChat } from "@/components/support-chat"
+import { useRouter } from "next/navigation"
 interface GameStats {
   total_games: number
   wins: number
@@ -52,9 +53,17 @@ interface PlayerStats {
 
 export default function DashboardPage() {
   const { t } = useLanguage()
-  const { player, isAuthenticated } = useHPOAuth()
+  const router = useRouter()
+  const { player, isAuthenticated, isLoading } = useHPOAuth()
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Redirect unauthenticated users to home page
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   useEffect(() => {
     const fetchPlayerStats = async () => {
@@ -82,6 +91,33 @@ export default function DashboardPage() {
 
     fetchPlayerStats()
   }, [isAuthenticated, player])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header variant="default" />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the dashboard content if user is not authenticated (they'll be redirected)
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header variant="default" />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to home page...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen flex-col">

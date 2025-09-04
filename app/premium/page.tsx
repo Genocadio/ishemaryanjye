@@ -38,7 +38,8 @@ export default function PremiumPage() {
   // Personal form state
   const [personalForm, setPersonalForm] = useState({
     name: '',
-    email: ''
+    email: '',
+    phone: ''
   })
   
   // Organization form state
@@ -101,6 +102,7 @@ export default function PremiumPage() {
     console.log('Personal Premium Request:', {
       name: personalForm.name,
       email: personalForm.email,
+      phone: personalForm.phone,
       timestamp: new Date().toISOString()
     })
     
@@ -110,18 +112,25 @@ export default function PremiumPage() {
     // Determine contact method based on provided information
     const hasName = personalForm.name.trim() !== ''
     const hasEmail = personalForm.email.trim() !== ''
+    const hasPhone = personalForm.phone.trim() !== ''
     
     let contactMethod = ''
-    if (hasName && hasEmail) {
+    if (hasName && hasEmail && hasPhone) {
       contactMethod = 'via email or phone'
+    } else if (hasName && hasEmail) {
+      contactMethod = 'via email'
+    } else if (hasName && hasPhone) {
+      contactMethod = 'via phone'
     } else if (hasEmail) {
       contactMethod = 'via email'
+    } else if (hasPhone) {
+      contactMethod = 'via phone'
     } else {
       contactMethod = 'soon'
     }
     
     toast.success(`Thank you! HPO Rwanda will reach out to you ${contactMethod}.`)
-    setPersonalForm({ name: '', email: '' })
+    setPersonalForm({ name: '', email: '', phone: '' })
     setIsSubmitting(false)
   }
 
@@ -284,6 +293,18 @@ export default function PremiumPage() {
                           required
                         />
                       </div>
+                      {activeTab === 'personal' && (
+                        <div>
+                          <Label htmlFor="phone">Phone Number</Label>
+                          <Input
+                            id="phone"
+                            type="tel"
+                            value={personalForm.phone}
+                            onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
+                            placeholder="Enter phone number"
+                          />
+                        </div>
+                      )}
                       <Button 
                         type="submit" 
                         className="w-full bg-green-600 hover:bg-green-700"
