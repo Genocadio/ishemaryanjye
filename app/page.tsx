@@ -138,12 +138,12 @@ export default function Home() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    <Link href="/premium">
+{/*                     <Link href="/premium">
                       <Button className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
                         <Store className="mr-2 h-5 w-5" />
                         Get Premium Offer
                       </Button>
-                    </Link>
+                    </Link> */}
                   </motion.div>
                 </div>
               </div>
