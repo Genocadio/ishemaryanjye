@@ -27,17 +27,20 @@ interface Card {
 }
 
 export function CardViewer() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [allCards, setAllCards] = useState<Card[]>([])
   
   useEffect(() => {
+    // Determine which card folder to use based on language
+    const cardFolder = (language === 'en' || language === 'fr') ? 'expeng' : 'exp'
+    
     // Initialize cards array
     const cards: Card[] = []
     
     // Add special card if it exists
     cards.push({
-      path: "/exp/Special.webp",
+      path: `/${cardFolder}/Special.webp`,
       meaning: "Special card - Additional educational content",
       isSpecial: true
     })
@@ -48,7 +51,7 @@ export function CardViewer() {
       const ranks = ["3", "4", "5", "6", "7", "A", "J", "K", "Q"]
       ranks.forEach(rank => {
         cards.push({
-          path: `/exp/${suit}/${rank}.webp`,
+          path: `/${cardFolder}/${suit}/${rank}.webp`,
           suit,
           rank,
           meaning: cardMeanings[rank as keyof typeof cardMeanings] || "Additional educational content"
@@ -57,7 +60,7 @@ export function CardViewer() {
     })
     
     setAllCards(cards)
-  }, [])
+  }, [language])
 
   const currentCard = allCards[currentCardIndex]
 
