@@ -198,16 +198,58 @@ function GameInfoContent() {
     }
   }, [searchParams])
 
+  // Refetch content when language changes and dialog is open
+  useEffect(() => {
+    if (isDialogOpen) {
+      fetchGameContent()
+    }
+  }, [language]) // Only trigger when language changes, not when dialog opens/closes
+
+  // Map UI language codes to API language values
+  const getApiLanguage = (uiLanguage: string) => {
+    switch (uiLanguage) {
+      case 'en':
+        return 'english'
+      case 'fr':
+        return 'french'
+      case 'rw':
+        return 'kinyarwanda'
+      default:
+        return 'english' // fallback to english
+    }
+  }
+
   const fetchGameContent = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/game-content')
+      const apiLanguage = getApiLanguage(language)
+      console.log(`Fetching game content for language: ${language} -> ${apiLanguage}`)
+      
+      // Fetch content for the selected language
+      const response = await fetch(`/api/game-content?language=${apiLanguage}`)
       const data = await response.json()
-      if (data.success) {
+      
+      if (data.success && data.content && data.content.length > 0) {
+        console.log(`Found ${data.content.length} content items for ${apiLanguage}`)
         setGameContent(data.content)
-        // Don't auto-expand any topics - let them be collapsed initially
       } else {
-        toast.error('Failed to fetch content')
+        // If no content found for selected language, fallback to English
+        if (apiLanguage !== 'english') {
+          console.log(`No content found for ${apiLanguage}, falling back to English`)
+          const fallbackResponse = await fetch('/api/game-content?language=english')
+          const fallbackData = await fallbackResponse.json()
+          
+          if (fallbackData.success) {
+            console.log(`Fallback successful, found ${fallbackData.content?.length || 0} English content items`)
+            setGameContent(fallbackData.content)
+          } else {
+            console.error('Failed to fetch fallback English content')
+            toast.error('Failed to fetch content')
+          }
+        } else {
+          console.error('No English content found')
+          toast.error('Failed to fetch content')
+        }
       }
     } catch (error) {
       console.error('Error fetching game content:', error)
