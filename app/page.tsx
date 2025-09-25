@@ -316,7 +316,7 @@ export default function Home() {
       <Header variant="home" />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-green-50 to-white">
-          <div className="container mx-auto px-4 md:px-8">
+          <div className="container mx-auto max-w-7xl px-4 md:px-8">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2 text-center">
@@ -407,8 +407,8 @@ export default function Home() {
         </section>
 
         <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="container mx-auto max-w-7xl px-4 md:px-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center md:justify-items-stretch">
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-600">

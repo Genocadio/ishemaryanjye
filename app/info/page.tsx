@@ -431,7 +431,7 @@ function GameInfoContent() {
           {/* Decorative cards */}
           <DecorativeCards />
           
-          <div className="w-full max-w-5xl mx-auto px-4 md:px-8 py-12">
+          <div className="w-full max-w-6xl mx-auto px-4 md:px-8 py-12">
             <div className="text-center mb-12">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">{t("game.title")}</h1>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -447,8 +447,8 @@ function GameInfoContent() {
               </p>
               <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t("features.title")}</h3>
               <p className="text-gray-700 mb-6">{t("features.subtitle")}</p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="hover:shadow-lg transition-shadow duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-items-center md:justify-items-stretch">
+              <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0">
                 <CardHeader>
                     <CardTitle className="text-green-600">{t("features.purpose.title")}</CardTitle>
                 </CardHeader>
@@ -456,7 +456,7 @@ function GameInfoContent() {
                     <p className="text-gray-600">{t("features.purpose.description")}</p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-lg transition-shadow duration-300">
+              <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0">
                 <CardHeader>
                     <CardTitle className="text-green-600">{t("features.experts.title")}</CardTitle>
                 </CardHeader>
@@ -464,7 +464,7 @@ function GameInfoContent() {
                     <p className="text-gray-600">{t("features.experts.description")}</p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-lg transition-shadow duration-300">
+              <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0">
                 <CardHeader>
                     <CardTitle className="text-green-600">{t("features.fun.title")}</CardTitle>
                 </CardHeader>
@@ -502,7 +502,7 @@ export default function GameInfo() {
         <Header />
         <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
           <div className="relative w-full">
-            <div className="w-full max-w-5xl mx-auto px-4 md:px-8 py-12">
+            <div className="w-full max-w-6xl mx-auto px-4 md:px-8 py-12">
               <div className="flex items-center justify-center">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
