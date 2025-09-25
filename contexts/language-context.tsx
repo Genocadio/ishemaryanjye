@@ -175,6 +175,7 @@ type TranslationKeys = {
   // Common
   "common.cancel": string;
   "common.download": string;
+  "common.loading": string;
 
   // Connect
   "connect.title": string;
@@ -368,6 +369,7 @@ const translations: Record<Language, TranslationKeys> = {
     // Common
     "common.cancel": "Cancel",
     "common.download": "Download",
+    "common.loading": "Loading...",
     "common.back": "Back",
 
     // Connect
@@ -552,6 +554,7 @@ const translations: Record<Language, TranslationKeys> = {
     // Common
     "common.cancel": "Annuler",
     "common.download": "Télécharger",
+    "common.loading": "Chargement...",
     "common.back": "Retour",
 
     // Connect
@@ -738,6 +741,7 @@ const translations: Record<Language, TranslationKeys> = {
     // Common
     "common.cancel": "Siba",
     "common.download": "Manura",
+    "common.loading": "Birimo gutangizwa...",
     "common.back": "Subira inyuma",
 
     // Connect

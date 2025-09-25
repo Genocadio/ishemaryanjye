@@ -439,271 +439,52 @@ function GameInfoContent() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* What is Ishema Ryanjye? */}
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">{t("about.title")}</h2>
+              <p className="text-gray-700 mb-6">
+                {t("about.description")}
+              </p>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">{t("features.title")}</h3>
+              <p className="text-gray-700 mb-6">{t("features.subtitle")}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="hover:shadow-lg transition-shadow duration-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <Info className="h-5 w-5" />
-                    {t("game.rules.title")}
-                  </CardTitle>
+                    <CardTitle className="text-green-600">{t("features.purpose.title")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600 mb-6">{t("game.rules.description")}</p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        {t("game.rules.button")}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">{t("game.rules.title")}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-8">
-                        {Object.entries(rules[language]).map(([section, items]) => (
-                          <div key={section} className="space-y-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{section}</h3>
-                            <div className="space-y-2 pl-4">
-                              {items.map((rule, index) => (
-                                <p key={index} className="text-gray-700">
-                                  {index + 1}. {rule}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                    <p className="text-gray-600">{t("features.purpose.description")}</p>
                 </CardContent>
               </Card>
+              <Card className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                    <CardTitle className="text-green-600">{t("features.experts.title")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-gray-600">{t("features.experts.description")}</p>
+                </CardContent>
+              </Card>
+              <Card className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                    <CardTitle className="text-green-600">{t("features.fun.title")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-gray-600">{t("features.fun.description")}</p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="mt-8">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">{t("cta.title")}</h3>
+                <p className="text-gray-700">{t("cta.description")}</p>
+              </div>
+            </div>
 
-              <Card className="hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <Heart className="h-5 w-5" />
-                    {t("game.health.title")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-6">{t("game.health.description")}</p>
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700"
-                        onClick={() => {
-                          console.log('Dialog opened with language:', language);
-                          fetchGameContent()
-                          setIsDialogOpen(true)
-                        }}
-                      >
-                        Read Information
+            <div className="flex justify-center mt-8">
+              <Link href="/premium">
+                <Button className="inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-8 text-lg font-semibold text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
+                  {t("cta.button")}
                       </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
-                          Game Information & Educational Content
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        {loading ? (
-                          <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-                            <span className="ml-2 text-gray-600">Loading content...</span>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {Object.keys(groupedContent).length > 0 ? (
-                              Object.entries(groupedContent).map(([topic, subtopics]) => {
-                                const totalSubtopics = Object.keys(subtopics).length;
-                                return (
-                                  <div key={topic} className="border rounded-lg bg-white shadow-sm">
-                                    {/* Topic Header */}
-                                    <button
-                                      onClick={() => toggleTopic(topic)}
-                                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        {expandedTopic === topic ? (
-                                          <ChevronDown className="h-5 w-5 text-green-600" />
-                                        ) : (
-                                          <ChevronRight className="h-5 w-5 text-green-600" />
-                                        )}
-                                        <h3 className="text-lg font-semibold text-gray-900">{topic}</h3>
-                                      </div>
-                                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                        {totalSubtopics} {totalSubtopics === 1 ? 'subtopic' : 'subtopics'}
-                                      </span>
-                                    </button>
-                                    
-                                    {/* Topic Content - Subtopics */}
-                                    {expandedTopic === topic && (
-                                      <div className="border-t bg-gray-50">
-                                        {Object.entries(subtopics).map(([subtopicName, subtopicGroup]) => {
-                                          const subtopicKey = `${topic}-${subtopicName}`;
-                                          const { items, subtopicData, originalContent } = subtopicGroup;
-                                          const firstItem = items[0]; // Get first item for metadata
-                                          return (
-                                            <div key={subtopicKey} className="border-b last:border-b-0">
-                                              {/* Subtopic Header */}
-                                              <button
-                                                onClick={() => toggleSubtopic(subtopicKey)}
-                                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
-                                              >
-                                                <div className="flex items-center gap-3">
-                                                  {expandedSubtopics.has(subtopicKey) ? (
-                                                    <ChevronDown className="h-4 w-4 text-blue-600" />
-                                                  ) : (
-                                                    <ChevronRight className="h-4 w-4 text-blue-600" />
-                                                  )}
-                                                  <div>
-                                                    <h4 className="font-medium text-gray-800">
-                                                      {subtopicName}
-                                                    </h4>
-                                                    <div className="flex flex-wrap gap-2 mt-1">
-                                                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">
-                                                        {originalContent.language}
-                                                      </span>
-                                                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
-                                                        {originalContent.age_group}
-                                                      </span>
-                                                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">
-                                                        {originalContent.difficulty_level}
-                                                      </span>
-                                                      {subtopicData.is_primary && (
-                                                        <span className="bg-green-200 text-green-800 px-1.5 py-0.5 rounded text-xs">
-                                                          Primary
-                                                        </span>
-                                                      )}
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              </button>
-                                              
-                                              {/* Subtopic Content */}
-                                              {expandedSubtopics.has(subtopicKey) && (
-                                                <div className="px-4 pb-4 bg-white">
-                                                  <div className="pl-7 space-y-4">
-                                                    {/* Subtopic specific info */}
-                                                    <div className="text-gray-700 leading-relaxed">
-                                                      {formatText(subtopicData.info)}
-                                                    </div>
-                                                    
-                                                    {/* Show additional content items only if they have different/additional information */}
-                                                    {items.filter(content => 
-                                                      content.info !== subtopicData.info || 
-                                                      content.title || 
-                                                      (content.tags && content.tags.length > 0)
-                                                    ).map((content, itemIndex) => (
-                                                      <div key={`${content.id}-${itemIndex}`} className="bg-gray-50 p-3 rounded border-l-4 border-green-400">
-                                                        {content.title && (
-                                                          <h5 className="font-medium text-gray-800 mb-2">{content.title}</h5>
-                                                        )}
-                                                        
-                                                        {/* Only show content info if it's different from subtopic info */}
-                                                        {content.info !== subtopicData.info && (
-                                                          <div className="text-sm text-gray-600 mb-2">
-                                                            {formatText(content.info)}
-                                                          </div>
-                                                        )}
-                                                        
-                                                        {content.tags && content.tags.length > 0 && (
-                                                          <div className="mb-2">
-                                                            <h6 className="text-xs font-semibold text-gray-700 mb-1">Tags:</h6>
-                                                            <div className="flex flex-wrap gap-1">
-                                                              {content.tags.map((tag: string, tagIndex: number) => (
-                                                                <span key={tagIndex} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                                                                  #{tag}
-                                                                </span>
-                                                              ))}
-                                                            </div>
-                                                          </div>
-                                                        )}
-                                                        
-                                                        <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1 border-t">
-                                                          <span>Type: {content.content_type}</span>
-                                                          {content.card_association && (
-                                                            <span>Card: {content.card_association}</span>
-                                                          )}
-                                                          <span>Views: {content.view_count}</span>
-                                                        </div>
-                                                      </div>
-                                                    ))}
-                                                    
-                                                    {/* Show metadata for the subtopic itself */}
-                                                    <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
-                                                      <h6 className="text-sm font-semibold text-green-800 mb-2">Subtopic Details</h6>
-                                                      <div className="flex flex-wrap gap-4 text-xs text-green-600">
-                                                        <span>Content Type: {originalContent.content_type}</span>
-                                                        <span>Difficulty: {originalContent.difficulty_level}</span>
-                                                        {originalContent.card_association && (
-                                                          <span>Card Association: {originalContent.card_association}</span>
-                                                        )}
-                                                        <span>Total Views: {items.reduce((sum, item) => sum + item.view_count, 0)}</span>
-                                                        <span>Items: {items.length}</span>
-                                                      </div>
-                                                    </div>
-                                                  </div>
-                                                </div>
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })
-                            ) : (
-                              !loading && (
-                                <div className="text-center py-8">
-                                  <p className="text-gray-600">No content available at the moment.</p>
-                                </div>
-                              )
-                            )}
-                          </div>
-                        )}
-                        <div className="flex justify-end pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={() => setIsDialogOpen(false)}
-                          >
-                            Close
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <BookOpen className="h-5 w-5" />
-                    {t("game.cards.title")}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 mb-6">{t("game.cards.description")}</p>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="w-full bg-green-600 hover:bg-green-700">
-                        {t("game.cards.button")}
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
-                          {t("game.cards.title")}
-                        </DialogTitle>
-                      </DialogHeader>
-                      <CardViewer />
-                    </DialogContent>
-                  </Dialog>
-                </CardContent>
-              </Card>
+              </Link>
             </div>
           </div>
         </div>
