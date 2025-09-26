@@ -108,3 +108,53 @@ Route (app)                                 Size  First Load JS
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m Running script: build
+[0;36m[INFO][0m Executing: pnpm run build
+
+> ishemaryanjye@0.1.0 build /Users/MacBook/projects/frontend/ishemaryanjye
+> next build
+
+   ▲ Next.js 15.3.0
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 2000ms
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ ✓ Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    6.57 kB         212 kB
+├ ○ /_not-found                            975 B         103 kB
+├ ƒ /api/game-content                      145 B         102 kB
+├ ○ /apple-icon.png                          0 B            0 B
+├ ○ /auth                                5.18 kB         167 kB
+├ ○ /connect                             4.32 kB         157 kB
+├ ○ /dashboard                           4.58 kB         176 kB
+├ ○ /game                                  21 kB         228 kB
+├ ○ /game-selection                      4.18 kB         157 kB
+├ ○ /icon0.svg                               0 B            0 B
+├ ○ /icon1.png                               0 B            0 B
+├ ○ /info                                 4.8 kB         172 kB
+├ ○ /manifest.webmanifest                  145 B         102 kB
+├ ○ /multiplayer                         19.9 kB         224 kB
+├ ○ /premium                             6.01 kB         205 kB
+└ ○ /profile                             4.32 kB         166 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/454-110a8a60fd2ae1c1.js       46.7 kB
+  ├ chunks/ee239c0f-05e8353fda495b9a.js  53.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ Middleware                             33.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

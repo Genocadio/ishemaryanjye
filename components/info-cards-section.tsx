@@ -205,37 +205,35 @@ export function InfoCardsSection() {
   }
 
   const rules = {
-    en: {
-      "Game Overview": [
-        "The game follows standard card game rules.",
-        "Can be played between 2, 4, 6 players.",
-        "Cards contain different symbols (images) teaching reproductive health, gender-based violence, and promoting equality.",
-        "This card game is mainly for youth aged 10-24."
-      ],
-      "Game Setup": [
-        "It's good to read this book and other materials about reproductive health before playing.",
-        "Teams can use this book and other approved materials to find answers."
-      ],
-      "Gameplay Rules": [
-        "The goal is to answer questions correctly about the cards.",
-        "When a team wins, they ask a question to the losing team.",
-        "If the answer is correct, the goal is removed or becomes dead.",
-        "If the answer is wrong, the goal is counted.",
-        "When there's a tie, use another knowledgeable person in the team.",
-        "You can ask any question related to the card's image or numbers.",
-        "The game ends when all cards are played."
-      ],
-      "Special Card Rules": [
-        "When Mr. takes Queen, the person with Queen asks questions.",
-        "When three cards of the same suit are played first, the player asks questions.",
-        "When Ace is played first, use rules similar to Mr. and Queen."
-      ],
-      "Scoring": [
-        "Two goals are scored when a team can't play (15 points in 2 or 6 player game or 30 in 4 player game).",
-        "Other goals can be created during the game.",
-        "If teams tie, play again with the winning team scoring two goals."
-      ]
-    }
+    [t("game.rules.gameOverview")]: [
+      t("game.rules.overview1"),
+      t("game.rules.overview2"),
+      t("game.rules.overview3"),
+      t("game.rules.overview4")
+    ],
+    [t("game.rules.gameSetup")]: [
+      t("game.rules.setup1"),
+      t("game.rules.setup2")
+    ],
+    [t("game.rules.gameplayRules")]: [
+      t("game.rules.gameplay1"),
+      t("game.rules.gameplay2"),
+      t("game.rules.gameplay3"),
+      t("game.rules.gameplay4"),
+      t("game.rules.gameplay5"),
+      t("game.rules.gameplay6"),
+      t("game.rules.gameplay7")
+    ],
+    [t("game.rules.specialCardRules")]: [
+      t("game.rules.special1"),
+      t("game.rules.special2"),
+      t("game.rules.special3")
+    ],
+    [t("game.rules.scoring")]: [
+      t("game.rules.scoring1"),
+      t("game.rules.scoring2"),
+      t("game.rules.scoring3")
+    ]
   }
 
   return (
@@ -260,7 +258,7 @@ export function InfoCardsSection() {
                 <UIDialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">{t("game.rules.title")}</UIDialogTitle>
               </UIDialogHeader>
               <div className="space-y-8">
-                {Object.entries(rules['en']).map(([section, items]) => (
+                {Object.entries(rules).map(([section, items]) => (
                   <div key={section} className="space-y-2">
                     <h3 className="text-xl font-semibold text-gray-900">{section}</h3>
                     <div className="space-y-2 pl-4">
@@ -302,7 +300,7 @@ export function InfoCardsSection() {
             <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
               <UIDialogHeader>
                 <UIDialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
-                  Game Information & Educational Content
+                  {t("game.health.modalTitle")}
                 </UIDialogTitle>
               </UIDialogHeader>
               <div className="space-y-4">
@@ -331,7 +329,7 @@ export function InfoCardsSection() {
                                 <h3 className="text-lg font-semibold text-gray-900">{topic as string}</h3>
                               </div>
                               <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                {totalSubtopics} {totalSubtopics === 1 ? 'subtopic' : 'subtopics'}
+                                {totalSubtopics} {totalSubtopics === 1 ? t("game.health.subtopic") : t("game.health.subtopics")}
                               </span>
                             </button>
                             {expandedTopic === topic && (
@@ -358,7 +356,7 @@ export function InfoCardsSection() {
                                               <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">{originalContent.age_group}</span>
                                               <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{originalContent.difficulty_level}</span>
                                               {subtopicData.is_primary && (
-                                                <span className="bg-green-200 text-green-800 px-1.5 py-0.5 rounded text-xs">Primary</span>
+                                                <span className="bg-green-200 text-green-800 px-1.5 py-0.5 rounded text-xs">{t("game.health.primary")}</span>
                                               )}
                                             </div>
                                           </div>
@@ -380,7 +378,7 @@ export function InfoCardsSection() {
                                                   )}
                                                   {content.tags && content.tags.length > 0 && (
                                                     <div className="mb-2">
-                                                      <h6 className="text-xs font-semibold text-gray-700 mb-1">Tags:</h6>
+                                                      <h6 className="text-xs font-semibold text-gray-700 mb-1">{t("game.health.tags")}</h6>
                                                       <div className="flex flex-wrap gap-1">
                                                         {content.tags.map((tag: string, tagIndex: number) => (
                                                           <span key={tagIndex} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">#{tag}</span>
@@ -389,20 +387,20 @@ export function InfoCardsSection() {
                                                     </div>
                                                   )}
                                                   <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1 border-t">
-                                                    <span>Type: {content.content_type}</span>
-                                                    {content.card_association && <span>Card: {content.card_association}</span>}
-                                                    <span>Views: {content.view_count}</span>
+                                                    <span>{t("game.health.type")} {content.content_type}</span>
+                                                    {content.card_association && <span>{t("game.health.card")} {content.card_association}</span>}
+                                                    <span>{t("game.health.views")} {content.view_count}</span>
                                                   </div>
                                                 </div>
                                               ))}
                                             <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
-                                              <h6 className="text-sm font-semibold text-green-800 mb-2">Subtopic Details</h6>
+                                              <h6 className="text-sm font-semibold text-green-800 mb-2">{t("game.health.subtopicDetails")}</h6>
                                               <div className="flex flex-wrap gap-4 text-xs text-green-600">
-                                                <span>Content Type: {originalContent.content_type}</span>
-                                                <span>Difficulty: {originalContent.difficulty_level}</span>
-                                                {originalContent.card_association && <span>Card Association: {originalContent.card_association}</span>}
-                                                <span>Total Views: {items.reduce((sum: number, item: any) => sum + item.view_count, 0)}</span>
-                                                <span>Items: {items.length}</span>
+                                                <span>{t("game.health.contentType")} {originalContent.content_type}</span>
+                                                <span>{t("game.health.difficulty")} {originalContent.difficulty_level}</span>
+                                                {originalContent.card_association && <span>{t("game.health.cardAssociation")} {originalContent.card_association}</span>}
+                                                <span>{t("game.health.totalViews")} {items.reduce((sum: number, item: any) => sum + item.view_count, 0)}</span>
+                                                <span>{t("game.health.items")} {items.length}</span>
                                               </div>
                                             </div>
                                           </div>
@@ -419,14 +417,14 @@ export function InfoCardsSection() {
                     ) : (
                       !loadingContent && (
                         <div className="text-center py-8">
-                          <p className="text-gray-600">No content available at the moment.</p>
+                          <p className="text-gray-600">{t("game.health.noContent")}</p>
                         </div>
                       )
                     )}
                   </div>
                 )}
                 <div className="flex justify-end pt-4">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t("game.health.close")}</Button>
                 </div>
               </div>
             </DialogContent>

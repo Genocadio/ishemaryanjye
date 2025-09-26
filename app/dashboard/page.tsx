@@ -163,7 +163,7 @@ export default function DashboardPage() {
               <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] sm:w-[90vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600 text-center">
-                    Game Information & Learning Resources
+                    {t("game.health.modalTitle")}
                   </DialogTitle>
                 </DialogHeader>
                 <div className="py-4">

@@ -152,6 +152,50 @@ type TranslationKeys = {
   "game.cards.description": string;
   "game.cards.button": string;
 
+  // Game Rules Content
+  "game.rules.gameOverview": string;
+  "game.rules.gameSetup": string;
+  "game.rules.gameplayRules": string;
+  "game.rules.specialCardRules": string;
+  "game.rules.scoring": string;
+  "game.rules.overview1": string;
+  "game.rules.overview2": string;
+  "game.rules.overview3": string;
+  "game.rules.overview4": string;
+  "game.rules.setup1": string;
+  "game.rules.setup2": string;
+  "game.rules.gameplay1": string;
+  "game.rules.gameplay2": string;
+  "game.rules.gameplay3": string;
+  "game.rules.gameplay4": string;
+  "game.rules.gameplay5": string;
+  "game.rules.gameplay6": string;
+  "game.rules.gameplay7": string;
+  "game.rules.special1": string;
+  "game.rules.special2": string;
+  "game.rules.special3": string;
+  "game.rules.scoring1": string;
+  "game.rules.scoring2": string;
+  "game.rules.scoring3": string;
+
+  // Health Information Content
+  "game.health.modalTitle": string;
+  "game.health.subtopic": string;
+  "game.health.subtopics": string;
+  "game.health.primary": string;
+  "game.health.tags": string;
+  "game.health.type": string;
+  "game.health.card": string;
+  "game.health.views": string;
+  "game.health.subtopicDetails": string;
+  "game.health.contentType": string;
+  "game.health.difficulty": string;
+  "game.health.cardAssociation": string;
+  "game.health.totalViews": string;
+  "game.health.items": string;
+  "game.health.noContent": string;
+  "game.health.close": string;
+
   // Waiting Room
   "waitingRoom.title": string;
   "waitingRoom.allConnected": string;
@@ -405,6 +449,50 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.description": "Understand the meaning and significance of each card in the game.",
     "game.cards.button": "View Cards",
 
+    // Game Rules Content
+    "game.rules.gameOverview": "Game Overview",
+    "game.rules.gameSetup": "Game Setup",
+    "game.rules.gameplayRules": "Gameplay Rules",
+    "game.rules.specialCardRules": "Special Card Rules",
+    "game.rules.scoring": "Scoring",
+    "game.rules.overview1": "The game follows standard card game rules.",
+    "game.rules.overview2": "Can be played between 2, 4, 6 players.",
+    "game.rules.overview3": "Cards contain different symbols (images) teaching reproductive health, gender-based violence, and promoting equality.",
+    "game.rules.overview4": "This card game is mainly for youth aged 10-24.",
+    "game.rules.setup1": "It's good to read this book and other materials about reproductive health before playing.",
+    "game.rules.setup2": "Teams can use this book and other approved materials to find answers.",
+    "game.rules.gameplay1": "The goal is to answer questions correctly about the cards.",
+    "game.rules.gameplay2": "When a team wins, they ask a question to the losing team.",
+    "game.rules.gameplay3": "If the answer is correct, the goal is removed or becomes dead.",
+    "game.rules.gameplay4": "If the answer is wrong, the goal is counted.",
+    "game.rules.gameplay5": "When there's a tie, use another knowledgeable person in the team.",
+    "game.rules.gameplay6": "You can ask any question related to the card's image or numbers.",
+    "game.rules.gameplay7": "The game ends when all cards are played.",
+    "game.rules.special1": "When Mr. takes Queen, the person with Queen asks questions.",
+    "game.rules.special2": "When three cards of the same suit are played first, the player asks questions.",
+    "game.rules.special3": "When Ace is played first, use rules similar to Mr. and Queen.",
+    "game.rules.scoring1": "Two goals are scored when a team can't play (15 points in 2 or 6 player game or 30 in 4 player game).",
+    "game.rules.scoring2": "Other goals can be created during the game.",
+    "game.rules.scoring3": "If teams tie, play again with the winning team scoring two goals.",
+
+    // Health Information Content
+    "game.health.modalTitle": "Game Information & Educational Content",
+    "game.health.subtopic": "subtopic",
+    "game.health.subtopics": "subtopics",
+    "game.health.primary": "Primary",
+    "game.health.tags": "Tags:",
+    "game.health.type": "Type:",
+    "game.health.card": "Card:",
+    "game.health.views": "Views:",
+    "game.health.subtopicDetails": "Subtopic Details",
+    "game.health.contentType": "Content Type:",
+    "game.health.difficulty": "Difficulty:",
+    "game.health.cardAssociation": "Card Association:",
+    "game.health.totalViews": "Total Views:",
+    "game.health.items": "Items:",
+    "game.health.noContent": "No content available at the moment.",
+    "game.health.close": "Close",
+
        // Waiting Room
        "waitingRoom.title": "Waiting Room",
        "waitingRoom.allConnected": "All players connected! Starting game...",
@@ -647,6 +735,50 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.title": "Signification des Cartes",
     "game.cards.description": "Comprenez la signification et l'importance de chaque carte dans le jeu.",
     "game.cards.button": "Voir les Cartes",
+
+    // Game Rules Content
+    "game.rules.gameOverview": "Aperçu du Jeu",
+    "game.rules.gameSetup": "Configuration du Jeu",
+    "game.rules.gameplayRules": "Règles de Jeu",
+    "game.rules.specialCardRules": "Règles de Cartes Spéciales",
+    "game.rules.scoring": "Marquage",
+    "game.rules.overview1": "Le jeu suit les règles standard des jeux de cartes.",
+    "game.rules.overview2": "Peut être joué entre 2, 4, 6 joueurs.",
+    "game.rules.overview3": "Les cartes contiennent différents symboles (images) enseignant la santé reproductive, la violence basée sur le genre, et promouvant l'égalité.",
+    "game.rules.overview4": "Ce jeu de cartes est principalement pour les jeunes âgés de 10-24 ans.",
+    "game.rules.setup1": "Il est bon de lire ce livre et d'autres matériaux sur la santé reproductive avant de jouer.",
+    "game.rules.setup2": "Les équipes peuvent utiliser ce livre et d'autres matériaux approuvés pour trouver des réponses.",
+    "game.rules.gameplay1": "L'objectif est de répondre correctement aux questions sur les cartes.",
+    "game.rules.gameplay2": "Quand une équipe gagne, elle pose une question à l'équipe perdante.",
+    "game.rules.gameplay3": "Si la réponse est correcte, l'objectif est retiré ou devient mort.",
+    "game.rules.gameplay4": "Si la réponse est fausse, l'objectif est compté.",
+    "game.rules.gameplay5": "En cas d'égalité, utilisez une autre personne compétente dans l'équipe.",
+    "game.rules.gameplay6": "Vous pouvez poser toute question liée à l'image de la carte ou aux chiffres.",
+    "game.rules.gameplay7": "Le jeu se termine quand toutes les cartes sont jouées.",
+    "game.rules.special1": "Quand Monsieur prend Dame, la personne avec Dame pose des questions.",
+    "game.rules.special2": "Quand trois cartes de la même couleur sont jouées en premier, le joueur pose des questions.",
+    "game.rules.special3": "Quand As est joué en premier, utilisez des règles similaires à Monsieur et Dame.",
+    "game.rules.scoring1": "Deux buts sont marqués quand une équipe ne peut pas jouer (15 points dans un jeu à 2 ou 6 joueurs ou 30 dans un jeu à 4 joueurs).",
+    "game.rules.scoring2": "D'autres buts peuvent être créés pendant le jeu.",
+    "game.rules.scoring3": "Si les équipes sont à égalité, rejouez avec l'équipe gagnante marquant deux buts.",
+
+    // Health Information Content
+    "game.health.modalTitle": "Informations sur le Jeu et Contenu Éducatif",
+    "game.health.subtopic": "sous-sujet",
+    "game.health.subtopics": "sous-sujets",
+    "game.health.primary": "Primaire",
+    "game.health.tags": "Étiquettes:",
+    "game.health.type": "Type:",
+    "game.health.card": "Carte:",
+    "game.health.views": "Vues:",
+    "game.health.subtopicDetails": "Détails du Sous-sujet",
+    "game.health.contentType": "Type de Contenu:",
+    "game.health.difficulty": "Difficulté:",
+    "game.health.cardAssociation": "Association de Carte:",
+    "game.health.totalViews": "Total des Vues:",
+    "game.health.items": "Éléments:",
+    "game.health.noContent": "Aucun contenu disponible pour le moment.",
+    "game.health.close": "Fermer",
 
      // Waiting Room
      "waitingRoom.title": "Salle d'Attente",
@@ -892,6 +1024,50 @@ const translations: Record<Language, TranslationKeys> = {
     "game.cards.title": "Ibisobanuro by'Amakarita",
     "game.cards.description": "Sobanukirwa ibisobanuro n'ingaruka z'amakarita yose muri uyu mukino.",
     "game.cards.button": "Reba Amakarita",
+
+    // Game Rules Content
+    "game.rules.gameOverview": "Incamake y'Umukino",
+    "game.rules.gameSetup": "Gutegura Umukino",
+    "game.rules.gameplayRules": "Amabwiriza y'Umukino",
+    "game.rules.specialCardRules": "Amabwiriza y'Amakarita Adasanzwe",
+    "game.rules.scoring": "Gupima Amanota",
+    "game.rules.overview1": "Umukino ukurikira amabwiriza rusange y'amakarita.",
+    "game.rules.overview2": "Ushobora gukinwa hagati y'abakinnyi 2, 4, 6.",
+    "game.rules.overview3": "Amakarita afite ibimenyetso bitandukanye (amashusho) yigisha ku buzima bw'imyororokere, ihohoterwa rishingiye ku gitsina, no guteza imbere uburinganire.",
+    "game.rules.overview4": "Uyu mukino w'amakarita ni wo w'ingenzi ku rubyiruko rufite imyaka 10-24.",
+    "game.rules.setup1": "Ni byiza gusoma iki gitabo n'ibindi bikoresho byerekeye ubuzima bw'imyororokere mbere yo gukina.",
+    "game.rules.setup2": "Amatsinda arashobora gukoresha iki gitabo n'ibindi bikoresho byemewe kugira ngo abone ibisubizo.",
+    "game.rules.gameplay1": "Intego ni uko usubiza neza ibibazo byerekeye amakarita.",
+    "game.rules.gameplay2": "Igihe itsinda ritsinza, ryibaza ikibazo ku tsinda ryatsinzwe.",
+    "game.rules.gameplay3": "Niba igisubizo ni cyo, intego irahagarikwa cyangwa ikaba yapfuye.",
+    "game.rules.gameplay4": "Niba igisubizo si cyo, intego irabarwa.",
+    "game.rules.gameplay5": "Igihe habaho uburinganiye, koresha umuntu undi ufite ubumenyi mu tsinda.",
+    "game.rules.gameplay6": "Urashobora kubaza ikibazo cyose cyerekeye ishusho y'akarita cyangwa imibare.",
+    "game.rules.gameplay7": "Umukino urahangira iyo amakarita yose yakinnye.",
+    "game.rules.special1": "Igihe Monsieur atora Queen, uwo ufite Queen abaza ibibazo.",
+    "game.rules.special2": "Igihe amakarita atatu y'ubwoko bumwe akinnye mbere, umukinnyi abaza ibibazo.",
+    "game.rules.special3": "Igihe Ace akinnye mbere, koresha amabwiriza asa na Monsieur na Queen.",
+    "game.rules.scoring1": "Intego ebyiri zirangurwa igihe itsinda ritashobora gukina (amanota 15 mu mukino w'abakinnyi 2 cyangwa 6 cyangwa 30 mu mukino w'abakinnyi 4).",
+    "game.rules.scoring2": "Izindi ntego zishobora gukoreshwa mu gihe cy'umukino.",
+    "game.rules.scoring3": "Niba amatsinda ari uburinganiye, ongera ukine n'itsinda ryatsinze rikangurira intego ebyiri.",
+
+    // Health Information Content
+    "game.health.modalTitle": "Amakuru y'Umukino n'Ubwiyongere",
+    "game.health.subtopic": "icyigice",
+    "game.health.subtopics": "ibyigice",
+    "game.health.primary": "Uwibanze",
+    "game.health.tags": "Icyita:",
+    "game.health.type": "Ubwoko:",
+    "game.health.card": "Akarita:",
+    "game.health.views": "Reba:",
+    "game.health.subtopicDetails": "Ibyigice by'Icyigice",
+    "game.health.contentType": "Ubwoko bw'Ubwiyongere:",
+    "game.health.difficulty": "Ubukana:",
+    "game.health.cardAssociation": "Ihuza ry'Akarita:",
+    "game.health.totalViews": "Reba Byose:",
+    "game.health.items": "Ibintu:",
+    "game.health.noContent": "Nta bwiyongere buraboneka ubu.",
+    "game.health.close": "Funga",
 
       // Waiting Room
       "waitingRoom.title": "Icyumba cyo Gutegereza",
