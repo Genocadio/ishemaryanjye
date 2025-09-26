@@ -12,6 +12,8 @@ import { useEffect, useState } from "react"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { SupportChat } from "@/components/support-chat"
 import { useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { InfoCardsSection } from "@/components/info-cards-section"
 interface GameStats {
   total_games: number
   wins: number
@@ -149,12 +151,26 @@ export default function DashboardPage() {
                     {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                   </Link>
-            <Link href="/info"><Button
-                    variant="outline"
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
-                  >
-                    {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
-                  </Button></Link>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+                >
+                  {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] sm:w-[90vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600 text-center">
+                    Game Information & Learning Resources
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                  <InfoCardsSection />
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
           
           <div className="flex justify-center mt-4">
