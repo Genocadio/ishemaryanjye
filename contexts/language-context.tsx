@@ -185,6 +185,65 @@ type TranslationKeys = {
   "connect.enterCode": string;
   "connect.connectionCode": string;
   "connect.join": string;
+  "connect.resumeGame": string;
+  "connect.creating": string;
+
+  // Game Selection
+  "gameSelection.title": string;
+  "gameSelection.singlePlayer": string;
+  "gameSelection.singlePlayerDescription": string;
+  "gameSelection.playerVsAi": string;
+  "gameSelection.quickGame": string;
+  "gameSelection.playImmediately": string;
+  "gameSelection.multiplayer": string;
+  "gameSelection.multiplayerDescription": string;
+  "gameSelection.players": string;
+  "gameSelection.quickDuel": string;
+  "gameSelection.standardTeamGame": string;
+  "gameSelection.largeGroupMatch": string;
+  "gameSelection.playWithFriends": string;
+  "gameSelection.requiresSignIn": string;
+  "gameSelection.loading": string;
+
+  // Multiplayer
+  "multiplayer.title": string;
+  "multiplayer.lobby": string;
+  "multiplayer.matchId": string;
+  "multiplayer.waitingForPlayers": string;
+  "multiplayer.startingGame": string;
+  "multiplayer.inviteCodes": string;
+  "multiplayer.shareCode": string;
+  "multiplayer.team1": string;
+  "multiplayer.team2": string;
+  "multiplayer.team": string;
+  "multiplayer.waitingForPlayersToJoin": string;
+  "multiplayer.connected": string;
+  "multiplayer.disconnected": string;
+  "multiplayer.matchPaused": string;
+  "multiplayer.matchResumed": string;
+  "multiplayer.reconnecting": string;
+  "multiplayer.exitGame": string;
+  "multiplayer.playAgain": string;
+  "multiplayer.matchOver": string;
+  "multiplayer.congratulations": string;
+  "multiplayer.yourTeamWon": string;
+  "multiplayer.yourTeamLost": string;
+  "multiplayer.yourScore": string;
+  "multiplayer.opponentScore": string;
+  "multiplayer.chooseCard": string;
+  "multiplayer.answerQuestion": string;
+  "multiplayer.questionCompleted": string;
+  "multiplayer.readyForAnotherMatch": string;
+  "multiplayer.funFact": string;
+  "multiplayer.close": string;
+  "multiplayer.submitAnswer": string;
+  "multiplayer.cancel": string;
+  "multiplayer.selectCorrectAnswers": string;
+  "multiplayer.correct": string;
+  "multiplayer.incorrect": string;
+  "multiplayer.earnedMarks": string;
+  "multiplayer.correctAnswer": string;
+
   "common.back": string;
 }
 
@@ -380,6 +439,64 @@ const translations: Record<Language, TranslationKeys> = {
     "connect.enterCode": "Enter the connection code to join an existing game.",
     "connect.connectionCode": "Connection Code",
     "connect.join": "Join",
+    "connect.resumeGame": "Resume Game",
+    "connect.creating": "Creating...",
+
+    // Game Selection
+    "gameSelection.title": "Choose Your Game Mode",
+    "gameSelection.singlePlayer": "Single Player",
+    "gameSelection.singlePlayerDescription": "Sharpen your skills against our AI opponent.",
+    "gameSelection.playerVsAi": "Player vs AI",
+    "gameSelection.quickGame": "A quick game to test your wit.",
+    "gameSelection.playImmediately": "Play immediately",
+    "gameSelection.multiplayer": "Multiplayer",
+    "gameSelection.multiplayerDescription": "Challenge your friends in a game of Ishema Ryanjye.",
+    "gameSelection.players": "Players",
+    "gameSelection.quickDuel": "A quick duel",
+    "gameSelection.standardTeamGame": "Standard team game",
+    "gameSelection.largeGroupMatch": "Large group match",
+    "gameSelection.playWithFriends": "Play with friends",
+    "gameSelection.requiresSignIn": "Requires sign in",
+    "gameSelection.loading": "Loading...",
+
+    // Multiplayer
+    "multiplayer.title": "Multiplayer Game",
+    "multiplayer.lobby": "Multiplayer Lobby",
+    "multiplayer.matchId": "Match ID",
+    "multiplayer.waitingForPlayers": "Waiting for players to join...",
+    "multiplayer.startingGame": "Starting game...",
+    "multiplayer.inviteCodes": "Invite Code",
+    "multiplayer.shareCode": "Share this code with the next player joining.",
+    "multiplayer.team1": "Team 1",
+    "multiplayer.team2": "Team 2",
+    "multiplayer.team": "Team",
+    "multiplayer.waitingForPlayersToJoin": "Waiting for players to join...",
+    "multiplayer.connected": "Connected",
+    "multiplayer.disconnected": "Disconnected",
+    "multiplayer.matchPaused": "Match Paused",
+    "multiplayer.matchResumed": "Match Resumed",
+    "multiplayer.reconnecting": "Reconnecting...",
+    "multiplayer.exitGame": "Exit Game",
+    "multiplayer.playAgain": "Play Again",
+    "multiplayer.matchOver": "Match Over",
+    "multiplayer.congratulations": "Congratulations!",
+    "multiplayer.yourTeamWon": "Your team won the match!",
+    "multiplayer.yourTeamLost": "Your team lost to",
+    "multiplayer.yourScore": "Your Team's Score",
+    "multiplayer.opponentScore": "Opponent's Score",
+    "multiplayer.chooseCard": "Choose a card from the last round to answer a question for a chance to win.",
+    "multiplayer.answerQuestion": "Answer the question to continue to the next match.",
+    "multiplayer.questionCompleted": "Question completed! Ready for another match?",
+    "multiplayer.readyForAnotherMatch": "Ready for another match?",
+    "multiplayer.funFact": "Fun Fact?",
+    "multiplayer.close": "Close",
+    "multiplayer.submitAnswer": "Submit Answer",
+    "multiplayer.cancel": "Cancel",
+    "multiplayer.selectCorrectAnswers": "Select correct answer",
+    "multiplayer.correct": "Correct!",
+    "multiplayer.incorrect": "Incorrect.",
+    "multiplayer.earnedMarks": "You earned mark(s).",
+    "multiplayer.correctAnswer": "The correct answer was:",
   },
   fr: {
     // Header
@@ -565,6 +682,64 @@ const translations: Record<Language, TranslationKeys> = {
     "connect.enterCode": "Entrez le code de connexion pour rejoindre une partie existante.",
     "connect.connectionCode": "Code de connexion",
     "connect.join": "Rejoindre",
+    "connect.resumeGame": "Reprendre la partie",
+    "connect.creating": "Création...",
+
+    // Game Selection
+    "gameSelection.title": "Choisissez votre mode de jeu",
+    "gameSelection.singlePlayer": "Joueur unique",
+    "gameSelection.singlePlayerDescription": "Améliorez vos compétences contre notre adversaire IA.",
+    "gameSelection.playerVsAi": "Joueur contre IA",
+    "gameSelection.quickGame": "Un jeu rapide pour tester votre esprit.",
+    "gameSelection.playImmediately": "Jouer immédiatement",
+    "gameSelection.multiplayer": "Multijoueur",
+    "gameSelection.multiplayerDescription": "Défiez vos amis dans une partie d'Ishema Ryanjye.",
+    "gameSelection.players": "Joueurs",
+    "gameSelection.quickDuel": "Un duel rapide",
+    "gameSelection.standardTeamGame": "Jeu d'équipe standard",
+    "gameSelection.largeGroupMatch": "Match de grand groupe",
+    "gameSelection.playWithFriends": "Jouer avec des amis",
+    "gameSelection.requiresSignIn": "Nécessite une connexion",
+    "gameSelection.loading": "Chargement...",
+
+    // Multiplayer
+    "multiplayer.title": "Jeu multijoueur",
+    "multiplayer.lobby": "Lobby multijoueur",
+    "multiplayer.matchId": "ID de match",
+    "multiplayer.waitingForPlayers": "En attente de joueurs...",
+    "multiplayer.startingGame": "Démarrage du jeu...",
+    "multiplayer.inviteCodes": "Code d'invitation",
+    "multiplayer.shareCode": "Partagez ce code avec le prochain joueur.",
+    "multiplayer.team1": "Équipe 1",
+    "multiplayer.team2": "Équipe 2",
+    "multiplayer.team": "Équipe",
+    "multiplayer.waitingForPlayersToJoin": "En attente de joueurs...",
+    "multiplayer.connected": "Connecté",
+    "multiplayer.disconnected": "Déconnecté",
+    "multiplayer.matchPaused": "Match en pause",
+    "multiplayer.matchResumed": "Match repris",
+    "multiplayer.reconnecting": "Reconnexion...",
+    "multiplayer.exitGame": "Quitter le jeu",
+    "multiplayer.playAgain": "Rejouer",
+    "multiplayer.matchOver": "Match terminé",
+    "multiplayer.congratulations": "Félicitations !",
+    "multiplayer.yourTeamWon": "Votre équipe a gagné le match !",
+    "multiplayer.yourTeamLost": "Votre équipe a perdu contre",
+    "multiplayer.yourScore": "Score de votre équipe",
+    "multiplayer.opponentScore": "Score de l'adversaire",
+    "multiplayer.chooseCard": "Choisissez une carte du dernier tour pour répondre à une question et avoir une chance de gagner.",
+    "multiplayer.answerQuestion": "Répondez à la question pour continuer au match suivant.",
+    "multiplayer.questionCompleted": "Question terminée ! Prêt pour un autre match ?",
+    "multiplayer.readyForAnotherMatch": "Prêt pour un autre match ?",
+    "multiplayer.funFact": "Fait amusant ?",
+    "multiplayer.close": "Fermer",
+    "multiplayer.submitAnswer": "Soumettre la réponse",
+    "multiplayer.cancel": "Annuler",
+    "multiplayer.selectCorrectAnswers": "Sélectionnez la bonne réponse",
+    "multiplayer.correct": "Correct !",
+    "multiplayer.incorrect": "Incorrect.",
+    "multiplayer.earnedMarks": "Vous avez gagné point(s).",
+    "multiplayer.correctAnswer": "La bonne réponse était :",
   },
   rw: {
     // Header
@@ -752,6 +927,64 @@ const translations: Record<Language, TranslationKeys> = {
     "connect.enterCode": "Shyiramo kode kugirango winjire mu mukino.",
     "connect.connectionCode": "Kode y'umukino",
     "connect.join": "Injira",
+    "connect.resumeGame": "Ongera ukine",
+    "connect.creating": "Birimo gukora...",
+
+    // Game Selection
+    "gameSelection.title": "Hitamo uburyo bwo gukina",
+    "gameSelection.singlePlayer": "Umukinnyi umwe",
+    "gameSelection.singlePlayerDescription": "Kongera ubushobozi bwawe ukina na AI.",
+    "gameSelection.playerVsAi": "Umukinnyi na AI",
+    "gameSelection.quickGame": "Umukino wo vuba wo gusuzuma ubwoba bwawe.",
+    "gameSelection.playImmediately": "Kina nonaha",
+    "gameSelection.multiplayer": "Abakinnyi benshi",
+    "gameSelection.multiplayerDescription": "Hangana n'inshuti zawe mu mukino wa Ishema Ryanjye.",
+    "gameSelection.players": "Abakinnyi",
+    "gameSelection.quickDuel": "Intambara yo vuba",
+    "gameSelection.standardTeamGame": "Umukino w'itsinda rusange",
+    "gameSelection.largeGroupMatch": "Umukino w'itsinda rinini",
+    "gameSelection.playWithFriends": "Kina n'inshuti",
+    "gameSelection.requiresSignIn": "Bakeneye kwiyandikisha",
+    "gameSelection.loading": "Birimo gutangizwa...",
+
+    // Multiplayer
+    "multiplayer.title": "Umukino w'abakinnyi benshi",
+    "multiplayer.lobby": "Icyumba cy'abakinnyi benshi",
+    "multiplayer.matchId": "ID y'umukino",
+    "multiplayer.waitingForPlayers": "Gutegereza abakinnyi...",
+    "multiplayer.startingGame": "Gutangira umukino...",
+    "multiplayer.inviteCodes": "Kode yo gutumira",
+    "multiplayer.shareCode": "Sangira iyi kode n'umukinnyi ukurikira.",
+    "multiplayer.team1": "Itsinda 1",
+    "multiplayer.team2": "Itsinda 2",
+    "multiplayer.team": "Itsinda",
+    "multiplayer.waitingForPlayersToJoin": "Gutegereza abakinnyi...",
+    "multiplayer.connected": "Wahuye",
+    "multiplayer.disconnected": "Wahakuye",
+    "multiplayer.matchPaused": "Umukino wakayemo",
+    "multiplayer.matchResumed": "Umukino wongeye",
+    "multiplayer.reconnecting": "Ongera uhuze...",
+    "multiplayer.exitGame": "Sohoka mu mukino",
+    "multiplayer.playAgain": "Ongera ukine",
+    "multiplayer.matchOver": "Umukino warangiye",
+    "multiplayer.congratulations": "Twishimiye!",
+    "multiplayer.yourTeamWon": "Itsinda ryawe ryatsinze umukino!",
+    "multiplayer.yourTeamLost": "Itsinda ryawe ryatsinzwe na",
+    "multiplayer.yourScore": "Amanota y'itsinda ryawe",
+    "multiplayer.opponentScore": "Amanota y'uwo muhanganye",
+    "multiplayer.chooseCard": "Hitamo karita yo mu gice cyanyuma kugirango usubize ikibazo kugira ngo ugire amahirwe yo gutsinda.",
+    "multiplayer.answerQuestion": "Subiza ikibazo kugira ngo ukomeze ku mukino ukurikira.",
+    "multiplayer.questionCompleted": "Ikibazo cyarangiye! Witeguye ku mukino ukurikira?",
+    "multiplayer.readyForAnotherMatch": "Witeguye ku mukino ukurikira?",
+    "multiplayer.funFact": "Ikintu gishimishije?",
+    "multiplayer.close": "Funga",
+    "multiplayer.submitAnswer": "Ohereza igisubizo",
+    "multiplayer.cancel": "Kureka",
+    "multiplayer.selectCorrectAnswers": "Hitamo igisubizo cy'ukuri",
+    "multiplayer.correct": "Ni cyo!",
+    "multiplayer.incorrect": "Ntabwo ari cyo.",
+    "multiplayer.earnedMarks": "Wungutse amanota.",
+    "multiplayer.correctAnswer": "Igisubizo cy'ukuri cyari:",
   },
 }
 

@@ -409,7 +409,7 @@ export default function Home() {
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container mx-auto max-w-7xl px-4 md:px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 justify-items-center md:justify-items-stretch">
-              <Card className="hover:shadow-lg transition-shadow duration-300">
+              <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-green-600">
                     <Info className="h-5 w-5" />

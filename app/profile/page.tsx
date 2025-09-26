@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
+import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 export default function ProfilePage() {
   const { player, isAuthenticated, isLoading: authLoading } = useHPOAuth()
+  const { t } = useLanguage()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -26,13 +28,41 @@ export default function ProfilePage() {
     profilePicture: "",
   })
 
+  // Redirect unauthenticated users to home page
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push("/auth")
+      router.push('/')
     } else if (isAuthenticated && player) {
       fetchProfileData()
     }
   }, [authLoading, isAuthenticated, player, router])
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the content if user is not authenticated (they'll be redirected)
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to home page...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   const fetchProfileData = async () => {
     try {
@@ -140,14 +170,14 @@ export default function ProfilePage() {
         <main className="flex-1 bg-gradient-to-b from-green-50 to-white">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-12">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">User Profile</h1>
-        <p className="text-gray-500">View and edit your personal information</p>
+        <h1 className="text-3xl font-bold">{t("profile.title")}</h1>
+        <p className="text-gray-500">{t("profile.subtitle")}</p>
       </div>
 
       <div className="grid md:grid-cols-[1fr_2fr] gap-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">Profile Picture</CardTitle>
+            <CardTitle className="text-center">{t("profile.changePhoto")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
             <div className="relative mb-4">
@@ -188,21 +218,21 @@ export default function ProfilePage() {
               className={isEditing ? "" : "bg-green-600 hover:bg-green-700"}
               disabled={isLoading}
             >
-              {isEditing ? "Cancel" : "Edit Profile"}
+              {isEditing ? t("profile.cancel") : t("profile.changePhoto")}
             </Button>
           </CardFooter>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>Update your personal details</CardDescription>
+            <CardTitle>{t("profile.personalInfo")}</CardTitle>
+            <CardDescription>{t("profile.subtitle")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name" className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-gray-400" />
-                Full Name
+                {t("profile.fullName")}
               </Label>
               <Input
                 id="name"
@@ -215,7 +245,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center">
                 <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                Email Address
+                {t("profile.email")}
               </Label>
               <Input
                 id="email"
@@ -229,7 +259,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="username" className="flex items-center">
                 <AtSign className="h-4 w-4 mr-2 text-gray-400" />
-                Username
+                {t("profile.username")}
               </Label>
               <Input
                 id="username"
@@ -242,7 +272,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center">
                 <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                Phone Number
+                {t("profile.phone")}
               </Label>
               <Input
                 id="phone"
@@ -261,7 +291,7 @@ export default function ProfilePage() {
                 disabled={isLoading}
               >
                 <Save className="h-4 w-4 mr-2" />
-                Save Changes
+                {t("profile.saveChanges")}
               </Button>
             )}
           </CardFooter>

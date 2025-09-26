@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useGameState } from "./useGameState"
 import { Player, CardType, PlaygroundEntry, RoundResult, ConnectionState, Teams, Team } from "./types"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
+import { useLanguage } from "@/contexts/language-context"
 import { toast } from 'sonner'
 import { CompactCard } from "@/components/layout/GameCard";
 import CardHand from "@/components/layout/CardHand";
@@ -26,6 +27,7 @@ function MultiplayerLobby() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { player, isAuthenticated, isLoading } = useHPOAuth()
+  const { t } = useLanguage()
 
   const matchIdFromUrl = searchParams.get("matchId")
   const team1InviteCode = searchParams.get("team1InviteCode")
@@ -88,6 +90,41 @@ function MultiplayerLobby() {
   const [userExitedGame, setUserExitedGame] = useState(false);
 
   const { play: playNotificationSound } = useNotificationSound();
+
+  // --- AUTHENTICATION EFFECTS ---
+  // Redirect unauthenticated users to home page
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the content if user is not authenticated (they'll be redirected)
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to home page...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   // --- HELPER FUNCTIONS ---
   const getDisplayName = (fullName: string, teamPlayers: Player[], currentIndex: number) => {
@@ -1850,20 +1887,20 @@ function MultiplayerLobby() {
             <Card className="w-full max-w-2xl text-center">
               <CardHeader>
                 <CardTitle className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  {playerWon ? "Congratulations!" : "Match Over"}
+                  {playerWon ? t("multiplayer.congratulations") : t("multiplayer.matchOver")}
                 </CardTitle>
                 <CardDescription className="text-gray-500 md:text-xl">
-                  {playerWon ? "Your team won the match!" : `Your team lost to ${opponentName}.`}
+                  {playerWon ? t("multiplayer.yourTeamWon") : `${t("multiplayer.yourTeamLost")} ${opponentName}.`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-8 my-8">
                   <div className="p-6 border rounded-md">
-                    <h2 className="text-2xl font-bold mb-4">Your Team's Score</h2>
+                    <h2 className="text-2xl font-bold mb-4">{t("multiplayer.yourScore")}</h2>
                     <p className="text-4xl font-bold text-green-600">{playerTeamData.score}</p>
                   </div>
                   <div className="p-6 border rounded-md">
-                    <h2 className="text-2xl font-bold mb-4">Opponent's Score</h2>
+                    <h2 className="text-2xl font-bold mb-4">{t("multiplayer.opponentScore")}</h2>
                     <p className="text-4xl font-bold text-red-600">{opponentTeamData.score}</p>
 
                   </div>
@@ -1871,8 +1908,8 @@ function MultiplayerLobby() {
 
                 {!playerWon && lastPlayerCard && lastOpponentCard && (
                     <div>
-                      <h2 className="text-xl font-bold mb-4">Choose a card from the last round to answer a question for a chance to win.</h2>
-                      <p className="text-sm text-gray-600 mb-4">Answer the question to continue to the next match.</p>
+                      <h2 className="text-xl font-bold mb-4">{t("multiplayer.chooseCard")}</h2>
+                      <p className="text-sm text-gray-600 mb-4">{t("multiplayer.answerQuestion")}</p>
                       <CardChoice
                           cards={{
                               playerCard: lastPlayerCard,
@@ -1928,7 +1965,7 @@ function MultiplayerLobby() {
                 {(questionAnswered || playerWon) && (
                   <div className="mt-8">
                     <p className="text-sm text-gray-600 mb-4">
-                      {playerWon ? "Ready for another match?" : "Question completed! Ready for another match?"}
+                      {playerWon ? t("multiplayer.readyForAnotherMatch") : t("multiplayer.questionCompleted")}
                     </p>
                     <Button 
                       onClick={async () => {
@@ -1962,7 +1999,7 @@ function MultiplayerLobby() {
                         router.push(`/connect?players=${playerCount}`);
                       }} 
                     >
-                      Play Again
+                      {t("multiplayer.playAgain")}
                     </Button>
                   </div>
                 )}
@@ -1974,7 +2011,7 @@ function MultiplayerLobby() {
         <Dialog open={showQuestionDialog} onOpenChange={setShowQuestionDialog}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Answer the Question</DialogTitle>
+              <DialogTitle>{t("multiplayer.answerQuestion")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-lg break-words whitespace-pre-wrap">{question?.question_text}</p>
@@ -2015,7 +2052,7 @@ function MultiplayerLobby() {
                     setSelectedOptions([]);
                   }}
                 >
-                  Cancel
+                  {t("multiplayer.cancel")}
                 </Button>
                 <Button
                   onClick={async () => {
@@ -2131,7 +2168,7 @@ function MultiplayerLobby() {
                     ? selectedOptions.length !== question.correct_answer.length
                     : selectedOptions.length === 0}
                 >
-                  Submit Answer
+                  {t("multiplayer.submitAnswer")}
                 </Button>
               </div>
             </div>
@@ -2141,7 +2178,7 @@ function MultiplayerLobby() {
         <Dialog open={showDidYouKnowDialog} onOpenChange={setShowDidYouKnowDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Fun Fact?</DialogTitle>
+              <DialogTitle>{t("multiplayer.funFact")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-lg break-words whitespace-pre-wrap">{didYouKnowTip}</p>
@@ -2158,7 +2195,7 @@ function MultiplayerLobby() {
                   }}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
-                  Close
+                  {t("multiplayer.close")}
                 </Button>
               </div>
             </div>
@@ -2205,14 +2242,14 @@ function MultiplayerLobby() {
           <div className="container mx-auto px-4 py-12">
           <Card>
             <CardHeader>
-              <CardTitle>Multiplayer Lobby</CardTitle>
-              <CardDescription>Match ID: {currentMatchId}<br />{remainingText}{allPlayersJoined && (<div className="mt-2 flex items-center gap-2 text-green-600"><Loader2 className="h-4 w-4 animate-spin" /><span>Starting game...</span></div>)}</CardDescription>
+              <CardTitle>{t("multiplayer.lobby")}</CardTitle>
+              <CardDescription>{t("multiplayer.matchId")}: {currentMatchId}<br />{remainingText}{allPlayersJoined && (<div className="mt-2 flex items-center gap-2 text-green-600"><Loader2 className="h-4 w-4 animate-spin" /><span>{t("multiplayer.startingGame")}</span></div>)}</CardDescription>
             </CardHeader>
             <CardContent>
               {!allPlayersJoined && (
                 <div className="mb-8 text-center">
-                  <h3 className="font-semibold mb-2">Invite Code{effectiveTeamSize > 1 ? 's' : ''}</h3>
-                  <p className="text-sm text-gray-500 mb-2">Share this code{effectiveTeamSize > 1 ? 's' : ''} with the next player{effectiveTeamSize > 1 ? 's' : ''} joining.</p>
+                  <h3 className="font-semibold mb-2">{t("multiplayer.inviteCodes")}{effectiveTeamSize > 1 ? 's' : ''}</h3>
+                  <p className="text-sm text-gray-500 mb-2">{t("multiplayer.shareCode")}</p>
                   <div className="max-w-xs mx-auto space-y-2">
                     {effectiveTeamSize > 1 ? (
                       <>
@@ -2220,14 +2257,14 @@ function MultiplayerLobby() {
                           <div className="flex items-center gap-2">
                             <Input value={currentTeam1InviteCode || ""} readOnly />
                             <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentTeam1InviteCode)}><Copy className="h-4 w-4" /></Button>
-                            <span className="text-xs text-gray-500 ml-2">Team 1</span>
+                            <span className="text-xs text-gray-500 ml-2">{t("multiplayer.team1")}</span>
                           </div>
                         )}
                         {currentTeam2InviteCode && (
                           <div className="flex items-center gap-2">
                             <Input value={currentTeam2InviteCode || ""} readOnly />
                             <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentTeam2InviteCode)}><Copy className="h-4 w-4" /></Button>
-                            <span className="text-xs text-gray-500 ml-2">Team 2</span>
+                            <span className="text-xs text-gray-500 ml-2">{t("multiplayer.team2")}</span>
                           </div>
                         )}
                       </>
@@ -2245,15 +2282,15 @@ function MultiplayerLobby() {
               <div className="grid md:grid-cols-2 gap-8">
                 {teams && (Object.values(teams) as Team[]).map((team: Team) => (
                   <div className="space-y-4" key={team.id}>
-                    <h3 className="font-semibold">Team {team.id.slice(-1)}</h3>
+                    <h3 className="font-semibold">{t("multiplayer.team")} {team.id.slice(-1)}</h3>
                     <div className="p-4 border rounded-md min-h-[100px] space-y-2">
                       {team.players.map((p: Player) => (
                         <div key={p.name} className={`flex items-center justify-between ${!p.connected ? "opacity-60" : ""}`}>
                           <div className="flex items-center gap-2"><User className="h-4 w-4" /><span>{p.name}</span></div>
-                          {!p.connected && (<span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">Disconnected</span>)}
+                          {!p.connected && (<span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800">{t("multiplayer.disconnected")}</span>)}
                         </div>
                       ))}
-                      {team.players.length === 0 && <p className="text-sm text-gray-500">Waiting for players...</p>}
+                      {team.players.length === 0 && <p className="text-sm text-gray-500">{t("multiplayer.waitingForPlayersToJoin")}</p>}
                     </div>
                   </div>
                 ))}

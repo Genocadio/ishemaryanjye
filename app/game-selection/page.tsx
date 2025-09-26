@@ -6,11 +6,48 @@ import { Users, Bot } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
+import { useLanguage } from "@/contexts/language-context"
 import { SupportChat } from "@/components/support-chat"
+import { useEffect } from "react"
 
 export default function GameSelection() {
   const router = useRouter()
   const { isAuthenticated, isLoading } = useHPOAuth()
+  const { t } = useLanguage()
+
+  // Redirect unauthenticated users to home page
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/')
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the content if user is not authenticated (they'll be redirected)
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to home page...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   const handleMultiplayerSelection = (players: number) => {
     if (isAuthenticated) {
@@ -28,9 +65,9 @@ export default function GameSelection() {
         <div className="space-y-12">
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Single Player</h1>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">{t("gameSelection.singlePlayer")}</h1>
               <p className="text-gray-500 md:text-xl max-w-[700px] mx-auto">
-                Sharpen your skills against our AI opponent.
+                {t("gameSelection.singlePlayerDescription")}
               </p>
             </div>
             <div className="flex justify-center">
@@ -39,8 +76,8 @@ export default function GameSelection() {
                 onClick={() => router.push("/game")}
               >
                 <CardHeader className="text-center">
-                  <CardTitle>Player vs AI</CardTitle>
-                  <CardDescription>A quick game to test your wit.</CardDescription>
+                  <CardTitle>{t("gameSelection.playerVsAi")}</CardTitle>
+                  <CardDescription>{t("gameSelection.quickGame")}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex justify-center">
                   <div className="relative h-24 w-24 flex items-center justify-center">
@@ -48,7 +85,7 @@ export default function GameSelection() {
                   </div>
                 </CardContent>
                 <CardFooter className="text-sm text-center text-gray-500 flex justify-center">
-                  Play immediately
+                  {t("gameSelection.playImmediately")}
                 </CardFooter>
               </Card>
             </div>
@@ -56,9 +93,9 @@ export default function GameSelection() {
 
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Multiplayer</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">{t("gameSelection.multiplayer")}</h2>
               <p className="text-gray-500 md:text-xl max-w-[700px] mx-auto">
-                Challenge your friends in a game of Ishema Ryanjye.
+                {t("gameSelection.multiplayerDescription")}
               </p>
             </div>
             <div className="grid gap-6 sm:grid-cols-3">
@@ -71,13 +108,13 @@ export default function GameSelection() {
                   onClick={() => handleMultiplayerSelection(players)}
                 >
                   <CardHeader className="text-center">
-                    <CardTitle>{players} Players</CardTitle>
+                    <CardTitle>{players} {t("gameSelection.players")}</CardTitle>
                     <CardDescription>
                       {players === 2
-                        ? "A quick duel"
+                        ? t("gameSelection.quickDuel")
                         : players === 4
-                        ? "Standard team game"
-                        : "Large group match"}
+                        ? t("gameSelection.standardTeamGame")
+                        : t("gameSelection.largeGroupMatch")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex justify-center">
@@ -89,7 +126,7 @@ export default function GameSelection() {
                     </div>
                   </CardContent>
                   <CardFooter className="text-sm text-center text-gray-500 flex justify-center">
-                    {isLoading ? "Loading..." : isAuthenticated ? "Play with friends" : "Requires sign in"}
+                    {isLoading ? t("gameSelection.loading") : isAuthenticated ? t("gameSelection.playWithFriends") : t("gameSelection.requiresSignIn")}
                   </CardFooter>
                 </Card>
               ))}

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLanguage } from "@/contexts/language-context"
+import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { Loader2 } from "lucide-react"
 import { SupportChat } from "@/components/support-chat"
 import { Header } from "@/components/layout/header"
@@ -14,11 +15,46 @@ function ConnectContent() {
   const { t } = useLanguage()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { isAuthenticated, isLoading: authLoading } = useHPOAuth()
   const [matchType, setMatchType] = useState<"join" | null>(null)
   const [joinCode, setJoinCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [resumeInviteCode, setResumeInviteCode] = useState<string | null>(null)
+
+  // Redirect unauthenticated users to home page
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/')
+    }
+  }, [isAuthenticated, authLoading, router])
+
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+        </main>
+      </div>
+    )
+  }
+
+  // Don't render the content if user is not authenticated (they'll be redirected)
+  if (!isAuthenticated) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to home page...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   // Function to check for resume data
   const checkForResumeData = () => {
@@ -174,45 +210,45 @@ function ConnectContent() {
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
             {resumeInviteCode && (
               <div className="mt-4">
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={() => {
-                    setError(null)
-                    
-                    // Check if this is a match creator resume
-                    const matchCreatorData = localStorage.getItem('matchCreatorData')
-                    if (matchCreatorData) {
-                      try {
-                        const parsed = JSON.parse(matchCreatorData)
-                        if (parsed.matchId && parsed.team1InviteCode && parsed.team2InviteCode) {
-                          // This is a match creator - redirect with full parameters
-                          const params = new URLSearchParams({
-                            matchId: parsed.matchId,
-                            team1InviteCode: parsed.team1InviteCode,
-                            team2InviteCode: parsed.team2InviteCode,
-                            teamSize: parsed.teamSize.toString(),
-                          })
-                          router.push(`/multiplayer?${params.toString()}`)
-                          return
-                        }
-                      } catch (error) {
-                        console.error("Error parsing match creator data for resume:", error)
-                      }
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => {
+                setError(null)
+                
+                // Check if this is a match creator resume
+                const matchCreatorData = localStorage.getItem('matchCreatorData')
+                if (matchCreatorData) {
+                  try {
+                    const parsed = JSON.parse(matchCreatorData)
+                    if (parsed.matchId && parsed.team1InviteCode && parsed.team2InviteCode) {
+                      // This is a match creator - redirect with full parameters
+                      const params = new URLSearchParams({
+                        matchId: parsed.matchId,
+                        team1InviteCode: parsed.team1InviteCode,
+                        team2InviteCode: parsed.team2InviteCode,
+                        teamSize: parsed.teamSize.toString(),
+                      })
+                      router.push(`/multiplayer?${params.toString()}`)
+                      return
                     }
-                    
-                    // Regular player resume
-                    router.push(`/multiplayer?inviteCode=${resumeInviteCode}`)
-                  }}
-                >
-                  Resume Game
-                </Button>
+                  } catch (error) {
+                    console.error("Error parsing match creator data for resume:", error)
+                  }
+                }
+                
+                // Regular player resume
+                router.push(`/multiplayer?inviteCode=${resumeInviteCode}`)
+              }}
+            >
+              {t("connect.resumeGame")}
+            </Button>
               </div>
             )}
           </CardHeader>
           <CardContent className="grid gap-4">
             <Button onClick={handleCreateMatch} disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? "Creating..." : t("connect.createMatch")}
+              {isLoading ? t("connect.creating") : t("connect.createMatch")}
             </Button>
             <Button onClick={() => setMatchType("join")} variant="outline" disabled={isLoading}>
               {t("connect.joinMatch")}
