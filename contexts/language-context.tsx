@@ -288,6 +288,41 @@ type TranslationKeys = {
   "multiplayer.earnedMarks": string;
   "multiplayer.correctAnswer": string;
 
+  // Contact Form
+  "contact.title": string;
+  "contact.description": string;
+  "contact.button": string;
+  "contact.form.title": string;
+  "contact.form.requestType": string;
+  "contact.form.person": string;
+  "contact.form.organization": string;
+  "contact.form.fullName": string;
+  "contact.form.organizationName": string;
+  "contact.form.fullNamePlaceholder": string;
+  "contact.form.organizationNamePlaceholder": string;
+  "contact.form.district": string;
+  "contact.form.sector": string;
+  "contact.form.street": string;
+  "contact.form.email": string;
+  "contact.form.phone": string;
+  "contact.form.notes": string;
+  "contact.form.districtPlaceholder": string;
+  "contact.form.sectorPlaceholder": string;
+  "contact.form.streetPlaceholder": string;
+  "contact.form.emailPlaceholder": string;
+  "contact.form.phonePlaceholder": string;
+  "contact.form.notesPlaceholder": string;
+  "contact.form.termsAgreement": string;
+  "contact.form.submit": string;
+  "contact.form.cancel": string;
+  "contact.form.submitting": string;
+  "contact.form.success": string;
+  "contact.form.error": string;
+  "contact.form.submitted": string;
+  "contact.form.submittedMessage": string;
+  "contact.form.requiredFields": string;
+  "contact.form.termsRequired": string;
+
   "common.back": string;
 }
 
@@ -585,6 +620,41 @@ const translations: Record<Language, TranslationKeys> = {
     "multiplayer.incorrect": "Incorrect.",
     "multiplayer.earnedMarks": "You earned mark(s).",
     "multiplayer.correctAnswer": "The correct answer was:",
+
+    // Contact Form
+    "contact.title": "Request Physical Cards",
+    "contact.description": "Get physical Ishema Ryanjye cards delivered to your address for personal, teaching, or leisure use.",
+    "contact.button": "Request Cards",
+    "contact.form.title": "Request Physical Cards",
+    "contact.form.requestType": "Request Type",
+    "contact.form.person": "Individual",
+    "contact.form.organization": "Organization",
+    "contact.form.fullName": "Full Name",
+    "contact.form.organizationName": "Organization Name",
+    "contact.form.fullNamePlaceholder": "Enter your full name",
+    "contact.form.organizationNamePlaceholder": "Enter organization name",
+    "contact.form.district": "District",
+    "contact.form.sector": "Sector",
+    "contact.form.street": "Street",
+    "contact.form.email": "Email",
+    "contact.form.phone": "Phone",
+    "contact.form.notes": "Notes",
+    "contact.form.districtPlaceholder": "Enter district",
+    "contact.form.sectorPlaceholder": "Enter sector",
+    "contact.form.streetPlaceholder": "Enter street address",
+    "contact.form.emailPlaceholder": "Enter your email",
+    "contact.form.phonePlaceholder": "Enter your phone number",
+    "contact.form.notesPlaceholder": "Any additional information or special requests...",
+    "contact.form.termsAgreement": "I agree to use the cards for personal, teaching, or leisure purposes only, not for commercial use.",
+    "contact.form.submit": "Submit Request",
+    "contact.form.cancel": "Cancel",
+    "contact.form.submitting": "Submitting...",
+    "contact.form.success": "Request submitted successfully!",
+    "contact.form.error": "Failed to submit request. Please try again.",
+    "contact.form.submitted": "Request Submitted!",
+    "contact.form.submittedMessage": "Thank you for your request. We will contact you soon with delivery details.",
+    "contact.form.requiredFields": "Please fill in all required fields.",
+    "contact.form.termsRequired": "You must agree to the terms of use.",
   },
   fr: {
     // Header
@@ -872,6 +942,41 @@ const translations: Record<Language, TranslationKeys> = {
     "multiplayer.incorrect": "Incorrect.",
     "multiplayer.earnedMarks": "Vous avez gagné point(s).",
     "multiplayer.correctAnswer": "La bonne réponse était :",
+
+    // Contact Form
+    "contact.title": "Demander des Cartes Physiques",
+    "contact.description": "Obtenez des cartes physiques Ishema Ryanjye livrées à votre adresse pour un usage personnel, éducatif ou de loisir.",
+    "contact.button": "Demander des Cartes",
+    "contact.form.title": "Demander des Cartes Physiques",
+    "contact.form.requestType": "Type de Demande",
+    "contact.form.person": "Individu",
+    "contact.form.organization": "Organisation",
+    "contact.form.fullName": "Nom Complet",
+    "contact.form.organizationName": "Nom de l'Organisation",
+    "contact.form.fullNamePlaceholder": "Entrez votre nom complet",
+    "contact.form.organizationNamePlaceholder": "Entrez le nom de l'organisation",
+    "contact.form.district": "District",
+    "contact.form.sector": "Secteur",
+    "contact.form.street": "Rue",
+    "contact.form.email": "Email",
+    "contact.form.phone": "Téléphone",
+    "contact.form.notes": "Notes",
+    "contact.form.districtPlaceholder": "Entrez le district",
+    "contact.form.sectorPlaceholder": "Entrez le secteur",
+    "contact.form.streetPlaceholder": "Entrez l'adresse de la rue",
+    "contact.form.emailPlaceholder": "Entrez votre email",
+    "contact.form.phonePlaceholder": "Entrez votre numéro de téléphone",
+    "contact.form.notesPlaceholder": "Toute information supplémentaire ou demande spéciale...",
+    "contact.form.termsAgreement": "J'accepte d'utiliser les cartes uniquement à des fins personnelles, éducatives ou de loisir, et non à des fins commerciales.",
+    "contact.form.submit": "Soumettre la Demande",
+    "contact.form.cancel": "Annuler",
+    "contact.form.submitting": "Soumission...",
+    "contact.form.success": "Demande soumise avec succès !",
+    "contact.form.error": "Échec de la soumission. Veuillez réessayer.",
+    "contact.form.submitted": "Demande Soumise !",
+    "contact.form.submittedMessage": "Merci pour votre demande. Nous vous contacterons bientôt avec les détails de livraison.",
+    "contact.form.requiredFields": "Veuillez remplir tous les champs obligatoires.",
+    "contact.form.termsRequired": "Vous devez accepter les conditions d'utilisation.",
   },
   rw: {
     // Header
@@ -1161,6 +1266,41 @@ const translations: Record<Language, TranslationKeys> = {
     "multiplayer.incorrect": "Ntabwo ari cyo.",
     "multiplayer.earnedMarks": "Wungutse amanota.",
     "multiplayer.correctAnswer": "Igisubizo cy'ukuri cyari:",
+
+    // Contact Form
+    "contact.title": "Gusaba Amakarita y'Ishema Ryanjye",
+    "contact.description": "Bona amakarita y'Ishema Ryanjye yahaguruka ku muhanda wawe witeguye gukoreshwa mu buryo bwite, bwo kwigisha, cyangwa bwo kwidagadura.",
+    "contact.button": "Saba Amakarita",
+    "contact.form.title": "Gusaba Amakarita y'Ishema Ryanjye",
+    "contact.form.requestType": "Ubwoko bwo Gusaba",
+    "contact.form.person": "Umuntu",
+    "contact.form.organization": "Ishyirahamwe",
+    "contact.form.fullName": "Amazina Yose",
+    "contact.form.organizationName": "Izina ry'Ishyirahamwe",
+    "contact.form.fullNamePlaceholder": "Andika amazina yawe yose",
+    "contact.form.organizationNamePlaceholder": "Andika izina ry'ishyirahamwe",
+    "contact.form.district": "Akarere",
+    "contact.form.sector": "Umurenge",
+    "contact.form.street": "Umuhanda",
+    "contact.form.email": "Imeri",
+    "contact.form.phone": "Telefone",
+    "contact.form.notes": "Ibyanditswe",
+    "contact.form.districtPlaceholder": "Andika akarere",
+    "contact.form.sectorPlaceholder": "Andika umurenge",
+    "contact.form.streetPlaceholder": "Andika aho uba",
+    "contact.form.emailPlaceholder": "Andika imeri yawe",
+    "contact.form.phonePlaceholder": "Andika numero ya telefone",
+    "contact.form.notesPlaceholder": "Amakuru yose yongeraho cyangwa ibyo usaba...",
+    "contact.form.termsAgreement": "Nemerera gukoresha amakarita gusa mu buryo bwite, bwo kwigisha, cyangwa bwo kwidagadura, ntabwo mu buryo bwo kwishora.",
+    "contact.form.submit": "Ohereza Gusaba",
+    "contact.form.cancel": "Kureka",
+    "contact.form.submitting": "Ohereza...",
+    "contact.form.success": "Gusaba cyoherejwe neza!",
+    "contact.form.error": "Gusaba ntabwo cyoherejwe. Ongera ugerageze.",
+    "contact.form.submitted": "Gusaba Cyoherejwe!",
+    "contact.form.submittedMessage": "Murakoze gusaba. Tuzabagana vuba tuzabagenera amakuru y'uko tuzabagenera amakarita.",
+    "contact.form.requiredFields": "Nyamuneka uzuzure byose bikenerwa.",
+    "contact.form.termsRequired": "Ugomba kwemera amabwiriza yo gukoresha.",
   },
 }
 

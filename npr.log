@@ -158,3 +158,130 @@ Route (app)                                 Size  First Load JS
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
 
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.225.22.234:3000
+
+ ✓ Starting...
+ ✓ Compiled middleware in 85ms
+ ✓ Ready in 2.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 1789ms
+ GET / 200 in 2077ms
+ GET / 200 in 108ms
+ ○ Compiling /icon0.svg ...
+ GET /manifest.webmanifest 200 in 515ms
+ ✓ Compiled /icon0.svg in 693ms
+ GET /icons/icon-512x512.png 404 in 612ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 746ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 749ms
+ ○ Compiling /info ...
+ ✓ Compiled /info in 530ms
+ GET /info 200 in 560ms
+ ○ Compiling /premium ...
+ ✓ Compiled /premium in 741ms
+ GET /premium 200 in 776ms
+ GET /premium 200 in 44ms
+ GET /simple 404 in 52ms
+ GET /manifest.webmanifest 200 in 22ms
+ GET / 200 in 70ms
+ GET /icons/icon-512x512.png 404 in 67ms
+ GET / 200 in 52ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 238ms
+ ✓ Compiled /api/game-content in 321ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Error fetching game content: TypeError: fetch failed
+    at async GET (app/api/game-content/route.ts:13:21)
+  11 |     console.log('Fetching from backend:', backendUrl);
+  12 |     
+> 13 |     const response = await fetch(backendUrl, {
+     |                     ^
+  14 |       method: 'GET',
+  15 |       headers: {
+  16 |         'Content-Type': 'application/json', {
+  [cause]: [Error [ConnectTimeoutError]: Connect Timeout Error (attempted address: admin.hporwanda.org:443, timeout: 10000ms)] {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}
+ GET /api/game-content?language=english 500 in 10968ms
+ GET / 200 in 72ms
+ GET /manifest.webmanifest 200 in 25ms
+ GET /icons/icon-512x512.png 404 in 76ms
+ GET / 200 in 78ms
+ ✓ Compiled in 323ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 364ms
+ GET / 200 in 703ms
+ GET /manifest.webmanifest 200 in 56ms
+ GET /icons/icon-512x512.png 404 in 187ms
+ GET / 200 in 198ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 123ms
+ GET / 200 in 165ms
+ GET /manifest.webmanifest 200 in 31ms
+ GET /icons/icon-512x512.png 404 in 79ms
+ GET / 200 in 85ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 112ms
+ GET / 200 in 218ms
+ GET /manifest.webmanifest 200 in 32ms
+ GET / 200 in 65ms
+ GET /icons/icon-512x512.png 404 in 84ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 125ms
+ GET / 200 in 185ms
+ GET /manifest.webmanifest 200 in 35ms
+ GET / 200 in 69ms
+ GET /icons/icon-512x512.png 404 in 87ms
+ ✓ Compiled in 113ms
+ ✓ Compiled in 107ms
+ ✓ Compiled / in 45ms
+ GET / 200 in 161ms
+ ✓ Compiled in 124ms
+ ✓ Compiled in 141ms
+ ✓ Compiled in 104ms
+ ✓ Compiled in 128ms
+ ✓ Compiled in 146ms
+ ✓ Compiled in 111ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 112ms
+ GET / 200 in 220ms
+ GET /manifest.webmanifest 200 in 34ms
+ GET / 200 in 70ms
+ GET /icons/icon-512x512.png 404 in 89ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 110ms
+ GET / 200 in 174ms
+ GET /manifest.webmanifest 200 in 33ms
+ GET / 200 in 72ms
+ GET /icons/icon-512x512.png 404 in 89ms
+ ⚠ Fast Refresh had to perform a full reload when ./contexts/language-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ✓ Compiled in 119ms
+ GET / 200 in 168ms
+ GET /manifest.webmanifest 200 in 34ms
+ GET / 200 in 91ms
+ GET /icons/icon-512x512.png 404 in 89ms
+ ✓ Compiled in 138ms
+   Reload env: .env.local
+ GET / 200 in 123ms
+   Reload env: .env.local
+ ✓ Compiled in 279ms
+ GET / 200 in 361ms
+ GET / 200 in 140ms
+ GET /manifest.webmanifest 200 in 51ms
+ GET / 200 in 112ms
+ GET /icons/icon-512x512.png 404 in 108ms
+ GET / 200 in 81ms
+   Reload env: .env.local
+ ✓ Compiled in 26ms
+ GET / 200 in 100ms
+ ✓ Compiled in 125ms
