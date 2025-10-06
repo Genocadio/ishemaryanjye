@@ -28,7 +28,7 @@ type BotConfig = {
 }
 
 export function SupportChat() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
@@ -46,6 +46,20 @@ export function SupportChat() {
   const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
   const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
 
+  // Helper function to map language to bot language
+  const getBotLanguage = (userLanguage: string) => {
+    // If language is English or French, use English for the bot
+    if (userLanguage === 'en' || userLanguage === 'fr') {
+      return 'english'
+    }
+    // If language is Kinyarwanda, use Kinyarwanda for the bot
+    if (userLanguage === 'rw') {
+      return 'kinyarwanda'
+    }
+    // Default to English
+    return 'english'
+  }
+
   // Load chat state from localStorage on component mount
   useEffect(() => {
     const storedMessages = localStorage.getItem("chatMessages")
@@ -62,13 +76,18 @@ export function SupportChat() {
     fetchBotConfiguration()
   }, [])
 
+  // Refetch bot configuration when language changes
+  useEffect(() => {
+    fetchBotConfiguration()
+  }, [language])
+
   // Save chat state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("chatMessages", JSON.stringify(messages))
     localStorage.setItem("hasShownWelcome", JSON.stringify(hasShownWelcome))
   }, [messages, hasShownWelcome])
 
-  // Show welcome message when chat is opened for the first time
+  // Show welcome message when chat is opened for the first time or language changes
   useEffect(() => {
     if (isOpen && !hasShownWelcome && messages.length === 0 && botConfig) {
       const welcomeMessage: Message = {
@@ -82,6 +101,18 @@ export function SupportChat() {
     }
   }, [isOpen, hasShownWelcome, messages.length, botConfig])
 
+  // Reset welcome message and chat when language changes to get new language-specific content
+  useEffect(() => {
+    // Clear messages and reset welcome flag when language changes
+    // This ensures the bot starts fresh with the new language
+    if (messages.length > 0) {
+      setMessages([])
+      setHasShownWelcome(false)
+      localStorage.removeItem("chatMessages")
+      localStorage.removeItem("hasShownWelcome")
+    }
+  }, [language])
+
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -91,7 +122,7 @@ export function SupportChat() {
 
   const fetchBotConfiguration = async () => {
     try {
-      const response = await fetch(botConfigurationUrl)
+      const response = await fetch(`${botConfigurationUrl}?language=${getBotLanguage(language)}`)
       if (response.ok) {
         const data = await response.json()
         setBotConfig(data)
@@ -130,7 +161,8 @@ export function SupportChat() {
           conversation_history: messages.map(msg => ({
             role: msg.sender === "user" ? "user" : "assistant",
             content: msg.text
-          }))
+          })),
+          language: getBotLanguage(language)
         })
       })
 
