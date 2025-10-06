@@ -60,6 +60,46 @@ export function SupportChat() {
     return 'english'
   }
 
+  // Helper function to parse basic markdown formatting
+  const parseMarkdown = (text: string) => {
+    if (!text) return text
+    
+    // Escape HTML to prevent XSS, but keep our markdown
+    let formatted = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+    
+    // Replace line breaks with <br> tags
+    formatted = formatted.replace(/\n/g, '<br>')
+    
+    // Replace **bold** with <strong> tags (non-greedy)
+    formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    
+    // Replace *italic* with <em> tags (but not if it's part of **)
+    formatted = formatted.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>')
+    
+    // Replace `code` with <code> tags
+    formatted = formatted.replace(/`([^`]+?)`/g, '<code>$1</code>')
+    
+    // Replace code blocks ```code``` with <pre><code> tags
+    formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre class="bg-gray-50 p-2 rounded mt-1 mb-1 overflow-x-auto"><code>$1</code></pre>')
+    
+    // Replace numbered lists (1. item)
+    formatted = formatted.replace(/^(\d+\.\s)(.*)$/gm, '<div class="ml-2 mt-1"><span class="font-semibold">$1</span>$2</div>')
+    
+    // Replace bullet points (- item or • item)
+    formatted = formatted.replace(/^[-•]\s(.*)$/gm, '<div class="ml-2 mt-1">• $1</div>')
+    
+    // Replace headers (# Header)
+    formatted = formatted.replace(/^#{1,3}\s(.*)$/gm, '<div class="font-bold text-base mt-2 mb-1">$1</div>')
+    
+    // Replace links [text](url) - make them functional
+    formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline hover:no-underline">$1</a>')
+    
+    return formatted
+  }
+
   // Load chat state from localStorage on component mount
   useEffect(() => {
     const storedMessages = localStorage.getItem("chatMessages")
@@ -289,7 +329,24 @@ export function SupportChat() {
                     message.sender === "user" ? "bg-green-600 text-white" : "bg-gray-200 text-gray-800"
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  <div 
+                    className={`text-sm leading-relaxed ${
+                      message.sender === "user" 
+                        ? `text-white 
+                           [&_strong]:font-bold 
+                           [&_em]:italic 
+                           [&_code]:bg-green-700 [&_code]:text-green-100 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
+                           [&_pre]:bg-green-700 [&_pre]:text-green-100 [&_pre]:text-xs [&_pre]:font-mono [&_pre]:rounded [&_pre]:p-2 [&_pre]:mt-1 [&_pre]:mb-1 [&_pre]:overflow-x-auto
+                           [&_a]:text-green-200 [&_a]:underline hover:[&_a]:no-underline [&_a]:cursor-pointer`
+                        : `text-gray-800 
+                           [&_strong]:font-bold [&_strong]:text-gray-900 
+                           [&_em]:italic [&_em]:text-gray-700
+                           [&_code]:bg-gray-100 [&_code]:text-gray-700 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono
+                           [&_pre]:bg-gray-50 [&_pre]:text-gray-800 [&_pre]:text-xs [&_pre]:font-mono [&_pre]:rounded [&_pre]:p-2 [&_pre]:mt-1 [&_pre]:mb-1 [&_pre]:overflow-x-auto [&_pre]:border [&_pre]:border-gray-200
+                           [&_a]:text-blue-600 [&_a]:underline hover:[&_a]:no-underline [&_a]:cursor-pointer`
+                    }`}
+                    dangerouslySetInnerHTML={{ __html: parseMarkdown(message.text) }}
+                  />
                   <p className={`text-xs mt-1 ${message.sender === "user" ? "text-green-100" : "text-gray-500"}`}>
                     {formatTime(message.timestamp)}
                   </p>
