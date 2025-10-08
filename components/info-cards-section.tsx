@@ -43,12 +43,14 @@ interface InfoCardsSectionProps {
   healthDialogOpen?: boolean
   onHealthDialogChange?: (open: boolean) => void
   autoOpenHealth?: boolean
+  excludeHealthCard?: boolean
 }
 
 export function InfoCardsSection({ 
   healthDialogOpen, 
   onHealthDialogChange, 
-  autoOpenHealth = false 
+  autoOpenHealth = false,
+  excludeHealthCard = false
 }: InfoCardsSectionProps = {}) {
   const { t, language } = useLanguage()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
@@ -302,155 +304,157 @@ export function InfoCardsSection({
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-600">
-            <Heart className="h-5 w-5" />
-            {t("game.health.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col flex-grow">
-          <p className="text-gray-600 mb-6 flex-grow">{t("game.health.description")}</p>
-          <div className="mt-auto">
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                className="w-full bg-green-600 hover:bg-green-700"
-                onClick={() => {
-                  fetchGameContent()
-                  setDialogOpen(true)
-                }}
-              >
-                {t("game.health.button")}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
-              <UIDialogHeader>
-                <UIDialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
-                  {t("game.health.modalTitle")}
-                </UIDialogTitle>
-              </UIDialogHeader>
-              <div className="space-y-4">
-                {loadingContent ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-                    <span className="ml-2 text-gray-600">{t("waitingRoom.waiting_btn")}</span>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {Object.keys(gameContent.reduce((acc: any, item: any) => { acc[item.topic] = acc[item.topic] || {}; item.all_subtopics.forEach((s: any) => { acc[item.topic][s.subtopic] = acc[item.topic][s.subtopic] || { items: [], subtopicData: s, originalContent: item }; if (!acc[item.topic][s.subtopic].items.find((e: any) => e.id === item.id)) { acc[item.topic][s.subtopic].items.push({ ...item, currentSubtopic: s }); } }); return acc }, {} as any)).length > 0 ? (
-                      Object.entries(gameContent.reduce((acc: any, item: any) => { acc[item.topic] = acc[item.topic] || {}; item.all_subtopics.forEach((s: any) => { acc[item.topic][s.subtopic] = acc[item.topic][s.subtopic] || { items: [], subtopicData: s, originalContent: item }; if (!acc[item.topic][s.subtopic].items.find((e: any) => e.id === item.id)) { acc[item.topic][s.subtopic].items.push({ ...item, currentSubtopic: s }); } }); return acc }, {} as any)).map(([topic, subtopics]: any) => {
-                        const totalSubtopics = Object.keys(subtopics).length
-                        return (
-                          <div key={topic} className="border rounded-lg bg-white shadow-sm">
-                            <button
-                              onClick={() => toggleTopic(topic as string)}
-                              className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
-                            >
-                              <div className="flex items-center gap-3">
-                                {expandedTopic === topic ? (
-                                  <ChevronDown className="h-5 w-5 text-green-600" />
-                                ) : (
-                                  <ChevronRightIcon className="h-5 w-5 text-green-600" />
-                                )}
-                                <h3 className="text-lg font-semibold text-gray-900">{topic as string}</h3>
-                              </div>
-                              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                                {totalSubtopics} {totalSubtopics === 1 ? t("game.health.subtopic") : t("game.health.subtopics")}
-                              </span>
-                            </button>
-                            {expandedTopic === topic && (
-                              <div className="border-t bg-gray-50">
-                                {Object.entries(subtopics).map(([subtopicName, subtopicGroup]: any) => {
-                                  const subtopicKey = `${topic}-${subtopicName}`
-                                  const { items, subtopicData, originalContent } = subtopicGroup
-                                  return (
-                                    <div key={subtopicKey} className="border-b last:border-b-0">
-                                      <button
-                                        onClick={() => toggleSubtopic(subtopicKey)}
-                                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
-                                      >
-                                        <div className="flex items-center gap-3">
-                                          {expandedSubtopics.has(subtopicKey) ? (
-                                            <ChevronDown className="h-4 w-4 text-blue-600" />
-                                          ) : (
-                                            <ChevronRightIcon className="h-4 w-4 text-blue-600" />
-                                          )}
-                                          <div>
-                                            <h4 className="font-medium text-gray-800">{subtopicName}</h4>
+      {!excludeHealthCard && (
+        <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-600">
+              <Heart className="h-5 w-5" />
+              {t("game.health.title")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col flex-grow">
+            <p className="text-gray-600 mb-6 flex-grow">{t("game.health.description")}</p>
+            <div className="mt-auto">
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  onClick={() => {
+                    fetchGameContent()
+                    setDialogOpen(true)
+                  }}
+                >
+                  {t("game.health.button")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+                <UIDialogHeader>
+                  <UIDialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
+                    {t("game.health.modalTitle")}
+                  </UIDialogTitle>
+                </UIDialogHeader>
+                <div className="space-y-4">
+                  {loadingContent ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                      <span className="ml-2 text-gray-600">{t("waitingRoom.waiting_btn")}</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {Object.keys(gameContent.reduce((acc: any, item: any) => { acc[item.topic] = acc[item.topic] || {}; item.all_subtopics.forEach((s: any) => { acc[item.topic][s.subtopic] = acc[item.topic][s.subtopic] || { items: [], subtopicData: s, originalContent: item }; if (!acc[item.topic][s.subtopic].items.find((e: any) => e.id === item.id)) { acc[item.topic][s.subtopic].items.push({ ...item, currentSubtopic: s }); } }); return acc }, {} as any)).length > 0 ? (
+                        Object.entries(gameContent.reduce((acc: any, item: any) => { acc[item.topic] = acc[item.topic] || {}; item.all_subtopics.forEach((s: any) => { acc[item.topic][s.subtopic] = acc[item.topic][s.subtopic] || { items: [], subtopicData: s, originalContent: item }; if (!acc[item.topic][s.subtopic].items.find((e: any) => e.id === item.id)) { acc[item.topic][s.subtopic].items.push({ ...item, currentSubtopic: s }); } }); return acc }, {} as any)).map(([topic, subtopics]: any) => {
+                          const totalSubtopics = Object.keys(subtopics).length
+                          return (
+                            <div key={topic} className="border rounded-lg bg-white shadow-sm">
+                              <button
+                                onClick={() => toggleTopic(topic as string)}
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {expandedTopic === topic ? (
+                                    <ChevronDown className="h-5 w-5 text-green-600" />
+                                  ) : (
+                                    <ChevronRightIcon className="h-5 w-5 text-green-600" />
+                                  )}
+                                  <h3 className="text-lg font-semibold text-gray-900">{topic as string}</h3>
+                                </div>
+                                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
+                                  {totalSubtopics} {totalSubtopics === 1 ? t("game.health.subtopic") : t("game.health.subtopics")}
+                                </span>
+                              </button>
+                              {expandedTopic === topic && (
+                                <div className="border-t bg-gray-50">
+                                  {Object.entries(subtopics).map(([subtopicName, subtopicGroup]: any) => {
+                                    const subtopicKey = `${topic}-${subtopicName}`
+                                    const { items, subtopicData, originalContent } = subtopicGroup
+                                    return (
+                                      <div key={subtopicKey} className="border-b last:border-b-0">
+                                        <button
+                                          onClick={() => toggleSubtopic(subtopicKey)}
+                                          className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-100 transition-colors"
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            {expandedSubtopics.has(subtopicKey) ? (
+                                              <ChevronDown className="h-4 w-4 text-blue-600" />
+                                            ) : (
+                                              <ChevronRightIcon className="h-4 w-4 text-blue-600" />
+                                            )}
+                                            <div>
+                                              <h4 className="font-medium text-gray-800">{subtopicName}</h4>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </button>
-                                      {expandedSubtopics.has(subtopicKey) && (
-                                        <div className="px-4 pb-4 bg-white">
-                                          <div className="pl-7 space-y-4">
-                                            <div className="text-gray-700 leading-relaxed">{formatText(subtopicData.info)}</div>
-                                            {items
-                                              .filter((content: any) => content.info !== subtopicData.info || content.title || (content.tags && content.tags.length > 0))
-                                              .map((content: any, itemIndex: number) => (
-                                                <div key={`${content.id}-${itemIndex}`} className="bg-gray-50 p-3 rounded border-l-4 border-green-400">
-                                                  {content.title && (
-                                                    <h5 className="font-medium text-gray-800 mb-2">{content.title}</h5>
-                                                  )}
-                                                  {content.info !== subtopicData.info && (
-                                                    <div className="text-sm text-gray-600 mb-2">{formatText(content.info)}</div>
-                                                  )}
-                                                  {content.tags && content.tags.length > 0 && (
-                                                    <div className="mb-2">
-                                                      <h6 className="text-xs font-semibold text-gray-700 mb-1">{t("game.health.tags")}</h6>
-                                                      <div className="flex flex-wrap gap-1">
-                                                        {content.tags.map((tag: string, tagIndex: number) => (
-                                                          <span key={tagIndex} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">#{tag}</span>
-                                                        ))}
+                                        </button>
+                                        {expandedSubtopics.has(subtopicKey) && (
+                                          <div className="px-4 pb-4 bg-white">
+                                            <div className="pl-7 space-y-4">
+                                              <div className="text-gray-700 leading-relaxed">{formatText(subtopicData.info)}</div>
+                                              {items
+                                                .filter((content: any) => content.info !== subtopicData.info || content.title || (content.tags && content.tags.length > 0))
+                                                .map((content: any, itemIndex: number) => (
+                                                  <div key={`${content.id}-${itemIndex}`} className="bg-gray-50 p-3 rounded border-l-4 border-green-400">
+                                                    {content.title && (
+                                                      <h5 className="font-medium text-gray-800 mb-2">{content.title}</h5>
+                                                    )}
+                                                    {content.info !== subtopicData.info && (
+                                                      <div className="text-sm text-gray-600 mb-2">{formatText(content.info)}</div>
+                                                    )}
+                                                    {content.tags && content.tags.length > 0 && (
+                                                      <div className="mb-2">
+                                                        <h6 className="text-xs font-semibold text-gray-700 mb-1">{t("game.health.tags")}</h6>
+                                                        <div className="flex flex-wrap gap-1">
+                                                          {content.tags.map((tag: string, tagIndex: number) => (
+                                                            <span key={tagIndex} className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">#{tag}</span>
+                                                          ))}
+                                                        </div>
                                                       </div>
+                                                    )}
+                                                    <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1 border-t">
+                                                      <span>{t("game.health.type")} {content.content_type}</span>
+                                                      {content.card_association && <span>{t("game.health.card")} {content.card_association}</span>}
+                                                      <span>{t("game.health.views")} {content.view_count}</span>
                                                     </div>
-                                                  )}
-                                                  <div className="flex flex-wrap gap-4 text-xs text-gray-500 pt-1 border-t">
-                                                    <span>{t("game.health.type")} {content.content_type}</span>
-                                                    {content.card_association && <span>{t("game.health.card")} {content.card_association}</span>}
-                                                    <span>{t("game.health.views")} {content.view_count}</span>
                                                   </div>
+                                                ))}
+                                              <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
+                                                <h6 className="text-sm font-semibold text-green-800 mb-2">{t("game.health.subtopicDetails")}</h6>
+                                                <div className="flex flex-wrap gap-4 text-xs text-green-600">
+                                                  <span>{t("game.health.contentType")} {originalContent.content_type}</span>
+                                                  <span>{t("game.health.difficulty")} {originalContent.difficulty_level}</span>
+                                                  {originalContent.card_association && <span>{t("game.health.cardAssociation")} {originalContent.card_association}</span>}
+                                                  <span>{t("game.health.totalViews")} {items.reduce((sum: number, item: any) => sum + item.view_count, 0)}</span>
+                                                  <span>{t("game.health.items")} {items.length}</span>
                                                 </div>
-                                              ))}
-                                            <div className="bg-green-50 p-3 rounded border-l-4 border-green-500">
-                                              <h6 className="text-sm font-semibold text-green-800 mb-2">{t("game.health.subtopicDetails")}</h6>
-                                              <div className="flex flex-wrap gap-4 text-xs text-green-600">
-                                                <span>{t("game.health.contentType")} {originalContent.content_type}</span>
-                                                <span>{t("game.health.difficulty")} {originalContent.difficulty_level}</span>
-                                                {originalContent.card_association && <span>{t("game.health.cardAssociation")} {originalContent.card_association}</span>}
-                                                <span>{t("game.health.totalViews")} {items.reduce((sum: number, item: any) => sum + item.view_count, 0)}</span>
-                                                <span>{t("game.health.items")} {items.length}</span>
                                               </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )
-                                })}
-                              </div>
-                            )}
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })
+                      ) : (
+                        !loadingContent && (
+                          <div className="text-center py-8">
+                            <p className="text-gray-600">{t("game.health.noContent")}</p>
                           </div>
                         )
-                      })
-                    ) : (
-                      !loadingContent && (
-                        <div className="text-center py-8">
-                          <p className="text-gray-600">{t("game.health.noContent")}</p>
-                        </div>
-                      )
-                    )}
+                      )}
+                    </div>
+                  )}
+                  <div className="flex justify-end pt-4">
+                    <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("game.health.close")}</Button>
                   </div>
-                )}
-                <div className="flex justify-end pt-4">
-                  <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("game.health.close")}</Button>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-          </div>
-        </CardContent>
-      </Card>
+              </DialogContent>
+            </Dialog>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
         <CardHeader>

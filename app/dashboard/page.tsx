@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { InfoCardsSection } from "@/components/info-cards-section"
 import { ContactForm } from "@/components/contact-form"
+import { HealthContent } from "@/components/health-content"
 interface GameStats {
   total_games: number
   wins: number
@@ -180,16 +181,30 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex justify-center mt-4">
-            <Button
-              variant="outline"
-              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
-              onClick={() => {
-                setAutoOpenHealth(true)
-                setHealthDialogOpen(true)
-              }}
-            >
-              Read Health Info <BookOpen className="ml-2 h-4 w-4" />
-            </Button>
+            <Dialog open={healthDialogOpen} onOpenChange={setHealthDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+                  onClick={() => {
+                    setAutoOpenHealth(true)
+                    setHealthDialogOpen(true)
+                  }}
+                >
+                  Read Health Info <BookOpen className="ml-2 h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[85vw] sm:w-[85vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
+                    {t("game.health.modalTitle")}
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="container mx-auto max-w-7xl px-4 md:px-6">
+                  <HealthContent autoOpen={autoOpenHealth} />
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           {loading ? (
@@ -402,9 +417,7 @@ export default function DashboardPage() {
               </DialogHeader>
                 <div className="container mx-auto max-w-7xl px-4 md:px-6">
                   <InfoCardsSection 
-                    healthDialogOpen={healthDialogOpen}
-                    onHealthDialogChange={setHealthDialogOpen}
-                    autoOpenHealth={autoOpenHealth}
+                    excludeHealthCard={true}
                   />
                 </div>
             </DialogContent>
