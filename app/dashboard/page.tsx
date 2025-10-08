@@ -186,7 +186,7 @@ export default function DashboardPage() {
                     {t("game.health.modalTitle")}
                   </DialogTitle>
                 </DialogHeader>
-                <div className="py-4">
+                <div className="container mx-auto max-w-7xl px-4 md:px-6">
                   <InfoCardsSection />
                 </div>
               </DialogContent>
