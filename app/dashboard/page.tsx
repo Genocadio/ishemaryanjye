@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
-import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight, Store, Mail } from "lucide-react"
+import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight, Store } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
@@ -60,6 +60,8 @@ export default function DashboardPage() {
   const { player, isAuthenticated, isLoading } = useHPOAuth()
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [healthDialogOpen, setHealthDialogOpen] = useState(false)
+  const [autoOpenHealth, setAutoOpenHealth] = useState(false)
 
   // Redirect unauthenticated users to home page
   useEffect(() => {
@@ -94,6 +96,13 @@ export default function DashboardPage() {
 
     fetchPlayerStats()
   }, [isAuthenticated, player])
+
+  // Reset autoOpenHealth after it's been used
+  useEffect(() => {
+    if (autoOpenHealth) {
+      setAutoOpenHealth(false)
+    }
+  }, [autoOpenHealth])
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -155,7 +164,7 @@ export default function DashboardPage() {
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-orange-500 px-6 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
-                  <Mail className="mr-2 h-4 w-4" />
+                  <img src="/cards/spades/A.webp" alt="Card" className="mr-2 h-4 w-4 object-contain" />
                   {t("contact.button")}
                 </Button>
               </DialogTrigger>
@@ -171,26 +180,16 @@ export default function DashboardPage() {
           </div>
           
           <div className="flex justify-center mt-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
-                >
-                  {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] sm:w-[90vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600 text-center">
-                    {t("game.health.modalTitle")}
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="container mx-auto max-w-7xl px-4 md:px-6">
-                  <InfoCardsSection />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button
+              variant="outline"
+              className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+              onClick={() => {
+                setAutoOpenHealth(true)
+                setHealthDialogOpen(true)
+              }}
+            >
+              Read Health Info <BookOpen className="ml-2 h-4 w-4" />
+            </Button>
           </div>
 
           {loading ? (
@@ -382,6 +381,34 @@ export default function DashboardPage() {
             </div>
           )}
 
+        </div>
+
+        {/* Learn More section at bottom */}
+        <div className="flex justify-center mt-12">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
+              >
+                {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[90vw] sm:w-[90vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600 text-center">
+                  {t("game.health.modalTitle")}
+                </DialogTitle>
+              </DialogHeader>
+                <div className="container mx-auto max-w-7xl px-4 md:px-6">
+                  <InfoCardsSection 
+                    healthDialogOpen={healthDialogOpen}
+                    onHealthDialogChange={setHealthDialogOpen}
+                    autoOpenHealth={autoOpenHealth}
+                  />
+                </div>
+            </DialogContent>
+          </Dialog>
         </div>
         </div>
       </main>

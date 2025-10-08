@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronRight, BookOpen, Mail } from "lucide-react"
+import { ChevronRight, BookOpen } from "lucide-react"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
@@ -94,30 +94,31 @@ export default function Home() {
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2 text-center">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none flex items-center justify-center gap-2">
+                  <h1 className="text-2xl sm:text-3xl md:text-5xl xl:text-6xl/none font-bold tracking-tighter flex items-center justify-center gap-2 px-2 sm:px-0">
                     <img 
                       src="/cards/spades/Q.webp" 
                       alt="Spade Q" 
-                      className="w-8 h-8 sm:w-10 sm:h-10 xl:w-12 xl:h-12 object-contain"
+                      className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 xl:w-12 xl:h-12 object-contain flex-shrink-0"
                     />
-                    {t("hero.title")}
+                    <span className="break-words">{t("hero.title")}</span>
                   </h1>
-                  <h2 className="text-xl font-bold tracking-tighter sm:text-3xl xl:text-4xl/none">
+                  <h2 className="text-lg sm:text-xl md:text-3xl xl:text-4xl/none font-bold tracking-tighter px-2 sm:px-0">
                     {t("hero.subtitle")}
                   </h2>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl mx-auto">{t("hero.description")}</p>
+                  <p className="max-w-[600px] text-gray-500 text-sm sm:text-base md:text-xl mx-auto px-4 sm:px-0">{t("hero.description")}</p>
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                  <div className="flex flex-row gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2 w-full max-w-md sm:max-w-none">
                     <motion.div
                       animate={{ scale: [1, 1, 1.06, 1] }}
                       transition={{ duration: 1.2, ease: "easeInOut", repeat: Infinity, repeatDelay: 2.5 }}
                       whileHover={{ scale: 1.06 }}
                       whileTap={{ scale: 0.95 }}
+                      className="w-full sm:w-auto"
                     >
                       <Link href="/game-selection">
-                        <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-12 text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50">
-                          {t("hero.playNow")} <ChevronRight className="ml-3 h-6 w-6 transition-transform duration-300 group-hover:translate-x-1" />
+                        <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-6 sm:px-12 text-base sm:text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50 w-full sm:w-auto">
+                          {t("hero.playNow")} <ChevronRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:translate-x-1" />
                         </Button>
                       </Link>
                     </motion.div>
@@ -125,9 +126,9 @@ export default function Home() {
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
-                          className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
+                          className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-4 sm:px-12 text-sm sm:text-lg font-semibold shadow-sm transition-colors duration-300 w-full sm:w-auto"
                         >
-                          {t("contact.button")} <Mail className="ml-3 h-6 w-6" />
+                          {t("contact.button")} <img src="/cards/spades/A.webp" alt="Card" className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 object-contain" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">

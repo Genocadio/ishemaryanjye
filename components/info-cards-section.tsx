@@ -39,13 +39,35 @@ interface GameContentItem {
   updated_at: string
 }
 
-export function InfoCardsSection() {
+interface InfoCardsSectionProps {
+  healthDialogOpen?: boolean
+  onHealthDialogChange?: (open: boolean) => void
+  autoOpenHealth?: boolean
+}
+
+export function InfoCardsSection({ 
+  healthDialogOpen, 
+  onHealthDialogChange, 
+  autoOpenHealth = false 
+}: InfoCardsSectionProps = {}) {
   const { t, language } = useLanguage()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
   const [loadingContent, setLoadingContent] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
   const [expandedSubtopics, setExpandedSubtopics] = useState<Set<string>>(new Set())
+
+  // Use external dialog state if provided, otherwise use internal state
+  const dialogOpen = healthDialogOpen !== undefined ? healthDialogOpen : isDialogOpen
+  const setDialogOpen = onHealthDialogChange || setIsDialogOpen
+
+  // Auto-open health dialog and fetch content if requested
+  useEffect(() => {
+    if (autoOpenHealth) {
+      fetchGameContent()
+      setDialogOpen(true)
+    }
+  }, [autoOpenHealth])
 
   const formatInlineTextToReact = (text: string, keyPrefix: string) => {
     if (!text) return text
@@ -290,13 +312,13 @@ export function InfoCardsSection() {
         <CardContent className="flex flex-col flex-grow">
           <p className="text-gray-600 mb-6 flex-grow">{t("game.health.description")}</p>
           <div className="mt-auto">
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 className="w-full bg-green-600 hover:bg-green-700"
                 onClick={() => {
                   fetchGameContent()
-                  setIsDialogOpen(true)
+                  setDialogOpen(true)
                 }}
               >
                 {t("game.health.button")}
@@ -421,7 +443,7 @@ export function InfoCardsSection() {
                   </div>
                 )}
                 <div className="flex justify-end pt-4">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t("game.health.close")}</Button>
+                  <Button variant="outline" onClick={() => setDialogOpen(false)}>{t("game.health.close")}</Button>
                 </div>
               </div>
             </DialogContent>

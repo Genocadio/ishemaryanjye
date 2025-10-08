@@ -542,3 +542,233 @@ https://nextjs.org/docs/messages/module-not-found
 
 > Build failed because of webpack errors
  ELIFECYCLE  Command failed with exit code 1.
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.5:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 132ms
+ ✓ Ready in 1677ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.4s
+ GET / 200 in 2717ms
+ GET / 200 in 194ms
+ ○ Compiling /icon0.svg ...
+ GET /manifest.webmanifest 200 in 668ms
+ ✓ Compiled /icon0.svg in 814ms
+ GET /icons/icon-512x512.png 404 in 757ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 934ms
+ ✓ Compiled in 183ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 762ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.2svk46gs33j'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.2svk46gs33j'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.wbc0iifp61'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.wbc0iifp61'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.4e0xa381ze5'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.4e0xa381ze5'
+}
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.5:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 117ms
+ ✓ Ready in 1405ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.1s
+ GET / 200 in 2342ms
+ GET / 200 in 108ms
+ ○ Compiling /icon0.svg ...
+ GET /manifest.webmanifest 200 in 588ms
+ ✓ Compiled /icon0.svg in 734ms
+ GET /icons/icon-512x512.png 404 in 712ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 933ms
+ ✓ Compiled in 144ms
+ ✓ Compiled in 118ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1177ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.hsnz4nbvdcl'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.hsnz4nbvdcl'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.kcfhzkboo8'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.kcfhzkboo8'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.hj5yw48ud1q'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.hj5yw48ud1q'
+}
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.5:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 113ms
+ ✓ Ready in 1366ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2s
+ GET / 200 in 2355ms
+ GET / 200 in 258ms
+ ○ Compiling /icon0.svg ...
+ GET /manifest.webmanifest 200 in 744ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 923ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 935ms
+ ✓ Compiled /icon0.svg in 945ms
+ GET /icons/icon-512x512.png 404 in 931ms
+ GET / 200 in 68ms
+ GET /manifest.webmanifest 200 in 34ms
+ GET /icons/icon-512x512.png 404 in 92ms
+ GET / 200 in 96ms
+ GET / 200 in 58ms
+ GET /manifest.webmanifest 200 in 39ms
+ GET / 200 in 96ms
+ GET /icons/icon-512x512.png 404 in 93ms
+ ✓ Compiled in 237ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 76ms
+ GET / 200 in 337ms
+ GET /manifest.webmanifest 200 in 52ms
+ GET /icons/icon-512x512.png 404 in 119ms
+ GET / 200 in 122ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 881ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.y10310x2y9m'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.y10310x2y9m'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.jct17f0phc'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.jct17f0phc'
+}
+[Error: ENOENT: no such file or directory, open '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.panh8mxjq28'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/MacBook/projects/frontend/ishemaryanjye/.next/static/development/_buildManifest.js.tmp.panh8mxjq28'
+}
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.5:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 110ms
+ ✓ Ready in 1371ms
+ ○ Compiling / ...
+ ✓ Compiled / in 1912ms
+ GET / 200 in 2285ms
+ GET / 200 in 114ms
+ ○ Compiling /_not-found/page ...
+ GET /manifest.webmanifest 200 in 709ms
+ ✓ Compiled /_not-found/page in 717ms
+ GET /icons/icon-512x512.png 404 in 763ms
+ ✓ Compiled /api/game-content in 325ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 2272ms
+ ✓ Compiled in 133ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 2307ms
+ ✓ Compiled in 147ms
+ ✓ Compiled in 206ms
+ ✓ Compiled in 89ms
+ ✓ Compiled in 169ms

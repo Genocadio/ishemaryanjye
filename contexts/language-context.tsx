@@ -624,7 +624,7 @@ const translations: Record<Language, TranslationKeys> = {
     // Contact Form
     "contact.title": "Request Physical Cards",
     "contact.description": "Get physical Ishema Ryanjye cards delivered to your address for personal, teaching, or leisure use.",
-    "contact.button": "Request Cards",
+    "contact.button": "Request Physical Cards",
     "contact.form.title": "Request Physical Cards",
     "contact.form.requestType": "Request Type",
     "contact.form.person": "Individual",
