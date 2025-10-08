@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronRight, BookOpen } from "lucide-react"
+import { ChevronRight, BookOpen, Mail } from "lucide-react"
 import { LanguageSelector } from "@/components/language-selector"
 import { useLanguage } from "@/contexts/language-context"
 import { useState, useEffect } from "react"
@@ -14,6 +14,8 @@ import { SupportChat } from "@/components/support-chat"
 import { motion, AnimatePresence } from "framer-motion"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
 import { InfoCardsSection } from "@/components/info-cards-section"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { ContactForm } from "@/components/contact-form"
 
 export default function Home() {
   const { t, language } = useLanguage()
@@ -119,12 +121,24 @@ export default function Home() {
                         </Button>
                       </Link>
                     </motion.div>
-                    <Link href="/info"><Button
-                      variant="outline"
-                      className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
-                    >
-                      {t("hero.learnMore")} <BookOpen className="ml-3 h-6 w-6" />
-                    </Button></Link>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="inline-flex h-14 items-center justify-center rounded-xl border border-input bg-background px-12 text-lg font-semibold shadow-sm transition-colors duration-300"
+                        >
+                          {t("contact.button")} <Mail className="ml-3 h-6 w-6" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
+                            {t("contact.form.title")}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <ContactForm />
+                      </DialogContent>
+                    </Dialog>
                   </div>
                   {/* Services button removed per request */}
                 </div>

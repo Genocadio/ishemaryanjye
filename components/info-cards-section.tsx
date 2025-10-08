@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader as UIDialogHeader, DialogTitle as UIDialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -239,21 +240,22 @@ export function InfoCardsSection() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center md:justify-items-stretch">
-      <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0">
+      <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0 flex flex-col h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <Info className="h-5 w-5" />
             {t("game.rules.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-6">{t("game.rules.description")}</p>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-full bg-green-600 hover:bg-green-700">
-                {t("game.rules.button")}
-              </Button>
-            </DialogTrigger>
+        <CardContent className="flex flex-col flex-grow">
+          <p className="text-gray-600 mb-6 flex-grow">{t("game.rules.description")}</p>
+          <div className="mt-auto">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  {t("game.rules.button")}
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
               <UIDialogHeader>
                 <UIDialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">{t("game.rules.title")}</UIDialogTitle>
@@ -274,18 +276,20 @@ export function InfoCardsSection() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <Heart className="h-5 w-5" />
             {t("game.health.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-6">{t("game.health.description")}</p>
+        <CardContent className="flex flex-col flex-grow">
+          <p className="text-gray-600 mb-6 flex-grow">{t("game.health.description")}</p>
+          <div className="mt-auto">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button
@@ -352,14 +356,6 @@ export function InfoCardsSection() {
                                           )}
                                           <div>
                                             <h4 className="font-medium text-gray-800">{subtopicName}</h4>
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{originalContent.language}</span>
-                                              <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">{originalContent.age_group}</span>
-                                              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">{originalContent.difficulty_level}</span>
-                                              {subtopicData.is_primary && (
-                                                <span className="bg-green-200 text-green-800 px-1.5 py-0.5 rounded text-xs">{t("game.health.primary")}</span>
-                                              )}
-                                            </div>
                                           </div>
                                         </div>
                                       </button>
@@ -430,18 +426,20 @@ export function InfoCardsSection() {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <BookOpen className="h-5 w-5" />
             {t("game.cards.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-gray-600 mb-6">{t("game.cards.description")}</p>
+        <CardContent className="flex flex-col flex-grow">
+          <p className="text-gray-600 mb-6 flex-grow">{t("game.cards.description")}</p>
+          <div className="mt-auto">
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full bg-green-600 hover:bg-green-700">{t("game.cards.button")}</Button>
@@ -453,10 +451,28 @@ export function InfoCardsSection() {
               <CardViewer />
             </DialogContent>
           </Dialog>
+          </div>
         </CardContent>
       </Card>
 
-      <ContactForm />
+      <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-600">
+            <BookOpen className="h-5 w-5" />
+            {t("hero.learnMore")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col flex-grow">
+          <p className="text-gray-600 mb-6 flex-grow">More on Ishemaryanjye</p>
+          <div className="mt-auto">
+            <Link href="/info">
+              <Button className="w-full bg-green-600 hover:bg-green-700">
+                {t("hero.learnMore")} <BookOpen className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

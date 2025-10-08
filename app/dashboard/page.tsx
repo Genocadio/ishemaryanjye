@@ -151,6 +151,15 @@ export default function DashboardPage() {
                     {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                   </Link>
+            <Link href="/premium">
+              <Button className="inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-orange-500 px-6 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
+                <Store className="mr-2 h-4 w-4" />
+                Get More
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="flex justify-center mt-4">
             <Dialog>
               <DialogTrigger asChild>
                 <Button
@@ -171,15 +180,6 @@ export default function DashboardPage() {
                 </div>
               </DialogContent>
             </Dialog>
-          </div>
-          
-          <div className="flex justify-center mt-4">
-            <Link href="/premium">
-              <Button className="inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-orange-500 px-6 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
-                <Store className="mr-2 h-4 w-4" />
-                Get Premium Offer
-              </Button>
-            </Link>
           </div>
 
           {loading ? (

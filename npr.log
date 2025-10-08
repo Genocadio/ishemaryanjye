@@ -285,3 +285,176 @@ Error fetching game content: TypeError: fetch failed
  ✓ Compiled in 26ms
  GET / 200 in 100ms
  ✓ Compiled in 125ms
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m Running script: build
+[0;36m[INFO][0m Executing: pnpm run build
+
+> ishemaryanjye@0.1.0 build /Users/MacBook/projects/frontend/ishemaryanjye
+> next build
+
+   ▲ Next.js 15.3.0
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/19) ...
+   Generating static pages (4/19) 
+   Generating static pages (9/19) 
+   Generating static pages (14/19) 
+ ✓ Generating static pages (19/19)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    3.73 kB         217 kB
+├ ○ /_not-found                            975 B         103 kB
+├ ƒ /api/game-content                      145 B         102 kB
+├ ○ /apple-icon.png                          0 B            0 B
+├ ○ /auth                                5.22 kB         171 kB
+├ ○ /connect                             4.32 kB         160 kB
+├ ○ /dashboard                           4.96 kB         182 kB
+├ ○ /game                                24.1 kB         232 kB
+├ ○ /game-selection                      4.18 kB         160 kB
+├ ○ /icon0.svg                               0 B            0 B
+├ ○ /icon1.png                               0 B            0 B
+├ ○ /info                                 4.8 kB         176 kB
+├ ○ /manifest.webmanifest                  145 B         102 kB
+├ ○ /multiplayer                         19.9 kB         228 kB
+├ ○ /premium                             6.05 kB         208 kB
+└ ○ /profile                             4.41 kB         170 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/454-110a8a60fd2ae1c1.js       46.7 kB
+  ├ chunks/ee239c0f-05e8353fda495b9a.js  53.2 kB
+  └ other shared chunks (total)          1.92 kB
+
+
+ƒ Middleware                             33.2 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+[0;36m[INFO][0m Detected pnpm (pnpm-lock.yaml found)
+[0;36m[INFO][0m Using package manager: pnpm
+[0;36m[INFO][0m No arguments provided, running 'dev' script...
+[0;36m[INFO][0m Running script: dev
+[0;36m[INFO][0m Executing: pnpm run dev
+
+> ishemaryanjye@0.1.0 dev /Users/MacBook/projects/frontend/ishemaryanjye
+> next dev --turbopack
+
+   ▲ Next.js 15.3.0 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.5:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 111ms
+ ✓ Ready in 1692ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2.3s
+ GET / 200 in 2586ms
+ GET / 200 in 84ms
+ ○ Compiling /icon0.svg ...
+ GET /manifest.webmanifest 200 in 564ms
+ ✓ Compiled /icon0.svg in 693ms
+ GET /icons/icon-512x512.png 404 in 664ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 787ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 795ms
+ ○ Compiling /info ...
+ ✓ Compiled /info in 668ms
+ GET /info 200 in 719ms
+ ○ Compiling /auth ...
+ ✓ Compiled /auth in 765ms
+ GET /auth 200 in 818ms
+ POST /undefined/api/v1/auth/login 404 in 68ms
+ GET / 200 in 42ms
+ ✓ Compiled /api/game-content in 319ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 4563ms
+ GET /info 200 in 50ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1485ms
+ ✓ Compiled in 137ms
+ ✓ Compiled in 141ms
+ ○ Compiling /game-selection ...
+ ✓ Compiled /game-selection in 624ms
+ GET /game-selection 200 in 654ms
+ GET / 200 in 109ms
+ GET / 200 in 37ms
+ GET /info 200 in 51ms
+ ✓ Compiled in 289ms
+ ✓ Compiled in 177ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 146ms
+ GET / 200 in 265ms
+ GET /manifest.webmanifest 200 in 44ms
+ GET / 200 in 94ms
+ GET /icons/icon-512x512.png 404 in 91ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 141ms
+ GET / 200 in 146ms
+ GET /manifest.webmanifest 200 in 34ms
+ GET /icons/icon-512x512.png 404 in 84ms
+ GET / 200 in 88ms
+ ✓ Compiled in 132ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled in 165ms
+ GET / 200 in 149ms
+ GET /manifest.webmanifest 200 in 45ms
+ GET / 200 in 103ms
+ GET /icons/icon-512x512.png 404 in 102ms
+ GET /info 200 in 53ms
+ ✓ Compiled in 139ms
+ ✓ Compiled in 144ms
+ ✓ Compiled in 132ms
+ ✓ Compiled in 358ms
+ ✓ Compiled in 180ms
+ ✓ Compiled / in 56ms
+ GET / 200 in 352ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 276ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 279ms
+ GET /info 200 in 78ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 266ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 295ms
+ ○ Compiling /premium ...
+ ✓ Compiled /premium in 2.2s
+ GET /premium 200 in 1279ms
+ GET /premium 200 in 2294ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 273ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 275ms
+ GET / 200 in 48ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 260ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 272ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1454ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=french
+Successfully fetched content, count: 0
+ GET /api/game-content?language=french 200 in 1660ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1157ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=french
+Successfully fetched content, count: 0
+ GET /api/game-content?language=french 200 in 1722ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1216ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1380ms
+Fetching from backend: https://admin.hporwanda.org/api/game-content/?language=english
+Successfully fetched content, count: 6
+ GET /api/game-content?language=english 200 in 1150ms
+ ✓ Compiled in 197ms
+ GET / 200 in 201ms
+ GET /manifest.webmanifest 200 in 38ms
+ GET / 200 in 81ms
+ GET /icons/icon-512x512.png 404 in 101ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 243ms
+ GET /icon0.svg?icon0.28a61004.svg 200 in 240ms
