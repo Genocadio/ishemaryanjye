@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/language-context"
-import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight, Store } from "lucide-react"
+import { Trophy, Award, Target, BarChart2, Calendar, Clock, Brain, Zap, ArrowLeft, UserCircle, ArrowRight, BookOpen, ChevronRight, Store, Mail } from "lucide-react"
 import { Header } from "@/components/layout/header"
 import { useEffect, useState } from "react"
 import { useHPOAuth } from "@/contexts/hpo-auth-context"
@@ -14,6 +14,7 @@ import { SupportChat } from "@/components/support-chat"
 import { useRouter } from "next/navigation"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { InfoCardsSection } from "@/components/info-cards-section"
+import { ContactForm } from "@/components/contact-form"
 interface GameStats {
   total_games: number
   wins: number
@@ -151,12 +152,22 @@ export default function DashboardPage() {
                     {t("hero.playNow")} <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                   </Link>
-            <Link href="/premium">
-              <Button className="inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-orange-500 px-6 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
-                <Store className="mr-2 h-4 w-4" />
-                Get More
-              </Button>
-            </Link>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button className="inline-flex h-10 items-center justify-center rounded-md bg-gradient-to-r from-yellow-500 to-orange-500 px-6 text-sm font-medium text-white shadow-lg transition-all duration-300 hover:from-yellow-600 hover:to-orange-600 hover:shadow-xl">
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t("contact.button")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-[80vw] sm:w-[80vw] max-h-[90vh] h-[90vh] sm:max-h-[85vh] sm:h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-xl sm:text-2xl font-bold mb-4 text-green-600">
+                    {t("contact.form.title")}
+                  </DialogTitle>
+                </DialogHeader>
+                <ContactForm />
+              </DialogContent>
+            </Dialog>
           </div>
           
           <div className="flex justify-center mt-4">

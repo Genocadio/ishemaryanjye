@@ -240,7 +240,7 @@ export function InfoCardsSection() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 justify-items-center md:justify-items-stretch">
-      <Card className="hover:shadow-lg transition-shadow duration-300 w-full max-w-sm mx-auto md:max-w-none md:mx-0 flex flex-col h-full">
+      <Card className="hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-600">
             <Info className="h-5 w-5" />
