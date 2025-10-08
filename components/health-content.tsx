@@ -35,10 +35,10 @@ interface GameContentItem {
 }
 
 interface HealthContentProps {
-  autoOpen?: boolean
+  // Remove autoOpen prop since we'll always fetch content
 }
 
-export function HealthContent({ autoOpen = false }: HealthContentProps) {
+export function HealthContent({}: HealthContentProps = {}) {
   const { t, language } = useLanguage()
   const [gameContent, setGameContent] = useState<GameContentItem[]>([])
   const [loadingContent, setLoadingContent] = useState(false)
@@ -165,14 +165,19 @@ export function HealthContent({ autoOpen = false }: HealthContentProps) {
     try {
       setLoadingContent(true)
       const apiLanguage = getApiLanguage(language)
+      console.log('HealthContent: Fetching content for language:', apiLanguage)
       const response = await fetch(`/api/game-content?language=${apiLanguage}`)
       const data = await response.json()
+      console.log('HealthContent: API response:', data)
       if (data.success && data.content && data.content.length > 0) {
+        console.log('HealthContent: Setting content, count:', data.content.length)
         setGameContent(data.content)
       } else {
+        console.log('HealthContent: No content, trying fallback to English')
         if (apiLanguage !== 'english') {
           const fallbackResponse = await fetch('/api/game-content?language=english')
           const fallbackData = await fallbackResponse.json()
+          console.log('HealthContent: Fallback response:', fallbackData)
           if (fallbackData.success) {
             setGameContent(fallbackData.content)
           } else {
@@ -183,6 +188,7 @@ export function HealthContent({ autoOpen = false }: HealthContentProps) {
         }
       }
     } catch (error) {
+      console.error('HealthContent: Error fetching content:', error)
       toast.error('Error loading content')
     } finally {
       setLoadingContent(false)
@@ -204,12 +210,11 @@ export function HealthContent({ autoOpen = false }: HealthContentProps) {
     setExpandedSubtopics(newExpanded)
   }
 
-  // Auto-fetch content when component mounts if autoOpen is true
+  // Fetch content when component mounts and when language changes
   useEffect(() => {
-    if (autoOpen) {
-      fetchGameContent()
-    }
-  }, [autoOpen])
+    console.log('HealthContent: Component mounted or language changed, fetching content')
+    fetchGameContent()
+  }, [language])
 
   return (
     <div className="space-y-4">

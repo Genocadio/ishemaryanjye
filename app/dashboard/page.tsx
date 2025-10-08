@@ -62,7 +62,6 @@ export default function DashboardPage() {
   const [playerStats, setPlayerStats] = useState<PlayerStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [healthDialogOpen, setHealthDialogOpen] = useState(false)
-  const [autoOpenHealth, setAutoOpenHealth] = useState(false)
 
   // Redirect unauthenticated users to home page
   useEffect(() => {
@@ -98,12 +97,6 @@ export default function DashboardPage() {
     fetchPlayerStats()
   }, [isAuthenticated, player])
 
-  // Reset autoOpenHealth after it's been used
-  useEffect(() => {
-    if (autoOpenHealth) {
-      setAutoOpenHealth(false)
-    }
-  }, [autoOpenHealth])
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -186,10 +179,6 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8"
-                  onClick={() => {
-                    setAutoOpenHealth(true)
-                    setHealthDialogOpen(true)
-                  }}
                 >
                   Read Health Info <BookOpen className="ml-2 h-4 w-4" />
                 </Button>
@@ -201,7 +190,7 @@ export default function DashboardPage() {
                   </DialogTitle>
                 </DialogHeader>
                 <div className="container mx-auto max-w-7xl px-4 md:px-6">
-                  <HealthContent autoOpen={autoOpenHealth} />
+                  <HealthContent />
                 </div>
               </DialogContent>
             </Dialog>
