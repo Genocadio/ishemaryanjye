@@ -43,12 +43,12 @@ export function SupportChat() {
   const chatWindowRef = useRef<HTMLDivElement>(null)
   const isResizing = useRef(false)
 
-  const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
-  const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
+  // const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
+  // const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
 
   // urls for test
-  // const apiUrl = 'http://localhost:8000/chat-bot/'
-  // const botConfigurationUrl = 'http://localhost:8000/chat-bot-config/'
+  const apiUrl = 'http://localhost:8000/chat-bot/'
+  const botConfigurationUrl = 'http://localhost:8000/chat-bot-config/'
 
   // Helper function to map language to bot language
   const getBotLanguage = (userLanguage: string) => {
@@ -190,44 +190,104 @@ export function SupportChat() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const currentInput = input
     setInput("")
     setIsLoading(true)
     setIsTyping(true)
 
+    // Create a placeholder for the bot response
+    const botMessageId = (Date.now() + 1).toString()
+    const botMessage: Message = {
+      id: botMessageId,
+      text: "",
+      sender: "support",
+      timestamp: Date.now(),
+    }
+    
+    setMessages((prev) => [...prev, botMessage])
+
     try {
+      // Convert conversation history to new messages format
+      const messagesHistory = [...messages, userMessage].map(msg => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text
+      }))
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          last_prompt: input,
-          conversation_history: messages.map(msg => ({
-            role: msg.sender === "user" ? "user" : "assistant",
-            content: msg.text
-          })),
+          messages: messagesHistory,
           language: getBotLanguage(language)
         })
       })
 
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success) {
-          const supportMessage: Message = {
-            id: (Date.now() + 1).toString(),
-            text: data.result,
-            sender: "support",
-            timestamp: Date.now(),
-          }
-          setMessages((prev) => [...prev, supportMessage])
-        } else {
-          throw new Error("Failed to get response from bot")
-        }
-      } else {
+      if (!response.ok) {
         throw new Error("Failed to get response from bot")
       }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedText = ""
+
+      if (reader) {
+        setIsTyping(false) // Stop typing indicator when streaming starts
+        
+        while (true) {
+          const { done, value } = await reader.read()
+          
+          if (done) break
+          
+          // Decode the chunk
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n')
+          
+          for (const line of lines) {
+            if (line.trim() === '') continue
+            
+            try {
+              // Parse JSON chunk
+              const jsonChunk = JSON.parse(line)
+              
+              if (jsonChunk.content) {
+                accumulatedText += jsonChunk.content
+                
+                // Update the bot message in real-time
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === botMessageId
+                      ? { ...msg, text: accumulatedText }
+                      : msg
+                  )
+                )
+              }
+              
+              // Check if streaming is complete
+              if (jsonChunk.done) {
+                break
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+              console.warn("Failed to parse chunk:", line)
+            }
+          }
+        }
+      }
+
+      // If no content was received, show error
+      if (accumulatedText.trim() === "") {
+        throw new Error("No response received from bot")
+      }
+
     } catch (error) {
+      console.error("Error in handleSendMessage:", error)
       setError("Failed to get response from bot")
+      
+      // Remove the empty bot message if there was an error
+      setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId))
     } finally {
       setIsLoading(false)
       setIsTyping(false)
@@ -303,7 +363,7 @@ export function SupportChat() {
         >
           <div className="bg-green-600 text-white p-3 flex justify-between items-center">
             <div>
-              <h3 className="font-medium">Support Chat</h3>
+              <h3 className="font-medium">ISHEMA RYANJYE Support</h3>
               <div className="flex items-center gap-2 mt-1">
                 <div className={`w-2 h-2 rounded-full ${botConfig?.botStatus === 1 ? 'bg-green-400' : 'bg-gray-400'}`} />
                 <span className="text-xs">{botConfig?.botStatus === 1 ? 'Online' : 'Offline'}</span>
