@@ -46,6 +46,10 @@ export function SupportChat() {
   const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
   const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
 
+  // urls for test
+  // const apiUrl = 'http://localhost:8000/chat-bot/'
+  // const botConfigurationUrl = 'http://localhost:8000/chat-bot-config/'
+
   // Helper function to map language to bot language
   const getBotLanguage = (userLanguage: string) => {
     // If language is English or French, use English for the bot
