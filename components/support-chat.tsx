@@ -39,6 +39,7 @@ export function SupportChat() {
   const [error, setError] = useState("")
   const [botConfig, setBotConfig] = useState<BotConfig | null>(null)
   const [isTyping, setIsTyping] = useState(false)
+  const [showStartupButtons, setShowStartupButtons] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatWindowRef = useRef<HTMLDivElement>(null)
   const isResizing = useRef(false)
@@ -142,8 +143,16 @@ export function SupportChat() {
       }
       setMessages([welcomeMessage])
       setHasShownWelcome(true)
+      setShowStartupButtons(true) // Show buttons with welcome message
     }
   }, [isOpen, hasShownWelcome, messages.length, botConfig])
+
+  // Hide startup buttons when user sends a message
+  useEffect(() => {
+    if (messages.length > 1) {
+      setShowStartupButtons(false)
+    }
+  }, [messages])
 
   // Reset welcome message and chat when language changes to get new language-specific content
   useEffect(() => {
@@ -175,6 +184,125 @@ export function SupportChat() {
       }
     } catch (error) {
       setError("Failed to load bot configuration")
+    }
+  }
+
+  const handleButtonClick = async (buttonPrompt: string) => {
+    // Hide buttons immediately
+    setShowStartupButtons(false)
+    
+    // Set the input to the button prompt and trigger message send
+    setInput(buttonPrompt)
+    
+    // Create user message
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      text: buttonPrompt,
+      sender: "user",
+      timestamp: Date.now(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setIsLoading(true)
+    setIsTyping(true)
+
+    // Create a placeholder for the bot response
+    const botMessageId = (Date.now() + 1).toString()
+    const botMessage: Message = {
+      id: botMessageId,
+      text: "",
+      sender: "support",
+      timestamp: Date.now(),
+    }
+    
+    setMessages((prev) => [...prev, botMessage])
+
+    try {
+      // Convert conversation history to new messages format
+      const messagesHistory = [...messages, userMessage].map(msg => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text
+      }))
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messages: messagesHistory,
+          language: getBotLanguage(language)
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from bot")
+      }
+
+      // Handle streaming response
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedText = ""
+
+      if (reader) {
+        setIsTyping(false) // Stop typing indicator when streaming starts
+        
+        while (true) {
+          const { done, value } = await reader.read()
+          
+          if (done) break
+          
+          // Decode the chunk
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n')
+          
+          for (const line of lines) {
+            if (line.trim() === '') continue
+            
+            try {
+              // Parse JSON chunk
+              const jsonChunk = JSON.parse(line)
+              
+              if (jsonChunk.content) {
+                accumulatedText += jsonChunk.content
+                
+                // Update the bot message in real-time
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === botMessageId
+                      ? { ...msg, text: accumulatedText }
+                      : msg
+                  )
+                )
+              }
+              
+              // Check if streaming is complete
+              if (jsonChunk.done) {
+                break
+              }
+            } catch (e) {
+              // Skip invalid JSON lines
+              console.warn("Failed to parse chunk:", line)
+            }
+          }
+        }
+      }
+
+      // If no content was received, show error
+      if (accumulatedText.trim() === "") {
+        throw new Error("No response received from bot")
+      }
+
+    } catch (error) {
+      console.error("Error in handleButtonClick:", error)
+      setError("Failed to get response from bot")
+      
+      // Remove the empty bot message if there was an error
+      setMessages((prev) => prev.filter((msg) => msg.id !== botMessageId))
+    } finally {
+      setIsLoading(false)
+      setIsTyping(false)
+      setInput("") // Clear input
     }
   }
 
@@ -358,7 +486,7 @@ export function SupportChat() {
       {isOpen && (
         <div 
           ref={chatWindowRef}
-          className="bg-white rounded-lg shadow-lg w-80 sm:w-96 mb-2 flex flex-col border border-gray-200 overflow-hidden relative"
+          className="bg-white rounded-lg shadow-lg w-[90vw] sm:w-[460px] mb-2 flex flex-col border border-gray-200 overflow-hidden relative"
           style={{ minWidth: '250px' }}
         >
           <div className="bg-green-600 text-white p-3 flex justify-between items-center">
@@ -382,7 +510,23 @@ export function SupportChat() {
             </div>
           </div>
 
-          <div className="flex-1 p-3 overflow-y-auto max-h-80 min-h-[320px] bg-gray-50">
+          <div className="flex-1 p-3 overflow-y-auto max-h-[500px] min-h-[390px] sm:max-h-[500px] sm:min-h-[415px] bg-gray-50">
+            {showStartupButtons && botConfig?.commonButtons && messages.length === 1 && (
+              <div className="mb-3">
+                <div className="flex flex-wrap gap-1.5 max-w-full">
+                  {botConfig.commonButtons.map((button, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleButtonClick(button.buttonPrompt)}
+                      disabled={isLoading}
+                      className="bg-gray-200 text-gray-800 border border-green-500 font-medium py-1.5 px-2.5 rounded-md transition-all duration-200 hover:bg-green-50 hover:border-green-600 active:bg-green-100 shadow-sm text-xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      {button.buttonText}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {messages.map((message) => (
               <div
                 key={message.id}
