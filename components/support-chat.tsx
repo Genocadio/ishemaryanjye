@@ -44,12 +44,12 @@ export function SupportChat() {
   const chatWindowRef = useRef<HTMLDivElement>(null)
   const isResizing = useRef(false)
 
-  // const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
-  // const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
+  const apiUrl = 'https://ishema-bot-backend.onrender.com/chat-bot/'
+  const botConfigurationUrl = 'https://ishema-bot-backend.onrender.com/chat-bot-config/'
 
   // urls for test
-  const apiUrl = 'http://localhost:8000/chat-bot/'
-  const botConfigurationUrl = 'http://localhost:8000/chat-bot-config/'
+  // const apiUrl = 'http://localhost:8000/chat-bot/'
+  // const botConfigurationUrl = 'http://localhost:8000/chat-bot-config/'
 
   // Helper function to map language to bot language
   const getBotLanguage = (userLanguage: string) => {
