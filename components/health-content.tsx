@@ -5,6 +5,7 @@ import { useLanguage } from "@/contexts/language-context"
 import { Button } from "@/components/ui/button"
 import { ChevronDown, ChevronRight as ChevronRightIcon, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { renderContent } from "@/lib/utils/htmlContent"
 
 interface Subtopic {
   subtopic: string
@@ -271,7 +272,7 @@ export function HealthContent({}: HealthContentProps = {}) {
                             {expandedSubtopics.has(subtopicKey) && (
                               <div className="px-4 pb-4 bg-white">
                                 <div className="pl-7 space-y-4">
-                                  <div className="text-gray-700 leading-relaxed">{formatText(subtopicData.info)}</div>
+                                  {renderContent(subtopicData.info, formatText, "text-gray-700 leading-relaxed")}
                                   {items
                                     .filter((content: any) => content.info !== subtopicData.info || content.title || (content.tags && content.tags.length > 0))
                                     .map((content: any, itemIndex: number) => (
@@ -280,7 +281,7 @@ export function HealthContent({}: HealthContentProps = {}) {
                                           <h5 className="font-medium text-gray-800 mb-2">{content.title}</h5>
                                         )}
                                         {content.info !== subtopicData.info && (
-                                          <div className="text-sm text-gray-600 mb-2">{formatText(content.info)}</div>
+                                          renderContent(content.info, formatText, "text-sm text-gray-600 mb-2")
                                         )}
                                         {content.tags && content.tags.length > 0 && (
                                           <div className="mb-2">

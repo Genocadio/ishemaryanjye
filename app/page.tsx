@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChevronRight, BookOpen } from "lucide-react"
@@ -116,11 +115,18 @@ export default function Home() {
                       whileTap={{ scale: 0.95 }}
                       className="w-full sm:w-auto"
                     >
-                      <Link href="/game-selection">
-                        <Button className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-6 sm:px-12 text-base sm:text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50 w-full sm:w-auto">
-                          {t("hero.playNow")} <ChevronRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:translate-x-1" />
-                        </Button>
-                      </Link>
+                      <Button 
+                        onClick={() => {
+                          if (isAuthenticated) {
+                            router.push('/game-selection')
+                          } else {
+                            router.push('/auth?redirectTo=/game-selection')
+                          }
+                        }}
+                        className="group inline-flex h-14 items-center justify-center rounded-xl bg-green-600 px-6 sm:px-12 text-base sm:text-lg font-semibold text-white shadow-lg transition-colors duration-300 ease-out hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 disabled:pointer-events-none disabled:opacity-50 w-full sm:w-auto"
+                      >
+                        {t("hero.playNow")} <ChevronRight className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:translate-x-1" />
+                      </Button>
                     </motion.div>
                     <Dialog>
                       <DialogTrigger asChild>
